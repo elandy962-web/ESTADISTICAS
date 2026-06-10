@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Estadísticas VIP v21 · Control Móvil</title>
+<title>Estadísticas</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -25,105 +25,151 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-body { background: var(--bg-app); color: var(--text-main); padding-bottom: 75px; overflow-x: hidden; }
+body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px; overflow-x: hidden; }
 
-#app-content { display: block; }
+/* PANTALLA DE BIENVENIDA ACCESIBLE */
+#welcome-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, var(--primary) 0%, var(--bg-dark) 100%); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; color: white; }
+.welcome-card { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); padding: 35px 24px; border-radius: 20px; max-width: 360px; width: 100%; backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+.welcome-card h1 { font-size: 26px; font-weight: 900; letter-spacing: 1px; margin-top: 10px; text-transform: uppercase; color: #FFF; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.welcome-card p { font-size: 13px; color: #B5D4F4; margin: 15px 0 30px 0; line-height: 1.5; padding: 0 10px; }
+.btn-welcome-next { background: var(--accent); color: white; border: none; font-weight: 800; font-size: 15px; height: 50px; padding: 0 30px; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 159, 39, 0.4); width: 100%; justify-content: center; }
 
-.topbar { background: var(--primary); padding: 10px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.topbar-title { color: #E6F1FB; font-size: 14px; font-weight: 700; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.topbar-badge { background: var(--primary-light); color: #B5D4F4; font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 20px; border: 1px solid #378ADD; flex-shrink: 0; }
+/* Pantalla de Autenticación */
+#login-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--primary); z-index: 99998; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; }
+.login-box { background: white; padding: 28px 20px; border-radius: 16px; width: 100%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
+.login-box h2 { font-size: 22px; color: var(--primary); font-weight: 800; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.login-box p { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; padding: 0 10px; }
+.login-box input { width: 100%; height: 44px; padding: 0 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; color: var(--text-main); outline: none; box-sizing: border-box; }
+.login-box input:focus { border-color: var(--primary-light); }
+.login-box button { width: 100%; height: 44px; background: var(--accent); color: white; border: none; font-weight: 700; font-size: 14px; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
 
-.nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); display: flex; justify-content: space-around; border-top: 1px solid var(--primary-light); z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); height: 56px; }
-.nb { flex: 1; text-align: center; font-size: 9px; padding: 4px 0; border: none; background: none; color: #85B7EB; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; transition: 0.2s; -webkit-tap-highlight-color: transparent; cursor: pointer; }
-.nb i { font-size: 18px; }
+/* Indicador de red Offline */
+#offline-indicator { background: #EA580C; color: white; text-align: center; font-size: 11px; font-weight: bold; padding: 5px; display: none; width: 100%; position: fixed; top: 0; z-index: 9999999; }
+
+/* Contenedor Principal de la App */
+#app-content { display: none; }
+
+.topbar { background: var(--primary); padding: 12px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.topbar-title { color: #E6F1FB; font-size: 15px; font-weight: 700; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.topbar-badge { background: var(--primary-light); color: #B5D4F4; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; border: 1px solid #378ADD; flex-shrink: 0; }
+.btn-logout { background: transparent; border: none; color: #FFAAAA; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; margin-left: 4px; }
+
+.nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); display: flex; justify-content: space-around; border-top: 1px solid var(--primary-light); z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); height: 64px; }
+.nb { flex: 1; text-align: center; font-size: 10px; padding: 8px 0; border: none; background: none; color: #85B7EB; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: 0.2s; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+.nb i { font-size: 22px; }
 .nb.on { color: var(--accent); background: rgba(255,255,255,0.06); }
 
-.body { padding: 6px 4px; max-width: 100%; overflow-x: hidden; }
+.body { padding: 10px 8px; max-width: 100%; overflow-x: hidden; }
 .sec { display: none; }
 .sec.on { display: block; }
 
-.toolbar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.form-row { display: flex; gap: 4px; align-items: center; width: 100%; }
-.form-group { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-.toolbar label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
-.toolbar input, .toolbar select { font-size: 13px; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--border); background: #FFF; color: var(--text-main); height: 34px; width: 100%; -webkit-appearance: none; }
+.toolbar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.form-row { display: flex; gap: 6px; align-items: center; width: 100%; }
+.form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.toolbar label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+.toolbar input, .toolbar select { font-size: 14px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: #FFF; color: var(--text-main); height: 38px; width: 100%; -webkit-appearance: none; }
 
 .team-input-wrapper { display: flex; width: 100%; gap: 4px; }
-.btn-edit-team { background: #E2E8F0; color: var(--text-main); border: 1px solid var(--border); width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.btn-edit-team { background: #E2E8F0; color: var(--text-main); border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.1s; -webkit-tap-highlight-color: transparent; }
 .btn-edit-team.editing { background: var(--success); color: white; border-color: var(--success); }
 
-.sub-tabs { display: flex; gap: 4px; background: #E2E8F0; padding: 3px; border-radius: 6px; margin-bottom: 6px; }
-.sub-btn { flex: 1; padding: 8px 4px; border: none; background: transparent; border-radius: 4px; font-size: 11px; font-weight: 700; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.sub-tabs { display: flex; gap: 4px; background: #E2E8F0; padding: 4px; border-radius: 8px; margin-bottom: 10px; }
+.sub-btn { flex: 1; padding: 10px 6px; border: none; background: transparent; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .sub-btn.on { background: var(--primary); color: white; }
 
-.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 100%; }
-.btn { font-size: 11px; font-weight: 700; height: 36px; padding: 0 8px; cursor: pointer; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; gap: 4px; -webkit-tap-highlight-color: transparent; }
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+.btn { font-size: 12px; font-weight: 700; height: 42px; padding: 0 10px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: 0.1s; -webkit-tap-highlight-color: transparent; }
 .btn-p { background: var(--primary-light) !important; color: #FFF !important; border-color: var(--primary-light) !important; }
 .btn-d { background: var(--danger-light) !important; color: var(--danger) !important; border-color: var(--danger) !important; }
 .btn-pdf { background: #E11D48 !important; color: #FFF !important; border-color: #E11D48 !important; }
 
-.sumgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-bottom: 6px; }
-.sc { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 6px; text-align: center; }
-.sc .lbl { font-size: 8px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 1px; }
-.sc .val { font-size: 13px; font-weight: 700; color: var(--text-main); }
+.sumgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
+.sc { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+.sc .lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
+.sc .val { font-size: 14px; font-weight: 700; color: var(--text-main); }
 
-.tbl-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.tbl-hdr { padding: 6px 10px; background: var(--bg-dark); display: flex; flex-direction: column; }
-.tbl-hdr-lbl { font-size: 10px; font-weight: 700; color: #FFF; text-transform: uppercase; letter-spacing: .5px; }
-.tbl-hdr-sub { font-size: 8px; color: #85B7EB; }
+.tbl-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.tbl-hdr { padding: 8px 12px; background: var(--bg-dark); display: flex; flex-direction: column; }
+.tbl-hdr-lbl { font-size: 11px; font-weight: 700; color: #FFF; text-transform: uppercase; letter-spacing: .5px; }
+.tbl-hdr-sub { font-size: 9px; color: #85B7EB; }
 
 .tbl-wrap { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
-table { border-collapse: collapse; font-size: 12px; min-width: 680px; width: 100%; }
+table { border-collapse: collapse; font-size: 13px; min-width: 780px; width: 100%; }
 thead tr { background: var(--bg-dark); }
-thead th { color: #85B7EB; font-weight: 600; font-size: 10px; padding: 6px 2px; text-align: center; border-right: 1px solid #0C447C; white-space: nowrap; }
+thead th { color: #85B7EB; font-weight: 600; font-size: 11px; padding: 10px 4px; text-align: center; border-right: 1px solid #0C447C; white-space: nowrap; }
 
-th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 10; min-width: 28px; width: 28px; text-align: center; padding: 4px 1px; }
-th:nth-child(2), td:nth-child(2) { position: sticky; left: 28px; z-index: 10; min-width: 90px; width: 90px; text-align: left; padding-left: 4px; box-shadow: 2px 0 4px rgba(0,0,0,0.08); }
+th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 10; min-width: 36px; width: 36px; text-align: center; padding: 6px 2px; }
+th:nth-child(2), td:nth-child(2) { position: sticky; left: 36px; z-index: 10; min-width: 105px; width: 105px; text-align: left; padding-left: 6px; box-shadow: 3px 0 5px rgba(0,0,0,0.08); }
 
 thead th:nth-child(1), thead th:nth-child(2) { background: var(--bg-dark); color: #FFF; }
-td:nth-child(1) { background: #EDF2F7; color: var(--primary); font-weight: 800; border-right: 1px solid var(--border); font-size: 11px; }
-td:nth-child(2) { background: #F8FAFC; color: var(--text-main); font-weight: 700; border-right: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
+td:nth-child(1) { background: #EDF2F7; color: var(--primary); font-weight: 800; border-right: 1px solid var(--border); }
+td:nth-child(2) { background: #F8FAFC; color: var(--text-main); font-weight: 700; border-right: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 thead th.war-hdr { color: var(--accent); font-weight: 700; background: #052240; }
-thead th.sep { border-left: 1px solid var(--primary-light); }
+thead th.sep { border-left: 2px solid var(--primary-light); }
 tbody tr { border-bottom: 1px solid #E2E8F0; }
-td { padding: 4px 2px; color: var(--text-main); text-align: center; vertical-align: middle; }
+td { padding: 6px 3px; color: var(--text-main); text-align: center; vertical-align: middle; }
 
-td input[type=number] { width: 36px; text-align: center; border: 1px solid var(--border); border-radius: 4px; background: #FFF; color: var(--text-main); font-size: 13px; font-weight: 700; height: 28px; -webkit-appearance: none; margin: 0; padding: 2px; }
+td input[type=number] { width: 42px; text-align: center; border: 1px solid var(--border); border-radius: 6px; background: #FFF; color: var(--text-main); font-size: 14px; font-weight: 700; height: 34px; -webkit-appearance: none; margin: 0; }
 td input[type=number]:focus { outline: none; border-color: var(--primary-light); background: #F0F7FF; }
 
-.auto-cell { font-weight: 700; color: var(--primary-light); background: #F8FAFC; font-size: 11px; }
-.war-cell { font-weight: 800; text-align: center; font-size: 11px; }
+.auto-cell { font-weight: 700; color: var(--primary-light); background: #F8FAFC; }
+.war-cell { font-weight: 800; text-align: center; font-size: 13px; }
 
 .war-pos { color: var(--success) !important; font-weight: 800; }
 .war-neg { color: var(--danger) !important; font-weight: 800; }
 .war-neu { color: var(--text-muted) !important; }
 .stat-leader { background-color: var(--leader-bg) !important; color: var(--leader-text) !important; font-weight: 700; border-radius: 4px; }
 
-.game-row, .player-edit-row { display: flex; align-items: center; gap: 8px; padding: 8px; border-bottom: 1px solid #E2E8F0; background: #FFF; }
-.gnum { width: 26px; height: 26px; background: var(--bg-dark); color: #B5D4F4; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-.grival { font-size: 12px; font-weight: 600; color: var(--text-main); }
-.gdates { font-size: 10px; color: var(--text-muted); }
-.empty { text-align: center; padding: 1.5rem 1rem; color: var(--text-muted); font-size: 12px; width: 100%; }
+.game-row, .player-edit-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #E2E8F0; background: #FFF; }
+.gnum { width: 30px; height: 30px; background: var(--bg-dark); color: #B5D4F4; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.grival { font-size: 13px; font-weight: 600; color: var(--text-main); }
+.gdates { font-size: 11px; color: var(--text-muted); }
+.empty { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 13px; width: 100%; }
 
-.p-type-badge { font-size: 8px; font-weight: bold; padding: 1px 4px; border-radius: 3px; background: #E2E8F0; color: var(--text-main); margin-left: auto; }
+.p-type-badge { font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 4px; background: #E2E8F0; color: var(--text-main); margin-left: auto; }
 .p-type-badge.bat { background: #DBEAFE; color: #1E40AF; }
 .p-type-badge.pich { background: #FEE2E2; color: #991B1B; }
 .p-type-badge.both { background: #FEF3C7; color: #92400E; }
 
-.pdf-header-print { display: none; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px dashed var(--primary); }
-.pdf-header-print h2 { color: var(--primary); font-size: 16px; text-transform: uppercase; }
-.pdf-header-print p { font-size: 10px; color: var(--text-muted); }
+.pdf-header-print { display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--primary); }
+.pdf-header-print h2 { color: var(--primary); font-size: 18px; text-transform: uppercase; }
+.pdf-header-print p { font-size: 11px; color: var(--text-muted); }
 </style>
 </head>
 <body>
 
+<div id="offline-indicator"><i class="ti ti-wifi-off"></i> Trabajando en Modo Local (Sin internet)</div>
+
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <i class="ti ti-ball-baseball" style="font-size: 56px; color: var(--accent); display:block; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));"></i>
+    <h1>Estadísticas</h1>
+    <p>Gestiona tu roster, registra el rendimiento de tus jugadores y exporta reportes detallados con WAR dinámico en tiempo real.</p>
+    <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida()">Comenzar <i class="ti ti-arrow-right"></i></button>
+  </div>
+</div>
+
+<div id="login-screen">
+  <div class="login-box">
+    <i class="ti ti-lock" style="font-size: 44px; color: var(--primary); display:block; margin-bottom:12px;"></i>
+    <h2>Estadísticas</h2>
+    <p>Ingresa tus credenciales asignadas</p>
+    
+    <input type="text" id="login-email" placeholder="Usuario (Ej: azul@vip.com)">
+    <input type="password" id="login-pass" placeholder="Contraseña">
+    
+    <button id="btn-login-action" onclick="ejecutarAccionAuth()">Iniciar Sesión</button>
+  </div>
+</div>
+
 <div id="app-content">
 
   <div class="topbar">
-    <i class="ti ti-ball-baseball" style="font-size:16px;color:var(--accent)"></i>
-    <span class="topbar-title" id="topbar-team-name">TEAM VIP</span>
-    <span class="topbar-badge">WAR</span>
+    <i class="ti ti-ball-baseball" style="font-size:18px;color:var(--accent)"></i>
+    <span class="topbar-title" id="topbar-team-name">NOMBRE DE TU EQUIPO</span>
+    <span class="topbar-badge">CLOUD SECURE</span>
+    <button class="btn-logout" onclick="solicitarCierreSesion()"><i class="ti ti-logout" style="font-size:18px;"></i></button>
   </div>
 
   <div class="body">
@@ -134,7 +180,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
           <div class="form-group" style="flex: 2;">
             <label>Nombre del Equipo</label>
             <div class="team-input-wrapper">
-              <input type="text" id="inp-mi-equipo" value="TEAM VIP" disabled oninput="updateTeamName(this.value)">
+              <input type="text" id="inp-mi-equipo" value="NOMBRE DE TU EQUIPO" disabled oninput="updateTeamName(this.value)">
               <button class="btn-edit-team" id="btn-toggle-team" onclick="toggleEditTeam()"><i class="ti ti-pencil"></i></button>
             </div>
           </div>
@@ -142,14 +188,14 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
             <label>Fecha</label>
             <input type="date" id="inp-fecha">
           </div>
-          <div class="form-group" style="flex: 0 0 50px;">
+          <div class="form-group" style="flex: 0 0 60px;">
             <label>Juego #</label>
             <input type="number" id="inp-juego" value="1" min="1">
           </div>
         </div>
         <div class="form-row">
           <div class="form-row" style="width:100%;">
-            <label style="width:35px">Rival</label>
+            <label style="width:40px">Rival</label>
             <input type="text" id="inp-rival" placeholder="Nombre del rival">
           </div>
         </div>
@@ -166,7 +212,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
 
       <div id="pdf-entry-area">
         <div class="pdf-header-print" id="pdf-entry-print-header">
-          <h2 id="pdf-print-team-title">TEAM VIP</h2>
+          <h2 id="pdf-print-team-title">NOMBRE DE TU EQUIPO</h2>
           <p id="pdf-print-game-details">Planilla de Juego Oficial</p>
         </div>
 
@@ -214,10 +260,10 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
 
     <div id="sec-jugadores" class="sec">
       <div class="toolbar" id="form-jugador-titulo">
-        <label id="lbl-gestion-modo" style="font-size:11px; color:var(--primary); font-weight:700;">REGISTRAR NUEVO INTEGRANTE</label>
+        <label id="lbl-gestion-modo" style="font-size:12px; color:var(--primary); font-weight:700;">REGISTRAR NUEVO INTEGRANTE</label>
         <input type="hidden" id="edit-index" value="-1">
         <div class="form-row">
-          <div class="form-group" style="flex:0 0 55px;">
+          <div class="form-group" style="flex:0 0 65px;">
             <label>N° (#)</label>
             <input type="number" id="new-cod" placeholder="Ej: 10">
           </div>
@@ -261,7 +307,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
       </div>
       <div id="pdf-history-area">
         <div class="pdf-header-print" id="pdf-history-print-header" style="display:block !important;">
-          <h2 class="print-team-name-label">TEAM VIP</h2>
+          <h2 class="print-team-name-label">NOMBRE DE TU EQUIPO</h2>
           <p>Reporte Histórico de Partidos Salvados</p>
         </div>
         <div class="tbl-card" id="games-list"></div>
@@ -282,7 +328,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
       </div>
       <div id="pdf-acum-area">
         <div class="pdf-header-print" id="pdf-acum-print-header" style="display:block !important;">
-          <h2 class="print-team-name-label">TEAM VIP</h2>
+          <h2 class="print-team-name-label">NOMBRE DE TU EQUIPO</h2>
           <p id="pdf-acum-range-label">Reporte Estadístico Acumulado General</p>
         </div>
 
@@ -330,40 +376,153 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
 
 </div>
 
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDlT8OgrOCtCaOPQsLvQEd0ze5Kzh2uWuo",
+  authDomain: "estadisticas-a9055.firebaseapp.com",
+  databaseURL: "https://estadisticas-a9055-default-rtdb.firebaseio.com",
+  projectId: "estadisticas-a9055",
+  storageBucket: "estadisticas-a9055.firebasestorage.app",
+  messagingSenderId: "654309308728",
+  appId: "1:654309308728:web:84bf67f1a9b01347af69cd"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const database = getDatabase(app);
+
+let currentUid = localStorage.getItem('vip_uid') || null;
+
+window.avanzarDesdeBienvenida = function() {
+  document.getElementById('welcome-screen').style.display = 'none';
+  evaluarPantallaInicial();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  actualizarEstadoInternet();
+  window.addEventListener('online', actualizarEstadoInternet);
+  window.addEventListener('offline', actualizarEstadoInternet);
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUid = user.uid;
+      localStorage.setItem('vip_uid', user.uid);
+      descargarDatosDeNube(user.uid);
+    } else {
+      currentUid = null;
+      localStorage.removeItem('vip_uid');
+      // Si no hay sesión iniciada, aseguramos que pase por la pantalla de login tras pulsar continuar
+      if (document.getElementById('welcome-screen').style.display === 'none') {
+        evaluarPantallaInicial();
+      }
+    }
+  });
+});
+
+function actualizarEstadoInternet() {
+  const ind = document.getElementById('offline-indicator');
+  if(!navigator.onLine) {
+    ind.style.display = 'block';
+  } else {
+    ind.style.display = 'none';
+    if(currentUid) enviarDatosLocalesANube();
+  }
+}
+
+function evaluarPantallaInicial() {
+  // Si la bienvenida todavía se muestra, no forzamos las de atrás
+  if (document.getElementById('welcome-screen').style.display !== 'none') return;
+
+  if (currentUid) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    const savedName = localStorage.getItem('vip_team_name') || "NOMBRE DE TU EQUIPO";
+    document.getElementById('inp-mi-equipo').value = savedName;
+    window.updateTeamName(savedName);
+    window.buildTablesOnce();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-content').style.display = 'none';
+  }
+}
+
+window.ejecutarAccionAuth = function() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+
+  if (!email || !pass) { alert("Por favor, completa todos los campos."); return; }
+
+  if(!navigator.onLine) {
+    const cachedEmail = localStorage.getItem('vip_cached_email');
+    if(currentUid && cachedEmail === email) {
+      evaluarPantallaInicial();
+    } else {
+      alert("Sin conexión a internet no puedes iniciar sesión en un dispositivo nuevo.");
+    }
+    return;
+  }
+
+  signInWithEmailAndPassword(auth, email, pass).then((cred) => {
+    localStorage.setItem('vip_cached_email', email);
+  }).catch((err) => alert("Error de acceso: Revisa tu usuario/clave o asegúrate de que esté registrado en Firebase."));
+}
+
+window.solicitarCierreSesion = function() {
+  if(confirm("¿Deseas cerrar sesión?")) {
+    localStorage.clear();
+    signOut(auth).then(() => {
+      window.location.reload();
+    });
+  }
+}
+
+function descargarDatosDeNube(uid) {
+  get(ref(database, 'usuarios/' + uid)).then((snapshot) => {
+    const data = snapshot.val();
+    if(data) {
+      window.players = data.players ? Object.values(data.players) : [];
+      window.games = data.games ? Object.values(data.games) : [];
+      if(data.teamName) localStorage.setItem('vip_team_name', data.teamName);
+    } else {
+      window.players = [];
+      window.games = [];
+      localStorage.setItem('vip_team_name', "NOMBRE DE TU EQUIPO");
+      window.enviarDatosLocalesANube();
+    }
+    localStorage.setItem('vip_players', JSON.stringify(window.players));
+    localStorage.setItem('vip_games', JSON.stringify(window.games));
+    evaluarPantallaInicial();
+  }).catch(()=>{
+    evaluarPantallaInicial();
+  });
+}
+
+window.enviarDatosLocalesANube = function() {
+  if(!currentUid || !navigator.onLine) return;
+  set(ref(database, 'usuarios/' + currentUid + '/players'), window.players);
+  set(ref(database, 'usuarios/' + currentUid + '/games'), window.games);
+  set(ref(database, 'usuarios/' + currentUid + '/teamName'), localStorage.getItem('vip_team_name') || "NOMBRE DE TU EQUIPO");
+}
+</script>
+
 <script>
-// Lista global de jugadores iniciales
-let players=[
-  {cod:8,nombre:'ALEXANDER P',rol:'Bateador'},{cod:51,nombre:'ANDY',rol:'Bateador'},
-  {cod:40,nombre:'EDDY',rol:'Bateador'},{cod:6,nombre:'EDWARD',rol:'Bateador'},
-  {cod:48,nombre:'GONELL',rol:'Bateador'},{cod:46,nombre:'JOSE LUIS',rol:'Bateador'},
-  {cod:36,nombre:'KEVIN',rol:'Bateador'},{cod:18,nombre:'LUIS ALBERT 2B',rol:'Bateador'},
-  {cod:11,nombre:'LUIS DE LA CRUZ',rol:'Bateador'},{cod:34,nombre:'MIGUEL ANGEL',rol:'Bateador'},
-  {cod:4,nombre:'NOE PERALTA',rol:'Bateador'},{cod:32,nombre:'SAUL',rol:'Bateador'}
-];
+window.players = JSON.parse(localStorage.getItem('vip_players')) || [];
+window.games = JSON.parse(localStorage.getItem('vip_games')) || [];
+let filtG=null;
 
 const BAT_INP=['jj','vb','ca','ce','h1','h2','h3','h4','bb','so','sf'];
 const PICH_INP=['jg','jp','bb_p','so_p'];
 
-// Inicializar propiedades numéricas en el roster de forma segura
-players = players.map(p => {
-  BAT_INP.forEach(f => { if(p[f] === undefined) p[f] = 0; });
-  PICH_INP.forEach(f => { if(p[f] === undefined) p[f] = 0; });
-  return p;
-});
-
-let games=[], filtG=null;
-
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date().toISOString().split('T')[0];
-  if(document.getElementById('inp-fecha')) {
-    document.getElementById('inp-fecha').value = today;
-  }
-  setTimeout(() => {
-    buildTablesOnce();
-  }, 100);
+  if(document.getElementById('inp-fecha')) document.getElementById('inp-fecha').value = today;
 });
 
-function calcH(p){return(parseInt(p.h1)||0)+(parseInt(p.h2)||0)+(parseInt(p.h3)||0)+(parseInt(p.h4)||0);}
+function calcH(p){return(parseInt(p.h1)||0)+(parseInt(p.h2)||0)+(parseInt(p.h3)||0)+(parseInt(p.h4||0));}
 function calcTBA(p){return(parseInt(p.h1)||0)+(parseInt(p.h2||0)*2)+(parseInt(p.h3||0)*3)+(parseInt(p.h4||0)*4);}
 
 function calcAVE(h,vb){
@@ -381,10 +540,8 @@ function calcPureWAR(p) {
   const bb = parseInt(p.bb) || 0; const sf = parseFloat(p.sf) || 0;
   const so = parseInt(p.so) || 0; const vb = parseInt(p.vb) || 0;
   const ca = parseInt(p.ca) || 0; const ce = parseInt(p.ce) || 0;
-  
   const totalH = h1 + h2 + h3 + h4;
   const outsDeCampo = Math.max(0, vb - totalH - so);
-  
   return (h1 + (h2 * 1.25) + (h3 * 1.5) + (h4 * 2.0) + bb + (sf * 0.5) + (ca * 0.25) + (ce * 0.25)) - so - (outsDeCampo * 0.25);
 }
 
@@ -394,41 +551,36 @@ function fmtWar(val) {
   return num.toFixed(1);
 }
 
-// Busca el nombre actual de un jugador por su código
-function getPlayerName(cod) {
-  const p = players.find(x => x.cod == cod);
-  return p ? p.nombre : 'DESCONOCIDO';
-}
-
 let isTeamEditing = false;
-function toggleEditTeam() {
+window.toggleEditTeam = function() {
   const input = document.getElementById('inp-mi-equipo');
   const button = document.getElementById('btn-toggle-team');
   
   isTeamEditing = !isTeamEditing;
   if(isTeamEditing) {
     input.disabled = false;
-    input.focus();
-    input.select();
+    input.focus(); input.select();
     button.classList.add('editing');
     button.innerHTML = '<i class="ti ti-check"></i>';
   } else {
     input.disabled = true;
     button.classList.remove('editing');
     button.innerHTML = '<i class="ti ti-pencil"></i>';
-    updateTeamName(input.value);
+    localStorage.setItem('vip_team_name', input.value);
+    window.updateTeamName(input.value);
+    if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
     showToast('Nombre de equipo actualizado');
   }
 }
 
-function updateTeamName(val) {
-  const name = val.trim() || "TEAM VIP";
+window.updateTeamName = function(val) {
+  const name = val.trim() || "NOMBRE DE TU EQUIPO";
   document.getElementById('topbar-team-name').textContent = name;
   document.getElementById('pdf-print-team-title').textContent = name;
   document.querySelectorAll('.print-team-name-label').forEach(el => { el.textContent = name; });
 }
 
-function goSec(s, btn){
+window.goSec = function(s, btn){
   document.querySelectorAll('.sec').forEach(x => x.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(x => x.classList.remove('on'));
   
@@ -437,27 +589,22 @@ function goSec(s, btn){
   if(btn) btn.classList.add('on');
   
   window.scrollTo(0,0);
-  
-  if(s === 'entrada') buildTablesOnce();
+  if(s === 'entrada') window.buildTablesOnce();
   if(s === 'jugadores') renderPlayersManagement();
   if(s === 'historial') renderHistory();
   if(s === 'acumulado') renderAcum();
 }
 
-function switchEntryTab(mode) {
+window.switchEntryTab = function(mode) {
   document.getElementById('sub-tab-bat').classList.toggle('on', mode === 'bat');
   document.getElementById('sub-tab-pich').classList.toggle('on', mode === 'pich');
   document.getElementById('wrapper-tab-bat').style.display = mode === 'bat' ? 'block' : 'none';
   document.getElementById('wrapper-tab-pich').style.display = mode === 'pich' ? 'block' : 'none';
-  setupNavigationEvents();
 }
 
 let inputSequence = [];
 function setupNavigationEvents() {
-  // Captura los inputs visibles del área activa de planillas
-  inputSequence = Array.from(document.querySelectorAll('#pdf-entry-area div[style*="display: none"] input[type=number], #pdf-entry-area input[type=number]'))
-    .filter(inp => inp.offsetParent !== null);
-
+  inputSequence = Array.from(document.querySelectorAll('#pdf-entry-area input[type=number]'));
   inputSequence.forEach((inp, idx) => {
     inp.removeEventListener('keydown', handleEnterKey);
     inp.addEventListener('keydown', (e) => handleEnterKey(e, idx));
@@ -468,37 +615,30 @@ function handleEnterKey(e, idx) {
   if (e.key === 'Enter') {
     e.preventDefault();
     const nextInp = inputSequence[idx + 1];
-    if (nextInp) { 
-      nextInp.focus(); 
-      nextInp.select(); 
-    } else { 
-      e.target.blur(); 
-    }
+    if (nextInp) { nextInp.focus(); nextInp.select(); } else { e.target.blur(); }
   }
 }
 
-function buildTablesOnce() {
+window.buildTablesOnce = function() {
   const tbodyBat = document.getElementById('entry-body-bat');
   const tbodyPich = document.getElementById('entry-body-pich');
   if(!tbodyBat || !tbodyPich) return; 
   
-  tbodyBat.innerHTML = ''; 
-  tbodyPich.innerHTML = '';
-
-  const battersList = players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Bateador' || p.rol === 'Ambos');
-  const pitchersList = players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Pitcher' || p.rol === 'Ambos');
+  tbodyBat.innerHTML = ''; tbodyPich.innerHTML = '';
+  const battersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Bateador' || p.rol === 'Ambos');
+  const pitchersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Pitcher' || p.rol === 'Ambos');
 
   if(!battersList.length) {
-    tbodyBat.innerHTML = `<tr><td colspan="17" class="empty">No hay bateadores en el Roster.</td></tr>`;
+    tbodyBat.innerHTML = `<tr><td colspan="17" class="empty">No hay jugadores en el Roster. Agrégalos en la pestaña Jugadores.</td></tr>`;
   } else {
     battersList.forEach((p) => {
       const pi = p._origIndex;
       const tr = document.createElement('tr');
       tr.id = `row-bat-${pi}`;
       tr.innerHTML = `
-        <td>${p.cod}</td><td style="font-weight:700;">${p.nombre}</td>
+        <td>${p.cod}</td><td>${p.nombre}</td>
         <td class="war-cell" id="live-war-${pi}">0.0</td>
-        ${BAT_INP.map(f => `<td><input type="number" inputmode="numeric" enterkeyhint="next" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
+        ${BAT_INP.map(f => `<td><input type="number" inputmode="numeric" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
         <td class="auto-cell sep" id="live-h-${pi}">0</td>
         <td class="auto-cell" id="live-tba-${pi}">0</td>
         <td class="auto-cell" id="live-ave-${pi}">.000</td>
@@ -508,14 +648,14 @@ function buildTablesOnce() {
   }
 
   if(!pitchersList.length) {
-    tbodyPich.innerHTML = `<tr><td colspan="6" class="empty">No hay lanzadores en el Roster.</td></tr>`;
+    tbodyPich.innerHTML = `<tr><td colspan="6" class="empty">No hay lanzadores en el Roster. Agrégalos en la pestaña Jugadores.</td></tr>`;
   } else {
     pitchersList.forEach((p) => {
       const pi = p._origIndex;
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${p.cod}</td><td style="font-weight:700;">${p.nombre}</td>
-        ${PICH_INP.map(f => `<td><input type="number" inputmode="numeric" enterkeyhint="next" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
+        <td>${p.cod}</td><td>${p.nombre}</td>
+        ${PICH_INP.map(f => `<td><input type="number" inputmode="numeric" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
       `;
       tbodyPich.appendChild(tr);
     });
@@ -539,10 +679,9 @@ function onInputUpdate() {
   let valInput = Math.max(0, parseInt(this.value) || 0);
 
   if (['h1','h2','h3','h4','so'].includes(f)) {
-    const vbActual = players[pi]['vb'] || 0;
+    const vbActual = window.players[pi]['vb'] || 0;
     let otrosTurnos = 0;
-    ['h1','h2','h3','h4','so'].forEach(campo => { if (campo !== f) otrosTurnos += (parseInt(players[pi][campo]) || 0); });
-
+    ['h1','h2','h3','h4','so'].forEach(campo => { if (campo !== f) otrosTurnos += (parseInt(window.players[pi][campo]) || 0); });
     if (otrosTurnos + valInput > vbActual) {
       valInput = Math.max(0, vbActual - otrosTurnos);
       this.value = valInput; 
@@ -551,22 +690,22 @@ function onInputUpdate() {
   }
 
   if (f === 'vb') {
-    let turnosConsumidos = (parseInt(players[pi]['h1'])||0) + (parseInt(players[pi]['h2'])||0) + (parseInt(players[pi]['h3'])||0) + (parseInt(players[pi]['h4'])||0) + (parseInt(players[pi]['so'])||0);
+    let turnosConsumidos = (parseInt(window.players[pi]['h1'])||0) + (parseInt(window.players[pi]['h2'])||0) + (parseInt(window.players[pi]['h3'])||0) + (parseInt(window.players[pi]['h4'])||0) + (parseInt(window.players[pi]['so'])||0);
     if (valInput < turnosConsumidos) {
       valInput = turnosConsumidos;
       this.value = valInput;
-      showToast(`VB mínimo es de (${turnosConsumidos}) por datos previos`);
+      showToast(`VB mínimo es (${turnosConsumidos})`);
     }
   }
 
-  players[pi][f] = valInput;
+  window.players[pi][f] = valInput;
   updateLiveCalculations();
 }
 
 function updateLiveCalculations() {
-  const battersList = players.filter(p => p.rol === 'Bateador' || p.rol === 'Ambos');
+  const battersList = window.players.filter(p => p.rol === 'Bateador' || p.rol === 'Ambos');
 
-  players.forEach((p, pi) => {
+  window.players.forEach((p, pi) => {
     const hEl = document.getElementById(`live-h-${pi}`);
     const tbaEl = document.getElementById(`live-tba-${pi}`);
     const aveEl = document.getElementById(`live-ave-${pi}`);
@@ -575,7 +714,6 @@ function updateLiveCalculations() {
     if (hEl && tbaEl && aveEl && warEl) {
       const h = calcH(p); const tba = calcTBA(p);
       hEl.textContent = h; tbaEl.textContent = tba; aveEl.textContent = calcAVE(h, p.vb);
-
       if ((p.jj || 0) > 0) {
         let pWar = calcPureWAR(p);
         warEl.textContent = fmtWar(pWar);
@@ -620,8 +758,8 @@ function getLeadersMap(dataset) {
   return leaders;
 }
 
-function exportPlanillaPDF() {
-  const teamName = document.getElementById('inp-mi-equipo').value.trim() || "TEAM VIP";
+window.exportPlanillaPDF = function() {
+  const teamName = document.getElementById('inp-mi-equipo').value.trim() || "NOMBRE DE TU EQUIPO";
   const fechaInp = document.getElementById('inp-fecha').value;
   const fechaFmt = fechaInp ? fechaInp.split('-').reverse().join('/') : 'Sin Fecha';
   const juegoNum = document.getElementById('inp-juego').value || '1';
@@ -635,21 +773,20 @@ function exportPlanillaPDF() {
 
   const container = document.getElementById('pdf-entry-area');
   const opt = {
-    margin: [4, 4, 4, 4],
+    margin: [6, 4, 6, 4],
     filename: `Planilla_${teamName.replace(/\s+/g, '_')}_${fechaInp}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
   };
-  
   html2pdf().set(opt).from(container).save().then(() => { headerEl.style.display = 'none'; });
 }
 
-function exportHistorialPDF() {
-  const teamName = document.getElementById('inp-mi-equipo').value.trim() || "TEAM VIP";
+window.exportHistorialPDF = function() {
+  const teamName = document.getElementById('inp-mi-equipo').value.trim() || "NOMBRE DE TU EQUIPO";
   const container = document.getElementById('pdf-history-area');
   const opt = {
-    margin: [4, 4, 4, 4],
+    margin: [6, 4, 6, 4],
     filename: `Historial_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
@@ -658,8 +795,8 @@ function exportHistorialPDF() {
   html2pdf().set(opt).from(container).save();
 }
 
-function exportAcumPDF() {
-  const teamName = document.getElementById('inp-mi-equipo').value.trim() || "TEAM VIP";
+window.exportAcumPDF = function() {
+  const teamName = document.getElementById('inp-mi-equipo').value.trim() || "NOMBRE DE TU EQUIPO";
   const d = document.getElementById('a-desde').value;
   const h = document.getElementById('a-hasta').value;
   
@@ -672,7 +809,7 @@ function exportAcumPDF() {
 
   const container = document.getElementById('pdf-acum-area');
   const opt = {
-    margin: [4, 4, 4, 4],
+    margin: [6, 4, 6, 4],
     filename: `Acumulado_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
@@ -685,13 +822,9 @@ function renderPlayersManagement() {
   const container = document.getElementById('players-management-list');
   if(!container) return;
   container.innerHTML = '';
+  if(!window.players.length) { container.innerHTML = '<div class="empty">El Roster está vacío. Registra integrantes arriba.</div>'; return; }
   
-  if(!players.length) { 
-    container.innerHTML = '<div class="empty">Roster vacío.</div>'; 
-    return; 
-  }
-  
-  players.forEach((p, index) => {
+  window.players.forEach((p, index) => {
     const row = document.createElement('div');
     row.className = 'player-edit-row';
     let badgeClass = p.rol === 'Pitcher' ? 'pich' : (p.rol === 'Ambos' ? 'both' : 'bat');
@@ -705,8 +838,8 @@ function renderPlayersManagement() {
   });
 }
 
-function startEditPlayer(index) {
-  const p = players[index];
+window.startEditPlayer = function(index) {
+  const p = window.players[index];
   document.getElementById('new-cod').value = p.cod;
   document.getElementById('new-nom').value = p.nombre;
   document.getElementById('new-rol').value = p.rol || 'Bateador';
@@ -718,7 +851,7 @@ function startEditPlayer(index) {
   `;
 }
 
-function cancelPlayerEdit() {
+window.cancelPlayerEdit = function() {
   document.getElementById('new-cod').value = '';
   document.getElementById('new-nom').value = '';
   document.getElementById('edit-index').value = '-1';
@@ -728,90 +861,74 @@ function cancelPlayerEdit() {
   `;
 }
 
-function savePlayerUpdate() {
+window.savePlayerUpdate = function() {
   const index = parseInt(document.getElementById('edit-index').value);
   if (isNaN(index) || index < 0) return;
-  
-  // Guardamos el código original para mapear los cambios en el historial de juegos
-  const viejoCod = players[index].cod;
-  const nuevoCod = parseInt(document.getElementById('new-cod').value) || viejoCod;
-  const nuevoNombre = document.getElementById('new-nom').value.trim().toUpperCase();
-  const nuevoRol = document.getElementById('new-rol').value;
-
-  players[index].cod = nuevoCod;
-  players[index].nombre = nuevoNombre;
-  players[index].rol = nuevoRol;
-
-  // Actualización en cadena: Modifica los partidos guardados vinculados a este código viejo
-  games.forEach(g => {
-    g.players.forEach(p => {
-      if (p.cod === viejoCod) {
-        p.cod = nuevoCod;
-        p.nombre = nuevoNombre;
-        p.rol = nuevoRol;
-      }
-    });
-  });
-
-  cancelPlayerEdit(); 
+  window.players[index].cod = parseInt(document.getElementById('new-cod').value) || 0;
+  window.players[index].nombre = document.getElementById('new-nom').value.trim().toUpperCase();
+  window.players[index].rol = document.getElementById('new-rol').value;
+  localStorage.setItem('vip_players', JSON.stringify(window.players));
+  if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
+  window.cancelPlayerEdit(); 
   renderPlayersManagement();
-  showToast('Jugador actualizado globalmente');
 }
 
-function deletePlayerExplicit() {
+window.deletePlayerExplicit = function() {
   const index = parseInt(document.getElementById('edit-index').value);
   if (isNaN(index) || index < 0) return;
-  if(confirm(`¿Eliminar a ${players[index].nombre}?`)) {
-    players.splice(index, 1);
-    cancelPlayerEdit(); 
+  if(confirm(`¿Eliminar a ${window.players[index].nombre}?`)) {
+    window.players.splice(index, 1);
+    localStorage.setItem('vip_players', JSON.stringify(window.players));
+    if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
+    window.cancelPlayerEdit(); 
     renderPlayersManagement();
   }
 }
 
-function addPlayer(){
+window.addPlayer = function(){
   const nom = document.getElementById('new-nom').value.trim().toUpperCase();
   if(!nom) { showToast('Introduce un nombre válido'); return; }
   
-  const codeVal = parseInt(document.getElementById('new-cod').value) || (players.length + 1);
-  const p = {
-    cod: codeVal,
-    nombre: nom,
-    rol: document.getElementById('new-rol').value
-  };
+  const codeVal = parseInt(document.getElementById('new-cod').value) || (window.players.length + 1);
+  const p = { cod: codeVal, nombre: nom, rol: document.getElementById('new-rol').value };
   
   BAT_INP.forEach(f => p[f] = 0); 
   PICH_INP.forEach(f => p[f] = 0);
+  window.players.push(p);
+  localStorage.setItem('vip_players', JSON.stringify(window.players));
+  if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
   
-  players.push(p);
   document.getElementById('new-cod').value = ''; 
   document.getElementById('new-nom').value = '';
-  
   renderPlayersManagement();
   showToast('Agregado con éxito');
 }
 
-function clearStats(){
+window.clearStats = function(){
   if(confirm('¿Limpiar todas las entradas actuales?')){
-     players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
-     buildTablesOnce();
+     window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+     window.buildTablesOnce();
   }
 }
 
-function saveGame(){
+window.saveGame = function(){
   const fecha = document.getElementById('inp-fecha').value;
   const num = parseInt(document.getElementById('inp-juego').value) || 1;
   const rival = document.getElementById('inp-rival').value.trim() || 'Rival';
   if(!fecha) { showToast('Elige una fecha válida'); return; }
   
-  const snap = players.map(p => ({ ...p }));
-  const idx = games.findIndex(g => g.fecha === fecha && g.num === num);
+  const snap = window.players.map(p => ({ ...p }));
+  const idx = window.games.findIndex(g => g.fecha === fecha && g.num === num);
   const g = { id: Date.now(), fecha, num, rival, players: snap };
   
-  if(idx >= 0) games[idx] = g; else games.push(g);
-  games.sort((a,b) => a.fecha.localeCompare(b.fecha) || a.num - b.num);
+  if(idx >= 0) window.games[idx] = g; else window.games.push(g);
+  window.games.sort((a,b) => a.fecha.localeCompare(b.fecha) || a.num - b.num);
   
-  players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
-  buildTablesOnce();
+  localStorage.setItem('vip_games', JSON.stringify(window.games));
+  window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+  
+  if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
+  window.buildTablesOnce();
   document.getElementById('inp-juego').value = num + 1;
   document.getElementById('inp-rival').value = '';
   showToast('Juego guardado exitosamente');
@@ -820,7 +937,7 @@ function saveGame(){
 function renderHistory(){
   const el = document.getElementById('games-list');
   if(!el) return;
-  const src = filtG || games;
+  const src = filtG || window.games;
   if(!src.length){ el.innerHTML = '<div class="empty">No hay juegos guardados</div>'; return; }
   
   let html = '';
@@ -837,53 +954,42 @@ function renderHistory(){
   el.innerHTML = html;
 }
 
-function filterGames(){
+window.filterGames = function(){
   const d = document.getElementById('f-desde').value, h = document.getElementById('f-hasta').value;
-  filtG = games.filter(g => (!d || g.fecha >= d) && (!h || g.fecha <= h)); 
+  filtG = window.games.filter(g => (!d || g.fecha >= d) && (!h || g.fecha <= h)); 
   renderHistory();
 }
 
-function clearFilt(){
+window.clearFilt = function(){
   filtG = null; 
   document.getElementById('f-desde').value = ''; 
   document.getElementById('f-hasta').value = ''; 
   renderHistory();
 }
 
-function loadGameToEdit(id){
-  const g = games.find(x => x.id == id); if(!g) return;
-  
-  // Al cargar un juego viejo, sincroniza los nombres actuales del roster usando su número/código
-  players = g.players.map(p => {
-    return {
-      ...p,
-      nombre: getPlayerName(p.cod)
-    };
-  });
-  
+window.loadGameToEdit = function(id){
+  const g = window.games.find(x => x.id == id); if(!g) return;
+  window.players = g.players.map(p => ({ ...p }));
   document.getElementById('inp-fecha').value = g.fecha;
   document.getElementById('inp-juego').value = g.num;
   document.getElementById('inp-rival').value = g.rival;
-  goSec('entrada', document.querySelectorAll('.nav .nb')[0]);
+  window.goSec('entrada', document.querySelectorAll('.nav .nb')[0]);
 }
 
-function renderAcum(){
+window.renderAcum = function(){
   const d = document.getElementById('a-desde').value, h = document.getElementById('a-hasta').value;
-  const src = games.filter(g => (!d || g.fecha >= d) && (!h || g.fecha <= h));
+  const src = window.games.filter(g => (!d || g.fecha >= d) && (!h || g.fecha <= h));
   const mapBat = {}; const mapPich = {};
 
   src.forEach(g => {
     g.players.forEach(p => {
-      // Usamos el código del jugador y buscamos su nombre actualizado en tiempo real
-      const nombreActualizado = getPlayerName(p.cod);
-      const k = p.cod + '_' + nombreActualizado;
-      
+      const k = p.cod + '_' + p.nombre;
       if(p.rol === 'Bateador' || p.rol === 'Ambos') {
-        if(!mapBat[k]) mapBat[k] = { cod: p.cod, nombre: nombreActualizado, ...Object.fromEntries(BAT_INP.map(f => [f, 0])) };
+        if(!mapBat[k]) mapBat[k] = { cod: p.cod, nombre: p.nombre, ...Object.fromEntries(BAT_INP.map(f => [f, 0])) };
         BAT_INP.forEach(f => mapBat[k][f] += parseInt(p[f] || 0));
       }
       if(p.rol === 'Pitcher' || p.rol === 'Ambos') {
-        if(!mapPich[k]) mapPich[k] = { cod: p.cod, nombre: nombreActualizado, ...Object.fromEntries(PICH_INP.map(f => [f, 0])) };
+        if(!mapPich[k]) mapPich[k] = { cod: p.cod, nombre: p.nombre, ...Object.fromEntries(PICH_INP.map(f => [f, 0])) };
         PICH_INP.forEach(f => mapPich[k][f] += parseInt(p[f] || 0));
       }
     });
@@ -900,7 +1006,7 @@ function renderAcum(){
       const cWar = p.jj > 0 ? (warVal > 0 ? 'war-cell war-pos' : (warVal < 0 ? 'war-cell war-neg' : 'war-cell war-neu')) : 'war-cell war-neu';
       
       return `<tr>
-        <td>${p.cod}</td><td style="font-weight:bold; white-space:nowrap;">${p.nombre}</td>
+        <td>${p.cod}</td><td style="font-weight:bold;">${p.nombre}</td>
         <td class="${cWar} ${p.jj > 0 && warVal === leadBat.war ? 'stat-leader' : ''}">${p.jj > 0 ? fmtWar(warVal) : '0.0'}</td>
         ${BAT_INP.map(f => `<td class="${p[f] > 0 && p[f] === leadBat[f] ? 'stat-leader' : ''}">${p[f]||0}</td>`).join('')}
         <td class="auto-cell sep ${hc > 0 && hc === leadBat.h ? 'stat-leader' : ''}">${hc}</td>
@@ -914,15 +1020,15 @@ function renderAcum(){
   const bodyPichEl = document.getElementById('acum-body-pich');
   if(bodyPichEl) {
     bodyPichEl.innerHTML = rPich.map(p => {
-      return `<tr><td>${p.cod}</td><td style="font-weight:bold; white-space:nowrap;">${p.nombre}</td><td>${p.jg||0}</td><td>${p.jp||0}</td><td>${p.bb_p||0}</td><td>${p.so_p||0}</td></tr>`;
+      return `<tr><td>${p.cod}</td><td style="font-weight:bold;">${p.nombre}</td><td>${p.jg||0}</td><td>${p.jp||0}</td><td>${p.bb_p||0}</td><td>${p.so_p||0}</td></tr>`;
     }).join('');
   }
 }
 
-function clearAcumF(){
+window.clearAcumF = function(){
   document.getElementById('a-desde').value = '';
   document.getElementById('a-hasta').value = '';
-  renderAcum();
+  window.renderAcum();
 }
 
 let toastT;
@@ -931,13 +1037,11 @@ function showToast(msg){
   if(!t){
     t = document.createElement('div');
     t.id = '_t';
-    t.style.cssText = 'position:fixed;bottom:65px;left:50%;transform:translateX(-50%);padding:8px 12px;border-radius:20px;font-size:11px;background:#0C447C;color:#FFF;opacity:0;transition:opacity .2s;z-index:10000;font-weight:bold;text-align:center;width:85%;max-width:300px;';
+    t.style.cssText = 'position:fixed;bottom:75px;left:50%;transform:translateX(-50%);padding:10px 14px;border-radius:20px;font-size:12px;background:#0C447C;color:#FFF;opacity:0;transition:opacity .2s;z-index:10000;font-weight:bold;text-align:center;width:85%;max-width:300px;';
     document.body.appendChild(t);
   }
-  t.textContent = msg; 
-  t.style.opacity = '1'; 
-  clearTimeout(toastT); 
-  toastT = setTimeout(() => t.style.opacity = '0', 2200);
+  t.textContent = msg; t.style.opacity = '1'; 
+  clearTimeout(toastT); toastT = setTimeout(() => t.style.opacity = '0', 2200);
 }
 </script>
 </body>
