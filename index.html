@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Estadísticas VIP v20 · Control Móvil</title>
+<title>Estadísticas VIP v21 · Control Móvil</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -25,95 +25,95 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px; overflow-x: hidden; }
+body { background: var(--bg-app); color: var(--text-main); padding-bottom: 75px; overflow-x: hidden; }
 
 #app-content { display: block; }
 
-.topbar { background: var(--primary); padding: 12px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.topbar-title { color: #E6F1FB; font-size: 15px; font-weight: 700; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.topbar-badge { background: var(--primary-light); color: #B5D4F4; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; border: 1px solid #378ADD; flex-shrink: 0; }
+.topbar { background: var(--primary); padding: 10px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.topbar-title { color: #E6F1FB; font-size: 14px; font-weight: 700; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-badge { background: var(--primary-light); color: #B5D4F4; font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 20px; border: 1px solid #378ADD; flex-shrink: 0; }
 
-.nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); display: flex; justify-content: space-around; border-top: 1px solid var(--primary-light); z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); height: 64px; }
-.nb { flex: 1; text-align: center; font-size: 10px; padding: 8px 0; border: none; background: none; color: #85B7EB; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: 0.2s; -webkit-tap-highlight-color: transparent; cursor: pointer; }
-.nb i { font-size: 22px; }
+.nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); display: flex; justify-content: space-around; border-top: 1px solid var(--primary-light); z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); height: 56px; }
+.nb { flex: 1; text-align: center; font-size: 9px; padding: 4px 0; border: none; background: none; color: #85B7EB; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; transition: 0.2s; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+.nb i { font-size: 18px; }
 .nb.on { color: var(--accent); background: rgba(255,255,255,0.06); }
 
-.body { padding: 10px 8px; max-width: 100%; overflow-x: hidden; }
+.body { padding: 6px 4px; max-width: 100%; overflow-x: hidden; }
 .sec { display: none; }
 .sec.on { display: block; }
 
-.toolbar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.form-row { display: flex; gap: 6px; align-items: center; width: 100%; }
-.form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-.toolbar label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
-.toolbar input, .toolbar select { font-size: 14px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: #FFF; color: var(--text-main); height: 38px; width: 100%; -webkit-appearance: none; }
+.toolbar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.form-row { display: flex; gap: 4px; align-items: center; width: 100%; }
+.form-group { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.toolbar label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
+.toolbar input, .toolbar select { font-size: 13px; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--border); background: #FFF; color: var(--text-main); height: 34px; width: 100%; -webkit-appearance: none; }
 
 .team-input-wrapper { display: flex; width: 100%; gap: 4px; }
-.btn-edit-team { background: #E2E8F0; color: var(--text-main); border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.1s; -webkit-tap-highlight-color: transparent; }
+.btn-edit-team { background: #E2E8F0; color: var(--text-main); border: 1px solid var(--border); width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .btn-edit-team.editing { background: var(--success); color: white; border-color: var(--success); }
 
-.sub-tabs { display: flex; gap: 4px; background: #E2E8F0; padding: 4px; border-radius: 8px; margin-bottom: 10px; }
-.sub-btn { flex: 1; padding: 10px 6px; border: none; background: transparent; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.sub-tabs { display: flex; gap: 4px; background: #E2E8F0; padding: 3px; border-radius: 6px; margin-bottom: 6px; }
+.sub-btn { flex: 1; padding: 8px 4px; border: none; background: transparent; border-radius: 4px; font-size: 11px; font-weight: 700; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .sub-btn.on { background: var(--primary); color: white; }
 
-.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
-.btn { font-size: 12px; font-weight: 700; height: 42px; padding: 0 10px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: 0.1s; -webkit-tap-highlight-color: transparent; }
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 100%; }
+.btn { font-size: 11px; font-weight: 700; height: 36px; padding: 0 8px; cursor: pointer; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; gap: 4px; -webkit-tap-highlight-color: transparent; }
 .btn-p { background: var(--primary-light) !important; color: #FFF !important; border-color: var(--primary-light) !important; }
 .btn-d { background: var(--danger-light) !important; color: var(--danger) !important; border-color: var(--danger) !important; }
 .btn-pdf { background: #E11D48 !important; color: #FFF !important; border-color: #E11D48 !important; }
 
-.sumgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
-.sc { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
-.sc .lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
-.sc .val { font-size: 14px; font-weight: 700; color: var(--text-main); }
+.sumgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-bottom: 6px; }
+.sc { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 6px; text-align: center; }
+.sc .lbl { font-size: 8px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 1px; }
+.sc .val { font-size: 13px; font-weight: 700; color: var(--text-main); }
 
-.tbl-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.tbl-hdr { padding: 8px 12px; background: var(--bg-dark); display: flex; flex-direction: column; }
-.tbl-hdr-lbl { font-size: 11px; font-weight: 700; color: #FFF; text-transform: uppercase; letter-spacing: .5px; }
-.tbl-hdr-sub { font-size: 9px; color: #85B7EB; }
+.tbl-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.tbl-hdr { padding: 6px 10px; background: var(--bg-dark); display: flex; flex-direction: column; }
+.tbl-hdr-lbl { font-size: 10px; font-weight: 700; color: #FFF; text-transform: uppercase; letter-spacing: .5px; }
+.tbl-hdr-sub { font-size: 8px; color: #85B7EB; }
 
 .tbl-wrap { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
-table { border-collapse: collapse; font-size: 13px; min-width: 780px; width: 100%; }
+table { border-collapse: collapse; font-size: 12px; min-width: 680px; width: 100%; }
 thead tr { background: var(--bg-dark); }
-thead th { color: #85B7EB; font-weight: 600; font-size: 11px; padding: 10px 4px; text-align: center; border-right: 1px solid #0C447C; white-space: nowrap; }
+thead th { color: #85B7EB; font-weight: 600; font-size: 10px; padding: 6px 2px; text-align: center; border-right: 1px solid #0C447C; white-space: nowrap; }
 
-th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 10; min-width: 36px; width: 36px; text-align: center; padding: 6px 2px; }
-th:nth-child(2), td:nth-child(2) { position: sticky; left: 36px; z-index: 10; min-width: 105px; width: 105px; text-align: left; padding-left: 6px; box-shadow: 3px 0 5px rgba(0,0,0,0.08); }
+th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 10; min-width: 28px; width: 28px; text-align: center; padding: 4px 1px; }
+th:nth-child(2), td:nth-child(2) { position: sticky; left: 28px; z-index: 10; min-width: 90px; width: 90px; text-align: left; padding-left: 4px; box-shadow: 2px 0 4px rgba(0,0,0,0.08); }
 
 thead th:nth-child(1), thead th:nth-child(2) { background: var(--bg-dark); color: #FFF; }
-td:nth-child(1) { background: #EDF2F7; color: var(--primary); font-weight: 800; border-right: 1px solid var(--border); }
-td:nth-child(2) { background: #F8FAFC; color: var(--text-main); font-weight: 700; border-right: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+td:nth-child(1) { background: #EDF2F7; color: var(--primary); font-weight: 800; border-right: 1px solid var(--border); font-size: 11px; }
+td:nth-child(2) { background: #F8FAFC; color: var(--text-main); font-weight: 700; border-right: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
 
 thead th.war-hdr { color: var(--accent); font-weight: 700; background: #052240; }
-thead th.sep { border-left: 2px solid var(--primary-light); }
+thead th.sep { border-left: 1px solid var(--primary-light); }
 tbody tr { border-bottom: 1px solid #E2E8F0; }
-td { padding: 6px 3px; color: var(--text-main); text-align: center; vertical-align: middle; }
+td { padding: 4px 2px; color: var(--text-main); text-align: center; vertical-align: middle; }
 
-td input[type=number] { width: 42px; text-align: center; border: 1px solid var(--border); border-radius: 6px; background: #FFF; color: var(--text-main); font-size: 14px; font-weight: 700; height: 34px; -webkit-appearance: none; margin: 0; }
+td input[type=number] { width: 36px; text-align: center; border: 1px solid var(--border); border-radius: 4px; background: #FFF; color: var(--text-main); font-size: 13px; font-weight: 700; height: 28px; -webkit-appearance: none; margin: 0; padding: 2px; }
 td input[type=number]:focus { outline: none; border-color: var(--primary-light); background: #F0F7FF; }
 
-.auto-cell { font-weight: 700; color: var(--primary-light); background: #F8FAFC; }
-.war-cell { font-weight: 800; text-align: center; font-size: 13px; }
+.auto-cell { font-weight: 700; color: var(--primary-light); background: #F8FAFC; font-size: 11px; }
+.war-cell { font-weight: 800; text-align: center; font-size: 11px; }
 
 .war-pos { color: var(--success) !important; font-weight: 800; }
 .war-neg { color: var(--danger) !important; font-weight: 800; }
 .war-neu { color: var(--text-muted) !important; }
 .stat-leader { background-color: var(--leader-bg) !important; color: var(--leader-text) !important; font-weight: 700; border-radius: 4px; }
 
-.game-row, .player-edit-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #E2E8F0; background: #FFF; }
-.gnum { width: 30px; height: 30px; background: var(--bg-dark); color: #B5D4F4; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-.grival { font-size: 13px; font-weight: 600; color: var(--text-main); }
-.gdates { font-size: 11px; color: var(--text-muted); }
-.empty { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 13px; width: 100%; }
+.game-row, .player-edit-row { display: flex; align-items: center; gap: 8px; padding: 8px; border-bottom: 1px solid #E2E8F0; background: #FFF; }
+.gnum { width: 26px; height: 26px; background: var(--bg-dark); color: #B5D4F4; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.grival { font-size: 12px; font-weight: 600; color: var(--text-main); }
+.gdates { font-size: 10px; color: var(--text-muted); }
+.empty { text-align: center; padding: 1.5rem 1rem; color: var(--text-muted); font-size: 12px; width: 100%; }
 
-.p-type-badge { font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 4px; background: #E2E8F0; color: var(--text-main); margin-left: auto; }
+.p-type-badge { font-size: 8px; font-weight: bold; padding: 1px 4px; border-radius: 3px; background: #E2E8F0; color: var(--text-main); margin-left: auto; }
 .p-type-badge.bat { background: #DBEAFE; color: #1E40AF; }
 .p-type-badge.pich { background: #FEE2E2; color: #991B1B; }
 .p-type-badge.both { background: #FEF3C7; color: #92400E; }
 
-.pdf-header-print { display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--primary); }
-.pdf-header-print h2 { color: var(--primary); font-size: 18px; text-transform: uppercase; }
-.pdf-header-print p { font-size: 11px; color: var(--text-muted); }
+.pdf-header-print { display: none; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px dashed var(--primary); }
+.pdf-header-print h2 { color: var(--primary); font-size: 16px; text-transform: uppercase; }
+.pdf-header-print p { font-size: 10px; color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -121,7 +121,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
 <div id="app-content">
 
   <div class="topbar">
-    <i class="ti ti-ball-baseball" style="font-size:18px;color:var(--accent)"></i>
+    <i class="ti ti-ball-baseball" style="font-size:16px;color:var(--accent)"></i>
     <span class="topbar-title" id="topbar-team-name">TEAM VIP</span>
     <span class="topbar-badge">WAR</span>
   </div>
@@ -142,14 +142,14 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
             <label>Fecha</label>
             <input type="date" id="inp-fecha">
           </div>
-          <div class="form-group" style="flex: 0 0 60px;">
+          <div class="form-group" style="flex: 0 0 50px;">
             <label>Juego #</label>
             <input type="number" id="inp-juego" value="1" min="1">
           </div>
         </div>
         <div class="form-row">
           <div class="form-row" style="width:100%;">
-            <label style="width:40px">Rival</label>
+            <label style="width:35px">Rival</label>
             <input type="text" id="inp-rival" placeholder="Nombre del rival">
           </div>
         </div>
@@ -214,10 +214,10 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
 
     <div id="sec-jugadores" class="sec">
       <div class="toolbar" id="form-jugador-titulo">
-        <label id="lbl-gestion-modo" style="font-size:12px; color:var(--primary); font-weight:700;">REGISTRAR NUEVO INTEGRANTE</label>
+        <label id="lbl-gestion-modo" style="font-size:11px; color:var(--primary); font-weight:700;">REGISTRAR NUEVO INTEGRANTE</label>
         <input type="hidden" id="edit-index" value="-1">
         <div class="form-row">
-          <div class="form-group" style="flex:0 0 65px;">
+          <div class="form-group" style="flex:0 0 55px;">
             <label>N° (#)</label>
             <input type="number" id="new-cod" placeholder="Ej: 10">
           </div>
@@ -358,13 +358,12 @@ window.addEventListener('DOMContentLoaded', () => {
   if(document.getElementById('inp-fecha')) {
     document.getElementById('inp-fecha').value = today;
   }
-  // Forzar una renderización limpia inicial con un pequeño retardo para asegurar estabilidad en móviles
   setTimeout(() => {
     buildTablesOnce();
   }, 100);
 });
 
-function calcH(p){return(parseInt(p.h1)||0)+(parseInt(p.h2)||0)+(parseInt(p.h3)||0)+(parseInt(p.h4||0));}
+function calcH(p){return(parseInt(p.h1)||0)+(parseInt(p.h2)||0)+(parseInt(p.h3)||0)+(parseInt(p.h4)||0);}
 function calcTBA(p){return(parseInt(p.h1)||0)+(parseInt(p.h2||0)*2)+(parseInt(p.h3||0)*3)+(parseInt(p.h4||0)*4);}
 
 function calcAVE(h,vb){
@@ -393,6 +392,12 @@ function fmtWar(val) {
   const num = parseFloat(val);
   if (num > 0) return '+' + num.toFixed(1);
   return num.toFixed(1);
+}
+
+// Busca el nombre actual de un jugador por su código
+function getPlayerName(cod) {
+  const p = players.find(x => x.cod == cod);
+  return p ? p.nombre : 'DESCONOCIDO';
 }
 
 let isTeamEditing = false;
@@ -444,11 +449,15 @@ function switchEntryTab(mode) {
   document.getElementById('sub-tab-pich').classList.toggle('on', mode === 'pich');
   document.getElementById('wrapper-tab-bat').style.display = mode === 'bat' ? 'block' : 'none';
   document.getElementById('wrapper-tab-pich').style.display = mode === 'pich' ? 'block' : 'none';
+  setupNavigationEvents();
 }
 
 let inputSequence = [];
 function setupNavigationEvents() {
-  inputSequence = Array.from(document.querySelectorAll('#pdf-entry-area input[type=number]'));
+  // Captura los inputs visibles del área activa de planillas
+  inputSequence = Array.from(document.querySelectorAll('#pdf-entry-area div[style*="display: none"] input[type=number], #pdf-entry-area input[type=number]'))
+    .filter(inp => inp.offsetParent !== null);
+
   inputSequence.forEach((inp, idx) => {
     inp.removeEventListener('keydown', handleEnterKey);
     inp.addEventListener('keydown', (e) => handleEnterKey(e, idx));
@@ -459,7 +468,12 @@ function handleEnterKey(e, idx) {
   if (e.key === 'Enter') {
     e.preventDefault();
     const nextInp = inputSequence[idx + 1];
-    if (nextInp) { nextInp.focus(); nextInp.select(); } else { e.target.blur(); }
+    if (nextInp) { 
+      nextInp.focus(); 
+      nextInp.select(); 
+    } else { 
+      e.target.blur(); 
+    }
   }
 }
 
@@ -482,9 +496,9 @@ function buildTablesOnce() {
       const tr = document.createElement('tr');
       tr.id = `row-bat-${pi}`;
       tr.innerHTML = `
-        <td>${p.cod}</td><td>${p.nombre}</td>
+        <td>${p.cod}</td><td style="font-weight:700;">${p.nombre}</td>
         <td class="war-cell" id="live-war-${pi}">0.0</td>
-        ${BAT_INP.map(f => `<td><input type="number" inputmode="numeric" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
+        ${BAT_INP.map(f => `<td><input type="number" inputmode="numeric" enterkeyhint="next" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
         <td class="auto-cell sep" id="live-h-${pi}">0</td>
         <td class="auto-cell" id="live-tba-${pi}">0</td>
         <td class="auto-cell" id="live-ave-${pi}">.000</td>
@@ -500,8 +514,8 @@ function buildTablesOnce() {
       const pi = p._origIndex;
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${p.cod}</td><td>${p.nombre}</td>
-        ${PICH_INP.map(f => `<td><input type="number" inputmode="numeric" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
+        <td>${p.cod}</td><td style="font-weight:700;">${p.nombre}</td>
+        ${PICH_INP.map(f => `<td><input type="number" inputmode="numeric" enterkeyhint="next" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
       `;
       tbodyPich.appendChild(tr);
     });
@@ -621,7 +635,7 @@ function exportPlanillaPDF() {
 
   const container = document.getElementById('pdf-entry-area');
   const opt = {
-    margin: [6, 4, 6, 4],
+    margin: [4, 4, 4, 4],
     filename: `Planilla_${teamName.replace(/\s+/g, '_')}_${fechaInp}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
@@ -635,7 +649,7 @@ function exportHistorialPDF() {
   const teamName = document.getElementById('inp-mi-equipo').value.trim() || "TEAM VIP";
   const container = document.getElementById('pdf-history-area');
   const opt = {
-    margin: [6, 4, 6, 4],
+    margin: [4, 4, 4, 4],
     filename: `Historial_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
@@ -658,7 +672,7 @@ function exportAcumPDF() {
 
   const container = document.getElementById('pdf-acum-area');
   const opt = {
-    margin: [6, 4, 6, 4],
+    margin: [4, 4, 4, 4],
     filename: `Acumulado_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
@@ -717,11 +731,31 @@ function cancelPlayerEdit() {
 function savePlayerUpdate() {
   const index = parseInt(document.getElementById('edit-index').value);
   if (isNaN(index) || index < 0) return;
-  players[index].cod = parseInt(document.getElementById('new-cod').value) || 0;
-  players[index].nombre = document.getElementById('new-nom').value.trim().toUpperCase();
-  players[index].rol = document.getElementById('new-rol').value;
+  
+  // Guardamos el código original para mapear los cambios en el historial de juegos
+  const viejoCod = players[index].cod;
+  const nuevoCod = parseInt(document.getElementById('new-cod').value) || viejoCod;
+  const nuevoNombre = document.getElementById('new-nom').value.trim().toUpperCase();
+  const nuevoRol = document.getElementById('new-rol').value;
+
+  players[index].cod = nuevoCod;
+  players[index].nombre = nuevoNombre;
+  players[index].rol = nuevoRol;
+
+  // Actualización en cadena: Modifica los partidos guardados vinculados a este código viejo
+  games.forEach(g => {
+    g.players.forEach(p => {
+      if (p.cod === viejoCod) {
+        p.cod = nuevoCod;
+        p.nombre = nuevoNombre;
+        p.rol = nuevoRol;
+      }
+    });
+  });
+
   cancelPlayerEdit(); 
   renderPlayersManagement();
+  showToast('Jugador actualizado globalmente');
 }
 
 function deletePlayerExplicit() {
@@ -818,7 +852,15 @@ function clearFilt(){
 
 function loadGameToEdit(id){
   const g = games.find(x => x.id == id); if(!g) return;
-  players = g.players.map(p => ({ ...p }));
+  
+  // Al cargar un juego viejo, sincroniza los nombres actuales del roster usando su número/código
+  players = g.players.map(p => {
+    return {
+      ...p,
+      nombre: getPlayerName(p.cod)
+    };
+  });
+  
   document.getElementById('inp-fecha').value = g.fecha;
   document.getElementById('inp-juego').value = g.num;
   document.getElementById('inp-rival').value = g.rival;
@@ -832,13 +874,16 @@ function renderAcum(){
 
   src.forEach(g => {
     g.players.forEach(p => {
-      const k = p.cod + '_' + p.nombre;
+      // Usamos el código del jugador y buscamos su nombre actualizado en tiempo real
+      const nombreActualizado = getPlayerName(p.cod);
+      const k = p.cod + '_' + nombreActualizado;
+      
       if(p.rol === 'Bateador' || p.rol === 'Ambos') {
-        if(!mapBat[k]) mapBat[k] = { cod: p.cod, nombre: p.nombre, ...Object.fromEntries(BAT_INP.map(f => [f, 0])) };
+        if(!mapBat[k]) mapBat[k] = { cod: p.cod, nombre: nombreActualizado, ...Object.fromEntries(BAT_INP.map(f => [f, 0])) };
         BAT_INP.forEach(f => mapBat[k][f] += parseInt(p[f] || 0));
       }
       if(p.rol === 'Pitcher' || p.rol === 'Ambos') {
-        if(!mapPich[k]) mapPich[k] = { cod: p.cod, nombre: p.nombre, ...Object.fromEntries(PICH_INP.map(f => [f, 0])) };
+        if(!mapPich[k]) mapPich[k] = { cod: p.cod, nombre: nombreActualizado, ...Object.fromEntries(PICH_INP.map(f => [f, 0])) };
         PICH_INP.forEach(f => mapPich[k][f] += parseInt(p[f] || 0));
       }
     });
@@ -855,7 +900,7 @@ function renderAcum(){
       const cWar = p.jj > 0 ? (warVal > 0 ? 'war-cell war-pos' : (warVal < 0 ? 'war-cell war-neg' : 'war-cell war-neu')) : 'war-cell war-neu';
       
       return `<tr>
-        <td>${p.cod}</td><td style="font-weight:bold;">${p.nombre}</td>
+        <td>${p.cod}</td><td style="font-weight:bold; white-space:nowrap;">${p.nombre}</td>
         <td class="${cWar} ${p.jj > 0 && warVal === leadBat.war ? 'stat-leader' : ''}">${p.jj > 0 ? fmtWar(warVal) : '0.0'}</td>
         ${BAT_INP.map(f => `<td class="${p[f] > 0 && p[f] === leadBat[f] ? 'stat-leader' : ''}">${p[f]||0}</td>`).join('')}
         <td class="auto-cell sep ${hc > 0 && hc === leadBat.h ? 'stat-leader' : ''}">${hc}</td>
@@ -869,7 +914,7 @@ function renderAcum(){
   const bodyPichEl = document.getElementById('acum-body-pich');
   if(bodyPichEl) {
     bodyPichEl.innerHTML = rPich.map(p => {
-      return `<tr><td>${p.cod}</td><td style="font-weight:bold;">${p.nombre}</td><td>${p.jg||0}</td><td>${p.jp||0}</td><td>${p.bb_p||0}</td><td>${p.so_p||0}</td></tr>`;
+      return `<tr><td>${p.cod}</td><td style="font-weight:bold; white-space:nowrap;">${p.nombre}</td><td>${p.jg||0}</td><td>${p.jp||0}</td><td>${p.bb_p||0}</td><td>${p.so_p||0}</td></tr>`;
     }).join('');
   }
 }
@@ -886,7 +931,7 @@ function showToast(msg){
   if(!t){
     t = document.createElement('div');
     t.id = '_t';
-    t.style.cssText = 'position:fixed;bottom:75px;left:50%;transform:translateX(-50%);padding:10px 14px;border-radius:20px;font-size:12px;background:#0C447C;color:#FFF;opacity:0;transition:opacity .2s;z-index:10000;font-weight:bold;text-align:center;width:85%;max-width:300px;';
+    t.style.cssText = 'position:fixed;bottom:65px;left:50%;transform:translateX(-50%);padding:8px 12px;border-radius:20px;font-size:11px;background:#0C447C;color:#FFF;opacity:0;transition:opacity .2s;z-index:10000;font-weight:bold;text-align:center;width:85%;max-width:300px;';
     document.body.appendChild(t);
   }
   t.textContent = msg; 
