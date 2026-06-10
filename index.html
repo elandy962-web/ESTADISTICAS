@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Estadísticas VIP v20 · Control Móvil</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --primary: #0C447C;
+  --primary-light: #185FA5;
+  --accent: #EF9F27;
+  --bg-dark: #042C53;
+  --bg-app: #F4F7FA;
+  --bg-card: #FFFFFF;
+  --text-main: #1E293B;
+  --text-muted: #64748B;
+  --border: #CBD5E1;
+  --danger: #DC2626;
+  --danger-light: #FEE2E2;
+  --success: #059669;
+  --leader-bg: #FEF3C7;
+  --leader-text: #B45309;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px; overflow-x: hidden; }
+
+#app-content { display: block; }
+
+.topbar { background: var(--primary); padding: 12px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.topbar-title { color: #E6F1FB; font-size: 15px; font-weight: 700; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-badge { background: var(--primary-light); color: #B5D4F4; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; border: 1px solid #378ADD; flex-shrink: 0; }
+
+.nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); display: flex; justify-content: space-around; border-top: 1px solid var(--primary-light); z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); height: 64px; }
+.nb { flex: 1; text-align: center; font-size: 10px; padding: 8px 0; border: none; background: none; color: #85B7EB; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: 0.2s; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+.nb i { font-size: 22px; }
+.nb.on { color: var(--accent); background: rgba(255,255,255,0.06); }
+
+.body { padding: 10px 8px; max-width: 100%; overflow-x: hidden; }
+.sec { display: none; }
+.sec.on { display: block; }
+
+.toolbar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.form-row { display: flex; gap: 6px; align-items: center; width: 100%; }
+.form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.toolbar label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+.toolbar input, .toolbar select { font-size: 14px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: #FFF; color: var(--text-main); height: 38px; width: 100%; -webkit-appearance: none; }
+
+.team-input-wrapper { display: flex; width: 100%; gap: 4px; }
+.btn-edit-team { background: #E2E8F0; color: var(--text-main); border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.1s; -webkit-tap-highlight-color: transparent; }
+.btn-edit-team.editing { background: var(--success); color: white; border-color: var(--success); }
+
+.sub-tabs { display: flex; gap: 4px; background: #E2E8F0; padding: 4px; border-radius: 8px; margin-bottom: 10px; }
+.sub-btn { flex: 1; padding: 10px 6px; border: none; background: transparent; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.sub-btn.on { background: var(--primary); color: white; }
+
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+.btn { font-size: 12px; font-weight: 700; height: 42px; padding: 0 10px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: 0.1s; -webkit-tap-highlight-color: transparent; }
+.btn-p { background: var(--primary-light) !important; color: #FFF !important; border-color: var(--primary-light) !important; }
+.btn-d { background: var(--danger-light) !important; color: var(--danger) !important; border-color: var(--danger) !important; }
+.btn-pdf { background: #E11D48 !important; color: #FFF !important; border-color: #E11D48 !important; }
+
+.sumgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
+.sc { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+.sc .lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
+.sc .val { font-size: 14px; font-weight: 700; color: var(--text-main); }
+
+.tbl-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.tbl-hdr { padding: 8px 12px; background: var(--bg-dark); display: flex; flex-direction: column; }
+.tbl-hdr-lbl { font-size: 11px; font-weight: 700; color: #FFF; text-transform: uppercase; letter-spacing: .5px; }
+.tbl-hdr-sub { font-size: 9px; color: #85B7EB; }
+
+.tbl-wrap { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; font-size: 13px; min-width: 780px; width: 100%; }
+thead tr { background: var(--bg-dark); }
+thead th { color: #85B7EB; font-weight: 600; font-size: 11px; padding: 10px 4px; text-align: center; border-right: 1px solid #0C447C; white-space: nowrap; }
+
+th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 10; min-width: 36px; width: 36px; text-align: center; padding: 6px 2px; }
+th:nth-child(2), td:nth-child(2) { position: sticky; left: 36px; z-index: 10; min-width: 105px; width: 105px; text-align: left; padding-left: 6px; box-shadow: 3px 0 5px rgba(0,0,0,0.08); }
+
+thead th:nth-child(1), thead th:nth-child(2) { background: var(--bg-dark); color: #FFF; }
+td:nth-child(1) { background: #EDF2F7; color: var(--primary); font-weight: 800; border-right: 1px solid var(--border); }
+td:nth-child(2) { background: #F8FAFC; color: var(--text-main); font-weight: 700; border-right: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+thead th.war-hdr { color: var(--accent); font-weight: 700; background: #052240; }
+thead th.sep { border-left: 2px solid var(--primary-light); }
+tbody tr { border-bottom: 1px solid #E2E8F0; }
+td { padding: 6px 3px; color: var(--text-main); text-align: center; vertical-align: middle; }
+
+td input[type=number] { width: 42px; text-align: center; border: 1px solid var(--border); border-radius: 6px; background: #FFF; color: var(--text-main); font-size: 14px; font-weight: 700; height: 34px; -webkit-appearance: none; margin: 0; }
+td input[type=number]:focus { outline: none; border-color: var(--primary-light); background: #F0F7FF; }
+
+.auto-cell { font-weight: 700; color: var(--primary-light); background: #F8FAFC; }
+.war-cell { font-weight: 800; text-align: center; font-size: 13px; }
+
+.war-pos { color: var(--success) !important; font-weight: 800; }
+.war-neg { color: var(--danger) !important; font-weight: 800; }
+.war-neu { color: var(--text-muted) !important; }
+.stat-leader { background-color: var(--leader-bg) !important; color: var(--leader-text) !important; font-weight: 700; border-radius: 4px; }
+
+.game-row, .player-edit-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #E2E8F0; background: #FFF; }
+.gnum { width: 30px; height: 30px; background: var(--bg-dark); color: #B5D4F4; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.grival { font-size: 13px; font-weight: 600; color: var(--text-main); }
+.gdates { font-size: 11px; color: var(--text-muted); }
+.empty { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 13px; width: 100%; }
+
+.p-type-badge { font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 4px; background: #E2E8F0; color: var(--text-main); margin-left: auto; }
+.p-type-badge.bat { background: #DBEAFE; color: #1E40AF; }
+.p-type-badge.pich { background: #FEE2E2; color: #991B1B; }
+.p-type-badge.both { background: #FEF3C7; color: #92400E; }
+
+.pdf-header-print { display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--primary); }
+.pdf-header-print h2 { color: var(--primary); font-size: 18px; text-transform: uppercase; }
+.pdf-header-print p { font-size: 11px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div id="app-content">
+
+  <div class="topbar">
+    <i class="ti ti-ball-baseball" style="font-size:18px;color:var(--accent)"></i>
+    <span class="topbar-title" id="topbar-team-name">TEAM VIP</span>
+    <span class="topbar-badge">WAR</span>
+  </div>
+
+  <div class="body">
+
+    <div id="sec-entrada" class="sec on">
+      <div class="toolbar">
+        <div class="form-row">
+          <div class="form-group" style="flex: 2;">
+            <label>Nombre del Equipo</label>
+            <div class="team-input-wrapper">
+              <input type="text" id="inp-mi-equipo" value="TEAM VIP" disabled oninput="updateTeamName(this.value)">
+              <button class="btn-edit-team" id="btn-toggle-team" onclick="toggleEditTeam()"><i class="ti ti-pencil"></i></button>
+            </div>
+          </div>
+          <div class="form-group" style="flex: 1.5;">
+            <label>Fecha</label>
+            <input type="date" id="inp-fecha">
+          </div>
+          <div class="form-group" style="flex: 0 0 60px;">
+            <label>Juego #</label>
+            <input type="number" id="inp-juego" value="1" min="1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-row" style="width:100%;">
+            <label style="width:40px">Rival</label>
+            <input type="text" id="inp-rival" placeholder="Nombre del rival">
+          </div>
+        </div>
+        <div class="btn-grid">
+          <button class="btn btn-p" onclick="saveGame()"><i class="ti ti-device-floppy"></i> Guardar</button>
+          <button class="btn btn-d" onclick="clearStats()"><i class="ti ti-refresh"></i> Limpiar</button>
+        </div>
+      </div>
+
+      <div class="sub-tabs">
+        <button class="sub-btn on" id="sub-tab-bat" onclick="switchEntryTab('bat')"><i class="ti ti-user"></i> Bateadores</button>
+        <button class="sub-btn" id="sub-tab-pich" onclick="switchEntryTab('pich')"><i class="ti ti-user-shield"></i> Lanzadores</button>
+      </div>
+
+      <div id="pdf-entry-area">
+        <div class="pdf-header-print" id="pdf-entry-print-header">
+          <h2 id="pdf-print-team-title">TEAM VIP</h2>
+          <p id="pdf-print-game-details">Planilla de Juego Oficial</p>
+        </div>
+
+        <div id="wrapper-tab-bat" class="tbl-card">
+          <div class="tbl-hdr">
+            <span class="tbl-hdr-lbl">Bateo Colectivo</span>
+            <span class="tbl-hdr-sub">WAR Simple Dinámico (CA/CE sumán +0.25)</span>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Nombre</th><th class="war-hdr">WAR</th>
+                  <th>JJ</th><th>VB</th><th>CA</th><th>CE</th>
+                  <th>H1</th><th>H2</th><th>H3</th><th>H4</th><th>BB</th><th>SO</th><th>SF</th>
+                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th>
+                </tr>
+              </thead>
+              <tbody id="entry-body-bat"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="wrapper-tab-pich" class="tbl-card" style="display:none;">
+          <div class="tbl-hdr">
+            <span class="tbl-hdr-lbl">Lanzadores (Pitchers)</span>
+            <span class="tbl-hdr-sub">Planilla de control para pitcheo</span>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Nombre</th><th>JG</th><th>JP</th><th>BB</th><th>SO</th>
+                </tr>
+              </thead>
+              <tbody id="entry-body-pich"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="sumgrid" id="sumbar"></div>
+      <button class="btn btn-pdf" onclick="exportPlanillaPDF()" style="width:100%; margin-top:4px;"><i class="ti ti-file-type-pdf"></i> Exportar Planilla a PDF</button>
+    </div>
+
+    <div id="sec-jugadores" class="sec">
+      <div class="toolbar" id="form-jugador-titulo">
+        <label id="lbl-gestion-modo" style="font-size:12px; color:var(--primary); font-weight:700;">REGISTRAR NUEVO INTEGRANTE</label>
+        <input type="hidden" id="edit-index" value="-1">
+        <div class="form-row">
+          <div class="form-group" style="flex:0 0 65px;">
+            <label>N° (#)</label>
+            <input type="number" id="new-cod" placeholder="Ej: 10">
+          </div>
+          <div class="form-group">
+            <label>Nombre Completo</label>
+            <input type="text" id="new-nom" placeholder="Ej: JUAN PEREZ">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Rol en el Equipo</label>
+            <select id="new-rol">
+              <option value="Bateador">Bateador</option>
+              <option value="Pitcher">Pitcher</option>
+              <option value="Ambos">Ambos (Bateador/P)</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-grid" id="btn-jugador-container">
+          <button class="btn btn-p" onclick="addPlayer()" style="grid-column: span 2;"><i class="ti ti-plus"></i> Agregar al Roster</button>
+        </div>
+      </div>
+
+      <div class="tbl-card">
+        <div class="tbl-hdr"><span class="tbl-hdr-lbl">Roster Oficial Registrado</span></div>
+        <div id="players-management-list"></div>
+      </div>
+    </div>
+
+    <div id="sec-historial" class="sec">
+      <div class="toolbar">
+        <div class="form-row">
+          <div class="form-group"><label>Desde</label><input type="date" id="f-desde"></div>
+          <div class="form-group"><label>Hasta</label><input type="date" id="f-hasta"></div>
+        </div>
+        <div class="btn-grid">
+          <button class="btn btn-p" onclick="filterGames()"><i class="ti ti-filter"></i> Filtrar</button>
+          <button class="btn" onclick="clearFilt()">Ver todos</button>
+        </div>
+        <button class="btn btn-pdf" onclick="exportHistorialPDF()"><i class="ti ti-file-type-pdf"></i> Exportar Historial a PDF</button>
+      </div>
+      <div id="pdf-history-area">
+        <div class="pdf-header-print" id="pdf-history-print-header" style="display:block !important;">
+          <h2 class="print-team-name-label">TEAM VIP</h2>
+          <p>Reporte Histórico de Partidos Salvados</p>
+        </div>
+        <div class="tbl-card" id="games-list"></div>
+      </div>
+    </div>
+
+    <div id="sec-acumulado" class="sec">
+      <div class="toolbar">
+        <div class="form-row">
+          <div class="form-group"><label>Desde</label><input type="date" id="a-desde"></div>
+          <div class="form-group"><label>Hasta</label><input type="date" id="a-hasta"></div>
+        </div>
+        <div class="btn-grid">
+          <button class="btn btn-p" onclick="renderAcum()"><i class="ti ti-filter"></i> Calcular</button>
+          <button class="btn" onclick="clearAcumF()">Limpiar</button>
+        </div>
+        <button class="btn btn-pdf" onclick="exportAcumPDF()"><i class="ti ti-file-type-pdf"></i> Exportar Acumulado PDF</button>
+      </div>
+      <div id="pdf-acum-area">
+        <div class="pdf-header-print" id="pdf-acum-print-header" style="display:block !important;">
+          <h2 class="print-team-name-label">TEAM VIP</h2>
+          <p id="pdf-acum-range-label">Reporte Estadístico Acumulado General</p>
+        </div>
+
+        <div class="tbl-card">
+          <div class="tbl-hdr"><span class="tbl-hdr-lbl">Acumulado Colectivo de Bateo</span></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Nombre</th><th class="war-hdr">WAR</th>
+                  <th>JJ</th><th>VB</th><th>CA</th><th>CE</th>
+                  <th>H1</th><th>H2</th><th>H3</th><th>H4</th><th>BB</th><th>SO</th><th>SF</th>
+                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th>
+                </tr>
+              </thead>
+              <tbody id="acum-body-bat"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tbl-card">
+          <div class="tbl-hdr"><span class="tbl-hdr-lbl">Acumulado Colectivo de Pitcheo</span></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Nombre</th><th>JG</th><th>JP</th><th>BB</th><th>SO</th>
+                </tr>
+              </thead>
+              <tbody id="acum-body-pich"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="nav">
+    <button class="nb on" onclick="goSec('entrada',this)"><i class="ti ti-pencil"></i>Entrada</button>
+    <button class="nb" onclick="goSec('jugadores',this)"><i class="ti ti-users"></i>Jugadores</button>
+    <button class="nb" onclick="goSec('historial',this)"><i class="ti ti-calendar"></i>Historial</button>
+    <button class="nb" onclick="goSec('acumulado',this)"><i class="ti ti-chart-bar"></i>Acumulado</button>
+  </div>
+
+</div>
+
+<script>
+// Lista global de jugadores iniciales
+let players=[
+  {cod:8,nombre:'ALEXANDER P',rol:'Bateador'},{cod:51,nombre:'ANDY',rol:'Bateador'},
+  {cod:40,nombre:'EDDY',rol:'Bateador'},{cod:6,nombre:'EDWARD',rol:'Bateador'},
+  {cod:48,nombre:'GONELL',rol:'Bateador'},{cod:46,nombre:'JOSE LUIS',rol:'Bateador'},
+  {cod:36,nombre:'KEVIN',rol:'Bateador'},{cod:18,nombre:'LUIS ALBERT 2B',rol:'Bateador'},
+  {cod:11,nombre:'LUIS DE LA CRUZ',rol:'Bateador'},{cod:34,nombre:'MIGUEL ANGEL',rol:'Bateador'},
+  {cod:4,nombre:'NOE PERALTA',rol:'Bateador'},{cod:32,nombre:'SAUL',rol:'Bateador'}
+];
+
+const BAT_INP=['jj','vb','ca','ce','h1','h2','h3','h4','bb','so','sf'];
+const PICH_INP=['jg','jp','bb_p','so_p'];
+
+// Inicializar propiedades numéricas en el roster de forma segura
+players = players.map(p => {
+  BAT_INP.forEach(f => { if(p[f] === undefined) p[f] = 0; });
+  PICH_INP.forEach(f => { if(p[f] === undefined) p[f] = 0; });
+  return p;
+});
+
+let games=[], filtG=null;
+
+window.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  if(document.getElementById('inp-fecha')) {
+    document.getElementById('inp-fecha').value = today;
+  }
+  // Forzar una renderización limpia inicial con un pequeño retardo para asegurar estabilidad en móviles
+  setTimeout(() => {
+    buildTablesOnce();
+  }, 100);
+});
+
+function calcH(p){return(parseInt(p.h1)||0)+(parseInt(p.h2)||0)+(parseInt(p.h3)||0)+(parseInt(p.h4||0));}
+function calcTBA(p){return(parseInt(p.h1)||0)+(parseInt(p.h2||0)*2)+(parseInt(p.h3||0)*3)+(parseInt(p.h4||0)*4);}
+
+function calcAVE(h,vb){
+  if(!vb) return '.000';
+  let ave = h / vb;
+  if (ave > 1.0) ave = 1.0; 
+  if (ave === 1.0) return '1.000';
+  return ave.toFixed(3).replace(/^0/,'');
+}
+
+function calcPureWAR(p) {
+  if(!p.jj || !p.vb) return 0;
+  const h1 = parseInt(p.h1) || 0; const h2 = parseInt(p.h2) || 0;
+  const h3 = parseInt(p.h3) || 0; const h4 = parseInt(p.h4) || 0;
+  const bb = parseInt(p.bb) || 0; const sf = parseFloat(p.sf) || 0;
+  const so = parseInt(p.so) || 0; const vb = parseInt(p.vb) || 0;
+  const ca = parseInt(p.ca) || 0; const ce = parseInt(p.ce) || 0;
+  
+  const totalH = h1 + h2 + h3 + h4;
+  const outsDeCampo = Math.max(0, vb - totalH - so);
+  
+  return (h1 + (h2 * 1.25) + (h3 * 1.5) + (h4 * 2.0) + bb + (sf * 0.5) + (ca * 0.25) + (ce * 0.25)) - so - (outsDeCampo * 0.25);
+}
+
+function fmtWar(val) {
+  const num = parseFloat(val);
+  if (num > 0) return '+' + num.toFixed(1);
+  return num.toFixed(1);
+}
+
+let isTeamEditing = false;
+function toggleEditTeam() {
+  const input = document.getElementById('inp-mi-equipo');
+  const button = document.getElementById('btn-toggle-team');
+  
+  isTeamEditing = !isTeamEditing;
+  if(isTeamEditing) {
+    input.disabled = false;
+    input.focus();
+    input.select();
+    button.classList.add('editing');
+    button.innerHTML = '<i class="ti ti-check"></i>';
+  } else {
+    input.disabled = true;
+    button.classList.remove('editing');
+    button.innerHTML = '<i class="ti ti-pencil"></i>';
+    updateTeamName(input.value);
+    showToast('Nombre de equipo actualizado');
+  }
+}
+
+function updateTeamName(val) {
+  const name = val.trim() || "TEAM VIP";
+  document.getElementById('topbar-team-name').textContent = name;
+  document.getElementById('pdf-print-team-title').textContent = name;
+  document.querySelectorAll('.print-team-name-label').forEach(el => { el.textContent = name; });
+}
+
+function goSec(s, btn){
+  document.querySelectorAll('.sec').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(x => x.classList.remove('on'));
+  
+  const targetSec = document.getElementById('sec-' + s);
+  if(targetSec) targetSec.classList.add('on');
+  if(btn) btn.classList.add('on');
+  
+  window.scrollTo(0,0);
+  
+  if(s === 'entrada') buildTablesOnce();
+  if(s === 'jugadores') renderPlayersManagement();
+  if(s === 'historial') renderHistory();
+  if(s === 'acumulado') renderAcum();
+}
+
+function switchEntryTab(mode) {
+  document.getElementById('sub-tab-bat').classList.toggle('on', mode === 'bat');
+  document.getElementById('sub-tab-pich').classList.toggle('on', mode === 'pich');
+  document.getElementById('wrapper-tab-bat').style.display = mode === 'bat' ? 'block' : 'none';
+  document.getElementById('wrapper-tab-pich').style.display = mode === 'pich' ? 'block' : 'none';
+}
+
+let inputSequence = [];
+function setupNavigationEvents() {
+  inputSequence = Array.from(document.querySelectorAll('#pdf-entry-area input[type=number]'));
+  inputSequence.forEach((inp, idx) => {
+    inp.removeEventListener('keydown', handleEnterKey);
+    inp.addEventListener('keydown', (e) => handleEnterKey(e, idx));
+  });
+}
+
+function handleEnterKey(e, idx) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const nextInp = inputSequence[idx + 1];
+    if (nextInp) { nextInp.focus(); nextInp.select(); } else { e.target.blur(); }
+  }
+}
+
+function buildTablesOnce() {
+  const tbodyBat = document.getElementById('entry-body-bat');
+  const tbodyPich = document.getElementById('entry-body-pich');
+  if(!tbodyBat || !tbodyPich) return; 
+  
+  tbodyBat.innerHTML = ''; 
+  tbodyPich.innerHTML = '';
+
+  const battersList = players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Bateador' || p.rol === 'Ambos');
+  const pitchersList = players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Pitcher' || p.rol === 'Ambos');
+
+  if(!battersList.length) {
+    tbodyBat.innerHTML = `<tr><td colspan="17" class="empty">No hay bateadores en el Roster.</td></tr>`;
+  } else {
+    battersList.forEach((p) => {
+      const pi = p._origIndex;
+      const tr = document.createElement('tr');
+      tr.id = `row-bat-${pi}`;
+      tr.innerHTML = `
+        <td>${p.cod}</td><td>${p.nombre}</td>
+        <td class="war-cell" id="live-war-${pi}">0.0</td>
+        ${BAT_INP.map(f => `<td><input type="number" inputmode="numeric" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
+        <td class="auto-cell sep" id="live-h-${pi}">0</td>
+        <td class="auto-cell" id="live-tba-${pi}">0</td>
+        <td class="auto-cell" id="live-ave-${pi}">.000</td>
+      `;
+      tbodyBat.appendChild(tr);
+    });
+  }
+
+  if(!pitchersList.length) {
+    tbodyPich.innerHTML = `<tr><td colspan="6" class="empty">No hay lanzadores en el Roster.</td></tr>`;
+  } else {
+    pitchersList.forEach((p) => {
+      const pi = p._origIndex;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${p.cod}</td><td>${p.nombre}</td>
+        ${PICH_INP.map(f => `<td><input type="number" inputmode="numeric" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
+      `;
+      tbodyPich.appendChild(tr);
+    });
+  }
+
+  document.querySelectorAll('#pdf-entry-area input').forEach(inp => {
+    inp.removeEventListener('focus', onInputFocus);
+    inp.removeEventListener('input', onInputUpdate);
+    inp.addEventListener('focus', onInputFocus);
+    inp.addEventListener('input', onInputUpdate);
+  });
+
+  setupNavigationEvents();
+  updateLiveCalculations();
+}
+
+function onInputFocus() { this.select(); }
+function onInputUpdate() {
+  const pi = parseInt(this.dataset.pi);
+  const f = this.dataset.f;
+  let valInput = Math.max(0, parseInt(this.value) || 0);
+
+  if (['h1','h2','h3','h4','so'].includes(f)) {
+    const vbActual = players[pi]['vb'] || 0;
+    let otrosTurnos = 0;
+    ['h1','h2','h3','h4','so'].forEach(campo => { if (campo !== f) otrosTurnos += (parseInt(players[pi][campo]) || 0); });
+
+    if (otrosTurnos + valInput > vbActual) {
+      valInput = Math.max(0, vbActual - otrosTurnos);
+      this.value = valInput; 
+      showToast(`Hits + SO no superan VB (${vbActual})`);
+    }
+  }
+
+  if (f === 'vb') {
+    let turnosConsumidos = (parseInt(players[pi]['h1'])||0) + (parseInt(players[pi]['h2'])||0) + (parseInt(players[pi]['h3'])||0) + (parseInt(players[pi]['h4'])||0) + (parseInt(players[pi]['so'])||0);
+    if (valInput < turnosConsumidos) {
+      valInput = turnosConsumidos;
+      this.value = valInput;
+      showToast(`VB mínimo es de (${turnosConsumidos}) por datos previos`);
+    }
+  }
+
+  players[pi][f] = valInput;
+  updateLiveCalculations();
+}
+
+function updateLiveCalculations() {
+  const battersList = players.filter(p => p.rol === 'Bateador' || p.rol === 'Ambos');
+
+  players.forEach((p, pi) => {
+    const hEl = document.getElementById(`live-h-${pi}`);
+    const tbaEl = document.getElementById(`live-tba-${pi}`);
+    const aveEl = document.getElementById(`live-ave-${pi}`);
+    const warEl = document.getElementById(`live-war-${pi}`);
+
+    if (hEl && tbaEl && aveEl && warEl) {
+      const h = calcH(p); const tba = calcTBA(p);
+      hEl.textContent = h; tbaEl.textContent = tba; aveEl.textContent = calcAVE(h, p.vb);
+
+      if ((p.jj || 0) > 0) {
+        let pWar = calcPureWAR(p);
+        warEl.textContent = fmtWar(pWar);
+        warEl.className = "war-cell " + (pWar > 0 ? "war-pos" : (pWar < 0 ? "war-neg" : "war-neu"));
+      } else {
+        warEl.textContent = "0.0"; warEl.className = "war-cell war-neu";
+      }
+    }
+  });
+
+  const totVb = battersList.reduce((s,p) => s + (p.vb || 0), 0);
+  const totH = battersList.reduce((s,p) => s + calcH(p), 0);
+  const sumbarEl = document.getElementById('sumbar');
+  if(sumbarEl) {
+    sumbarEl.innerHTML = `
+      <div class="sc"><div class="lbl">VB Totales</div><div class="val">${totVb}</div></div>
+      <div class="sc"><div class="lbl">AVE Colectivo</div><div class="val" style="color:var(--primary-light)">${calcAVE(totH,totVb)}</div></div>
+    `;
+  }
+}
+
+function getLeadersMap(dataset) {
+  let leaders = { war: -Infinity, jj: 0, vb: 0, ca: 0, ce: 0, h1: 0, h2: 0, h3: 0, h4: 0, bb: 0, so: 0, sf: 0, h: 0, tba: 0, ave: 0 };
+  dataset.forEach(p => {
+    const w = p._pureWar !== undefined ? p._pureWar : 0;
+    if (p.jj > 0 && w > leaders.war) leaders.war = w;
+    if (p.jj > leaders.jj) leaders.jj = p.jj;
+    if (p.vb > leaders.vb) leaders.vb = p.vb;
+    if (p.ca > leaders.ca) leaders.ca = p.ca;
+    if (p.ce > leaders.ce) leaders.ce = p.ce;
+    if (p.h1 > leaders.h1) leaders.h1 = p.h1;
+    if (p.h2 > leaders.h2) leaders.h2 = p.h2;
+    if (p.h3 > leaders.h3) leaders.h3 = p.h3;
+    if (p.h4 > leaders.h4) leaders.h4 = p.h4;
+    if (p.bb > leaders.bb) leaders.bb = p.bb;
+    if (p.so > leaders.so) leaders.so = p.so;
+    if (p.sf > leaders.sf) leaders.sf = p.sf;
+    const totH = calcH(p); if (totH > leaders.h) leaders.h = totH;
+    const tba = calcTBA(p); if (tba > leaders.tba) leaders.tba = tba;
+    const ave = parseFloat(calcAVE(totH, p.vb)) || 0; if (ave > leaders.ave) leaders.ave = ave;
+  });
+  return leaders;
+}
+
+function exportPlanillaPDF() {
+  const teamName = document.getElementById('inp-mi-equipo').value.trim() || "TEAM VIP";
+  const fechaInp = document.getElementById('inp-fecha').value;
+  const fechaFmt = fechaInp ? fechaInp.split('-').reverse().join('/') : 'Sin Fecha';
+  const juegoNum = document.getElementById('inp-juego').value || '1';
+  const rival = document.getElementById('inp-rival').value.trim() || 'Rival';
+
+  document.getElementById('pdf-print-team-title').textContent = teamName;
+  document.getElementById('pdf-print-game-details').textContent = `Planilla Oficial · Fecha: ${fechaFmt} · Juego #${juegoNum} vs ${rival}`;
+
+  const headerEl = document.getElementById('pdf-entry-print-header');
+  headerEl.style.display = 'block';
+
+  const container = document.getElementById('pdf-entry-area');
+  const opt = {
+    margin: [6, 4, 6, 4],
+    filename: `Planilla_${teamName.replace(/\s+/g, '_')}_${fechaInp}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+  };
+  
+  html2pdf().set(opt).from(container).save().then(() => { headerEl.style.display = 'none'; });
+}
+
+function exportHistorialPDF() {
+  const teamName = document.getElementById('inp-mi-equipo').value.trim() || "TEAM VIP";
+  const container = document.getElementById('pdf-history-area');
+  const opt = {
+    margin: [6, 4, 6, 4],
+    filename: `Historial_${teamName.replace(/\s+/g, '_')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+  };
+  html2pdf().set(opt).from(container).save();
+}
+
+function exportAcumPDF() {
+  const teamName = document.getElementById('inp-mi-equipo').value.trim() || "TEAM VIP";
+  const d = document.getElementById('a-desde').value;
+  const h = document.getElementById('a-hasta').value;
+  
+  let rangoText = "Temporada Completa (Todos los partidos)";
+  if(d && h) rangoText = `Rango Evaluado Desde: ${d.split('-').reverse().join('/')} Hasta: ${h.split('-').reverse().join('/')}`;
+  else if(d) rangoText = `Rango Evaluado Desde: ${d.split('-').reverse().join('/')}`;
+  else if(h) rangoText = `Rango Evaluado Hasta: ${h.split('-').reverse().join('/')}`;
+
+  document.getElementById('pdf-acum-range-label').textContent = rangoText;
+
+  const container = document.getElementById('pdf-acum-area');
+  const opt = {
+    margin: [6, 4, 6, 4],
+    filename: `Acumulado_${teamName.replace(/\s+/g, '_')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+  };
+  html2pdf().set(opt).from(container).save();
+}
+
+function renderPlayersManagement() {
+  const container = document.getElementById('players-management-list');
+  if(!container) return;
+  container.innerHTML = '';
+  
+  if(!players.length) { 
+    container.innerHTML = '<div class="empty">Roster vacío.</div>'; 
+    return; 
+  }
+  
+  players.forEach((p, index) => {
+    const row = document.createElement('div');
+    row.className = 'player-edit-row';
+    let badgeClass = p.rol === 'Pitcher' ? 'pich' : (p.rol === 'Ambos' ? 'both' : 'bat');
+    row.innerHTML = `
+      <div style="flex:0 0 35px; font-weight:800; color:var(--primary); text-align:center;">#${p.cod}</div>
+      <div style="flex:1; font-weight:600; text-transform:uppercase; font-size:12px; overflow:hidden; text-overflow:ellipsis;">${p.nombre}</div>
+      <span class="p-type-badge ${badgeClass}">${p.rol}</span>
+      <button class="btn btn-p" onclick="startEditPlayer(${index})" style="height:32px; padding:0 8px; margin-left:6px; font-size:11px;"><i class="ti ti-edit"></i></button>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function startEditPlayer(index) {
+  const p = players[index];
+  document.getElementById('new-cod').value = p.cod;
+  document.getElementById('new-nom').value = p.nombre;
+  document.getElementById('new-rol').value = p.rol || 'Bateador';
+  document.getElementById('edit-index').value = index;
+  document.getElementById('lbl-gestion-modo').textContent = "MODIFICAR INTEGRANTE";
+  document.getElementById('btn-jugador-container').innerHTML = `
+    <button class="btn btn-p" onclick="savePlayerUpdate()"><i class="ti ti-check"></i> OK</button>
+    <button class="btn btn-d" onclick="deletePlayerExplicit()"><i class="ti ti-trash"></i> Borrar</button>
+  `;
+}
+
+function cancelPlayerEdit() {
+  document.getElementById('new-cod').value = '';
+  document.getElementById('new-nom').value = '';
+  document.getElementById('edit-index').value = '-1';
+  document.getElementById('lbl-gestion-modo').textContent = "REGISTRAR NUEVO INTEGRANTE";
+  document.getElementById('btn-jugador-container').innerHTML = `
+    <button class="btn btn-p" onclick="addPlayer()" style="grid-column: span 2;"><i class="ti ti-plus"></i> Agregar al Roster</button>
+  `;
+}
+
+function savePlayerUpdate() {
+  const index = parseInt(document.getElementById('edit-index').value);
+  if (isNaN(index) || index < 0) return;
+  players[index].cod = parseInt(document.getElementById('new-cod').value) || 0;
+  players[index].nombre = document.getElementById('new-nom').value.trim().toUpperCase();
+  players[index].rol = document.getElementById('new-rol').value;
+  cancelPlayerEdit(); 
+  renderPlayersManagement();
+}
+
+function deletePlayerExplicit() {
+  const index = parseInt(document.getElementById('edit-index').value);
+  if (isNaN(index) || index < 0) return;
+  if(confirm(`¿Eliminar a ${players[index].nombre}?`)) {
+    players.splice(index, 1);
+    cancelPlayerEdit(); 
+    renderPlayersManagement();
+  }
+}
+
+function addPlayer(){
+  const nom = document.getElementById('new-nom').value.trim().toUpperCase();
+  if(!nom) { showToast('Introduce un nombre válido'); return; }
+  
+  const codeVal = parseInt(document.getElementById('new-cod').value) || (players.length + 1);
+  const p = {
+    cod: codeVal,
+    nombre: nom,
+    rol: document.getElementById('new-rol').value
+  };
+  
+  BAT_INP.forEach(f => p[f] = 0); 
+  PICH_INP.forEach(f => p[f] = 0);
+  
+  players.push(p);
+  document.getElementById('new-cod').value = ''; 
+  document.getElementById('new-nom').value = '';
+  
+  renderPlayersManagement();
+  showToast('Agregado con éxito');
+}
+
+function clearStats(){
+  if(confirm('¿Limpiar todas las entradas actuales?')){
+     players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+     buildTablesOnce();
+  }
+}
+
+function saveGame(){
+  const fecha = document.getElementById('inp-fecha').value;
+  const num = parseInt(document.getElementById('inp-juego').value) || 1;
+  const rival = document.getElementById('inp-rival').value.trim() || 'Rival';
+  if(!fecha) { showToast('Elige una fecha válida'); return; }
+  
+  const snap = players.map(p => ({ ...p }));
+  const idx = games.findIndex(g => g.fecha === fecha && g.num === num);
+  const g = { id: Date.now(), fecha, num, rival, players: snap };
+  
+  if(idx >= 0) games[idx] = g; else games.push(g);
+  games.sort((a,b) => a.fecha.localeCompare(b.fecha) || a.num - b.num);
+  
+  players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+  buildTablesOnce();
+  document.getElementById('inp-juego').value = num + 1;
+  document.getElementById('inp-rival').value = '';
+  showToast('Juego guardado exitosamente');
+}
+
+function renderHistory(){
+  const el = document.getElementById('games-list');
+  if(!el) return;
+  const src = filtG || games;
+  if(!src.length){ el.innerHTML = '<div class="empty">No hay juegos guardados</div>'; return; }
+  
+  let html = '';
+  src.forEach(g => {
+    html += `
+    <div class="game-row" style="flex-direction:column; align-items:stretch; border:1px solid var(--border); margin-bottom:8px; border-radius:8px;">
+      <div style="display:flex; align-items:center; width:100%;">
+        <div class="gnum">${g.num}</div>
+        <div><div class="grival">vs ${g.rival}</div><div class="gdates">${g.fecha.split('-').reverse().join('/')}</div></div>
+        <button class="btn btn-p" onclick="loadGameToEdit(${g.id})" style="margin-left:auto; height:32px; font-size:11px; padding: 0 8px;"><i class="ti ti-edit"></i></button>
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function filterGames(){
+  const d = document.getElementById('f-desde').value, h = document.getElementById('f-hasta').value;
+  filtG = games.filter(g => (!d || g.fecha >= d) && (!h || g.fecha <= h)); 
+  renderHistory();
+}
+
+function clearFilt(){
+  filtG = null; 
+  document.getElementById('f-desde').value = ''; 
+  document.getElementById('f-hasta').value = ''; 
+  renderHistory();
+}
+
+function loadGameToEdit(id){
+  const g = games.find(x => x.id == id); if(!g) return;
+  players = g.players.map(p => ({ ...p }));
+  document.getElementById('inp-fecha').value = g.fecha;
+  document.getElementById('inp-juego').value = g.num;
+  document.getElementById('inp-rival').value = g.rival;
+  goSec('entrada', document.querySelectorAll('.nav .nb')[0]);
+}
+
+function renderAcum(){
+  const d = document.getElementById('a-desde').value, h = document.getElementById('a-hasta').value;
+  const src = games.filter(g => (!d || g.fecha >= d) && (!h || g.fecha <= h));
+  const mapBat = {}; const mapPich = {};
+
+  src.forEach(g => {
+    g.players.forEach(p => {
+      const k = p.cod + '_' + p.nombre;
+      if(p.rol === 'Bateador' || p.rol === 'Ambos') {
+        if(!mapBat[k]) mapBat[k] = { cod: p.cod, nombre: p.nombre, ...Object.fromEntries(BAT_INP.map(f => [f, 0])) };
+        BAT_INP.forEach(f => mapBat[k][f] += parseInt(p[f] || 0));
+      }
+      if(p.rol === 'Pitcher' || p.rol === 'Ambos') {
+        if(!mapPich[k]) mapPich[k] = { cod: p.cod, nombre: p.nombre, ...Object.fromEntries(PICH_INP.map(f => [f, 0])) };
+        PICH_INP.forEach(f => mapPich[k][f] += parseInt(p[f] || 0));
+      }
+    });
+  });
+
+  const rBat = Object.values(mapBat).map(p => { p._pureWar = calcPureWAR(p); return p; }).sort((a,b) => b._pureWar - a._pureWar);
+  const leadBat = getLeadersMap(rBat);
+
+  const bodyBatEl = document.getElementById('acum-body-bat');
+  if(bodyBatEl) {
+    bodyBatEl.innerHTML = rBat.map(p => {
+      const hc = calcH(p), tba = calcTBA(p), ave = calcAVE(hc, p.vb), aN = parseFloat(ave) || 0;
+      const warVal = p._pureWar;
+      const cWar = p.jj > 0 ? (warVal > 0 ? 'war-cell war-pos' : (warVal < 0 ? 'war-cell war-neg' : 'war-cell war-neu')) : 'war-cell war-neu';
+      
+      return `<tr>
+        <td>${p.cod}</td><td style="font-weight:bold;">${p.nombre}</td>
+        <td class="${cWar} ${p.jj > 0 && warVal === leadBat.war ? 'stat-leader' : ''}">${p.jj > 0 ? fmtWar(warVal) : '0.0'}</td>
+        ${BAT_INP.map(f => `<td class="${p[f] > 0 && p[f] === leadBat[f] ? 'stat-leader' : ''}">${p[f]||0}</td>`).join('')}
+        <td class="auto-cell sep ${hc > 0 && hc === leadBat.h ? 'stat-leader' : ''}">${hc}</td>
+        <td class="auto-cell ${tba > 0 && tba === leadBat.tba ? 'stat-leader' : ''}">${tba}</td>
+        <td class="auto-cell ${aN > 0 && aN === leadBat.ave ? 'stat-leader' : ''}">${ave}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const rPich = Object.values(mapPich);
+  const bodyPichEl = document.getElementById('acum-body-pich');
+  if(bodyPichEl) {
+    bodyPichEl.innerHTML = rPich.map(p => {
+      return `<tr><td>${p.cod}</td><td style="font-weight:bold;">${p.nombre}</td><td>${p.jg||0}</td><td>${p.jp||0}</td><td>${p.bb_p||0}</td><td>${p.so_p||0}</td></tr>`;
+    }).join('');
+  }
+}
+
+function clearAcumF(){
+  document.getElementById('a-desde').value = '';
+  document.getElementById('a-hasta').value = '';
+  renderAcum();
+}
+
+let toastT;
+function showToast(msg){
+  let t = document.getElementById('_t');
+  if(!t){
+    t = document.createElement('div');
+    t.id = '_t';
+    t.style.cssText = 'position:fixed;bottom:75px;left:50%;transform:translateX(-50%);padding:10px 14px;border-radius:20px;font-size:12px;background:#0C447C;color:#FFF;opacity:0;transition:opacity .2s;z-index:10000;font-weight:bold;text-align:center;width:85%;max-width:300px;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; 
+  t.style.opacity = '1'; 
+  clearTimeout(toastT); 
+  toastT = setTimeout(() => t.style.opacity = '0', 2200);
+}
+</script>
+</body>
+</html>
