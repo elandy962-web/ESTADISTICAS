@@ -219,7 +219,6 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
         <div id="wrapper-tab-bat" class="tbl-card">
           <div class="tbl-hdr">
             <span class="tbl-hdr-lbl">Bateo Colectivo</span>
-            <span class="tbl-hdr-sub">WAR Simple Dinámico (CA/CE sumán +0.25)</span>
           </div>
           <div class="tbl-wrap">
             <table>
@@ -415,7 +414,6 @@ window.addEventListener('DOMContentLoaded', () => {
     } else {
       currentUid = null;
       localStorage.removeItem('vip_uid');
-      // Si no hay sesión iniciada, aseguramos que pase por la pantalla de login tras pulsar continuar
       if (document.getElementById('welcome-screen').style.display === 'none') {
         evaluarPantallaInicial();
       }
@@ -434,7 +432,6 @@ function actualizarEstadoInternet() {
 }
 
 function evaluarPantallaInicial() {
-  // Si la bienvenida todavía se muestra, no forzamos las de atrás
   if (document.getElementById('welcome-screen').style.display !== 'none') return;
 
   if (currentUid) {
@@ -540,15 +537,22 @@ function calcPureWAR(p) {
   const bb = parseInt(p.bb) || 0; const sf = parseFloat(p.sf) || 0;
   const so = parseInt(p.so) || 0; const vb = parseInt(p.vb) || 0;
   const ca = parseInt(p.ca) || 0; const ce = parseInt(p.ce) || 0;
-  const totalH = h1 + h2 + h3 + h4;
-  const outsDeCampo = Math.max(0, vb - totalH - so);
-  return (h1 + (h2 * 1.25) + (h3 * 1.5) + (h4 * 2.0) + bb + (sf * 0.5) + (ca * 0.25) + (ce * 0.25)) - so - (outsDeCampo * 0.25);
+  
+  // Rendimiento perfecto absoluto de prueba de estrés (20 turnos, 20 Jonrones, 20 CA, 80 CE) sumaría un peso bruto de 165
+  const pesoMao = (h1 * 1) + (h2 * 2) + (h3 * 3) + (h4 * 4) + (bb * 1) + (sf * 1) + (ca * 0.25) + (ce * 0.25);
+  const penalizaciones = (so * 0.5) + (Math.max(0, vb - (h1+h2+h3+h4) - so) * 0.25);
+  
+  const cuentaBruta = pesoMao - penalizaciones;
+  if(cuentaBruta <= 0) return 0;
+
+  // Escala controlada: 0 es el jugador de reemplazo y 6.0 es el Olimpo máximo alcanzable en un escenario irreal
+  let warEscalado = (cuentaBruta / 165) * 6;
+  if(warEscalado > 6.0) warEscalado = 6.0;
+  return warEscalado;
 }
 
 function fmtWar(val) {
-  const num = parseFloat(val);
-  if (num > 0) return '+' + num.toFixed(1);
-  return num.toFixed(1);
+  return parseFloat(val).toFixed(1);
 }
 
 let isTeamEditing = false;
@@ -969,7 +973,17 @@ window.clearFilt = function(){
 
 window.loadGameToEdit = function(id){
   const g = window.games.find(x => x.id == id); if(!g) return;
-  window.players = g.players.map(p => ({ ...p }));
+  
+  window.players = window.players.map(rosterP => {
+    const savedP = g.players.find(sp => sp.cod === rosterP.cod || sp.nombre === rosterP.nombre);
+    let mergedP = { ...rosterP };
+    
+    BAT_INP.forEach(f => mergedP[f] = savedP ? (parseInt(savedP[f]) || 0) : 0);
+    PICH_INP.forEach(f => mergedP[f] = savedP ? (parseInt(savedP[f]) || 0) : 0);
+    
+    return mergedP;
+  });
+
   document.getElementById('inp-fecha').value = g.fecha;
   document.getElementById('inp-juego').value = g.num;
   document.getElementById('inp-rival').value = g.rival;
