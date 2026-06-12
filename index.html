@@ -27,14 +27,12 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px; overflow-x: hidden; }
 
-/* PANTALLA DE BIENVENIDA ACCESIBLE */
 #welcome-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, var(--primary) 0%, var(--bg-dark) 100%); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; color: white; }
 .welcome-card { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); padding: 35px 24px; border-radius: 20px; max-width: 360px; width: 100%; backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 .welcome-card h1 { font-size: 26px; font-weight: 900; letter-spacing: 1px; margin-top: 10px; text-transform: uppercase; color: #FFF; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 .welcome-card p { font-size: 13px; color: #B5D4F4; margin: 15px 0 30px 0; line-height: 1.5; padding: 0 10px; }
 .btn-welcome-next { background: var(--accent); color: white; border: none; font-weight: 800; font-size: 15px; height: 50px; padding: 0 30px; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 159, 39, 0.4); width: 100%; justify-content: center; }
 
-/* Pantalla de Autenticación */
 #login-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--primary); z-index: 99998; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; }
 .login-box { background: white; padding: 28px 20px; border-radius: 16px; width: 100%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
 .login-box h2 { font-size: 22px; color: var(--primary); font-weight: 800; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -43,10 +41,7 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 .login-box input:focus { border-color: var(--primary-light); }
 .login-box button { width: 100%; height: 44px; background: var(--accent); color: white; border: none; font-weight: 700; font-size: 14px; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
 
-/* Indicador de red Offline */
 #offline-indicator { background: #EA580C; color: white; text-align: center; font-size: 11px; font-weight: bold; padding: 5px; display: none; width: 100%; position: fixed; top: 0; z-index: 9999999; }
-
-/* Contenedor Principal de la App */
 #app-content { display: none; }
 
 .topbar { background: var(--primary); padding: 12px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -82,6 +77,9 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 .btn-p { background: var(--primary-light) !important; color: #FFF !important; border-color: var(--primary-light) !important; }
 .btn-d { background: var(--danger-light) !important; color: var(--danger) !important; border-color: var(--danger) !important; }
 .btn-pdf { background: #E11D48 !important; color: #FFF !important; border-color: #E11D48 !important; }
+
+/* Botón de Emergencia para Safari */
+.btn-emergencia-safari { background: #EA580C !important; color: white !important; width: 100%; height: 45px; font-weight: 800; font-size: 14px; border-radius: 8px; margin-bottom: 12px; border: none; cursor: pointer; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3); display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 
 .sumgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
 .sc { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
@@ -173,6 +171,8 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
   </div>
 
   <div class="body">
+
+    <button class="btn-emergencia-safari" onclick="botonForzarSincronizacion()"><i class="ti ti-cloud-upload"></i> TOQUE AQUÍ PARA MANDAR JUEGOS A LA PC</button>
 
     <div id="sec-entrada" class="sec on">
       <div class="toolbar">
@@ -466,7 +466,7 @@ window.ejecutarAccionAuth = function() {
 
   signInWithEmailAndPassword(auth, email, pass).then((cred) => {
     localStorage.setItem('vip_cached_email', email);
-  }).catch((err) => alert("Error de acceso: Revisa tu usuario/clave o asegúrate de que esté registrado en Firebase."));
+  }).catch((err) => alert("Error de acceso: Revisa tu usuario/clave."));
 }
 
 window.solicitarCierreSesion = function() {
@@ -481,28 +481,20 @@ window.solicitarCierreSesion = function() {
 function descargarDatosDeNube(uid) {
   get(ref(database, 'usuarios/' + uid)).then((snapshot) => {
     const data = snapshot.val();
-    
-    // Obtenemos los arreglos actuales en la memoria del dispositivo
     const juegosLocales = JSON.parse(localStorage.getItem('vip_games')) || [];
     const jugadoresLocales = JSON.parse(localStorage.getItem('vip_players')) || [];
 
     if(data) {
       const juegosEnNubeContador = data.games ? Object.values(data.games).length : 0;
-
-      // SI EL DISPOSITIVO TIENE MÁS JUEGOS GUARDADOS LOCALMENTE QUE LA NUBE
       if (juegosLocales.length > juegosEnNubeContador) {
         window.games = juegosLocales;
         window.players = jugadoresLocales;
-        console.log("Sincronización forzada activa: Subiendo historial completo del celular a la nube...");
-        window.enviarDatosLocalesANube(); 
       } else {
-        // En caso contrario, consumimos con normalidad lo que está en Firebase
         window.players = data.players ? Object.values(data.players) : [];
         window.games = data.games ? Object.values(data.games) : [];
       }
       if(data.teamName) localStorage.setItem('vip_team_name', data.teamName);
     } else {
-      // Si la nube está vacía pero el dispositivo tiene datos locales, los rescatamos
       if(juegosLocales.length > 0 || jugadoresLocales.length > 0) {
         window.games = juegosLocales;
         window.players = jugadoresLocales;
@@ -511,7 +503,6 @@ function descargarDatosDeNube(uid) {
         window.games = [];
       }
       localStorage.setItem('vip_team_name', "NOMBRE DE TU EQUIPO");
-      window.enviarDatosLocalesANube();
     }
     localStorage.setItem('vip_players', JSON.stringify(window.players));
     localStorage.setItem('vip_games', JSON.stringify(window.games));
@@ -526,6 +517,19 @@ window.enviarDatosLocalesANube = function() {
   set(ref(database, 'usuarios/' + currentUid + '/players'), window.players);
   set(ref(database, 'usuarios/' + currentUid + '/games'), window.games);
   set(ref(database, 'usuarios/' + currentUid + '/teamName'), localStorage.getItem('vip_team_name') || "NOMBRE DE TU EQUIPO");
+}
+
+window.botonForzarSincronizacion = function() {
+  if(!navigator.onLine) {
+    alert("¡Necesitas internet para enviar los datos!");
+    return;
+  }
+  if(typeof window.enviarDatosLocalesANube === 'function') {
+    window.enviarDatosLocalesANube();
+    alert("¡Sincronización forzada completada! Revisa tu PC y actualízala.");
+  } else {
+    alert("Error de inicio. Inténtalo de nuevo.");
+  }
 }
 </script>
 
@@ -649,7 +653,7 @@ window.buildTablesOnce = function() {
   const pitchersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Pitcher' || p.rol === 'Ambos');
 
   if(!battersList.length) {
-    tbodyBat.innerHTML = `<tr><td colspan="17" class="empty">No hay jugadores en el Roster. Agrégalos en la pestaña Jugadores.</td></tr>`;
+    tbodyBat.innerHTML = `<tr><td colspan="17" class="empty">No hay jugadores en el Roster.</td></tr>`;
   } else {
     battersList.forEach((p) => {
       const pi = p._origIndex;
@@ -668,7 +672,7 @@ window.buildTablesOnce = function() {
   }
 
   if(!pitchersList.length) {
-    tbodyPich.innerHTML = `<tr><td colspan="6" class="empty">No hay lanzadores en el Roster. Agrégalos en la pestaña Jugadores.</td></tr>`;
+    tbodyPich.innerHTML = `<tr><td colspan="6" class="empty">No hay lanzadores en el Roster.</td></tr>`;
   } else {
     pitchersList.forEach((p) => {
       const pi = p._origIndex;
@@ -842,7 +846,7 @@ function renderPlayersManagement() {
   const container = document.getElementById('players-management-list');
   if(!container) return;
   container.innerHTML = '';
-  if(!window.players.length) { container.innerHTML = '<div class="empty">El Roster está vacío. Registra integrantes arriba.</div>'; return; }
+  if(!window.players.length) { container.innerHTML = '<div class="empty">El Roster está vacío.</div>'; return; }
   
   window.players.forEach((p, index) => {
     const row = document.createElement('div');
