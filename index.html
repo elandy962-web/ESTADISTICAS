@@ -481,13 +481,35 @@ window.solicitarCierreSesion = function() {
 function descargarDatosDeNube(uid) {
   get(ref(database, 'usuarios/' + uid)).then((snapshot) => {
     const data = snapshot.val();
+    
+    // Obtenemos los arreglos actuales en la memoria del dispositivo
+    const juegosLocales = JSON.parse(localStorage.getItem('vip_games')) || [];
+    const jugadoresLocales = JSON.parse(localStorage.getItem('vip_players')) || [];
+
     if(data) {
-      window.players = data.players ? Object.values(data.players) : [];
-      window.games = data.games ? Object.values(data.games) : [];
+      const juegosEnNubeContador = data.games ? Object.values(data.games).length : 0;
+
+      // SI EL DISPOSITIVO TIENE MÁS JUEGOS GUARDADOS LOCALMENTE QUE LA NUBE
+      if (juegosLocales.length > juegosEnNubeContador) {
+        window.games = juegosLocales;
+        window.players = jugadoresLocales;
+        console.log("Sincronización forzada activa: Subiendo historial completo del celular a la nube...");
+        window.enviarDatosLocalesANube(); 
+      } else {
+        // En caso contrario, consumimos con normalidad lo que está en Firebase
+        window.players = data.players ? Object.values(data.players) : [];
+        window.games = data.games ? Object.values(data.games) : [];
+      }
       if(data.teamName) localStorage.setItem('vip_team_name', data.teamName);
     } else {
-      window.players = [];
-      window.games = [];
+      // Si la nube está vacía pero el dispositivo tiene datos locales, los rescatamos
+      if(juegosLocales.length > 0 || jugadoresLocales.length > 0) {
+        window.games = juegosLocales;
+        window.players = jugadoresLocales;
+      } else {
+        window.players = [];
+        window.games = [];
+      }
       localStorage.setItem('vip_team_name', "NOMBRE DE TU EQUIPO");
       window.enviarDatosLocalesANube();
     }
@@ -905,7 +927,6 @@ window.addPlayer = function(){
 window.clearStats = function(){
   if(confirm('¿Limpiar todas las entradas actuales?')){
      window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
-     localStorage.setItem('vip_players', JSON.stringify(window.players));
      window.buildTablesOnce();
   }
 }
@@ -916,7 +937,6 @@ window.saveGame = function(){
   const rival = document.getElementById('inp-rival').value.trim() || 'Rival';
   if(!fecha) { showToast('Elige una fecha válida'); return; }
   
-  // 1. Clonar el estado de las estadísticas ingresadas de los jugadores
   const snap = window.players.map(p => ({ ...p }));
   const idx = window.games.findIndex(g => g.fecha === fecha && g.num === num);
   const g = { id: Date.now(), fecha, num, rival, players: snap };
@@ -924,23 +944,14 @@ window.saveGame = function(){
   if(idx >= 0) window.games[idx] = g; else window.games.push(g);
   window.games.sort((a,b) => a.fecha.localeCompare(b.fecha) || a.num - b.num);
   
-  // 2. Guardar el historial localmente
   localStorage.setItem('vip_games', JSON.stringify(window.games));
-  
-  // 3. Forzar sincronización con Firebase enviando el historial completo antes de limpiar campos
-  if(typeof window.enviarDatosLocalesANube === 'function') {
-    window.enviarDatosLocalesANube();
-  }
-  
-  // 4. Limpiar las estadísticas temporales de la pantalla de entrada para el próximo juego
   window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
-  localStorage.setItem('vip_players', JSON.stringify(window.players));
   
-  // 5. Actualizar los elementos visuales
+  if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
   window.buildTablesOnce();
   document.getElementById('inp-juego').value = num + 1;
   document.getElementById('inp-rival').value = '';
-  showToast('Juego guardado y sincronizado exitosamente');
+  showToast('Juego guardado exitosamente');
 }
 
 function renderHistory(){
