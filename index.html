@@ -66,7 +66,6 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 
 .toolbar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 .form-row { display: flex; gap: 6px; align-items: center; width: 100%; }
-.form-row { display: flex; gap: 6px; align-items: center; width: 100%; }
 .form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .toolbar label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
 .toolbar input, .toolbar select { font-size: 14px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: #FFF; color: var(--text-main); height: 38px; width: 100%; -webkit-appearance: none; }
@@ -488,7 +487,6 @@ window.ejecutarAccionAuth = function() {
 
 window.solicitarCierreSesion = function() {
   if(confirm("¿Deseas cerrar sesión? (Tus datos locales no se borrarán)")) {
-    // PROTECCIÓN: Removido localStorage.clear() para evitar pérdidas accidentales en Safari.
     localStorage.removeItem('vip_uid'); 
     signOut(auth).then(() => {
       window.location.reload();
@@ -500,7 +498,6 @@ function descargarDatosDeNube(uid) {
   get(ref(database, 'usuarios/' + uid)).then((snapshot) => {
     const data = snapshot.val();
     if(data) {
-      // Si la nube tiene datos, los usamos preferencialmente
       if(data.players) window.players = Object.values(data.players);
       if(data.games) window.games = Object.values(data.games);
       if(data.teamName) localStorage.setItem('vip_team_name', data.teamName);
@@ -508,7 +505,6 @@ function descargarDatosDeNube(uid) {
       localStorage.setItem('vip_players', JSON.stringify(window.players));
       localStorage.setItem('vip_games', JSON.stringify(window.games));
     } else {
-      // Si la nube está vacía pero localmente tenemos datos (caso Safari), los subimos de inmediato
       window.enviarDatosLocalesANube();
     }
     evaluarPantallaInicial();
@@ -524,7 +520,6 @@ window.enviarDatosLocalesANube = function() {
   set(ref(database, 'usuarios/' + currentUid + '/teamName'), localStorage.getItem('vip_team_name') || "NOMBRE DE TU EQUIPO");
 }
 
-// Función expuesta globalmente para forzar sincronización manual
 window.forzarSincronizacionManual = function() {
   if(!navigator.onLine) {
     alert("No tienes conexión a internet para sincronizar ahora.");
@@ -538,10 +533,8 @@ window.forzarSincronizacionManual = function() {
   alert("¡Sincronización exitosa! Tus datos locales de Safari han sido guardados de manera segura en la nube.");
 }
 
-// Botón de actualización limpia de la APP
 window.actualizarAplicacion = function() {
   if(confirm("¿Actualizar aplicación? Se limpiará la memoria caché y se cargará la última versión disponible.")) {
-    // Forzamos recarga saltando la cache del navegador
     window.location.reload(true);
   }
 }
@@ -578,15 +571,20 @@ function calcPureWAR(p) {
   const bb = parseInt(p.bb) || 0; const sf = parseFloat(p.sf) || 0;
   const so = parseInt(p.so) || 0; const vb = parseInt(p.vb) || 0;
   const ca = parseInt(p.ca) || 0; const ce = parseInt(p.ce) || 0;
-  const totalH = h1 + h2 + h3 + h4;
-  const outsDeCampo = Math.max(0, vb - totalH - so);
-  return (h1 + (h2 * 1.25) + (h3 * 1.5) + (h4 * 2.0) + bb + (sf * 0.5) + (ca * 0.25) + (ce * 0.25)) - so - (outsDeCampo * 0.25);
+  
+  const pesoMao = (h1 * 1) + (h2 * 2) + (h3 * 3) + (h4 * 4) + (bb * 1) + (sf * 1) + (ca * 0.25) + (ce * 0.25);
+  const penalizaciones = (so * 0.5) + (Math.max(0, vb - (h1+h2+h3+h4) - so) * 0.25);
+  
+  const cuentaBruta = pesoMao - penalizaciones;
+  if(cuentaBruta <= 0) return 0;
+
+  let warEscalado = (cuentaBruta / 165) * 6;
+  if(warEscalado > 6.0) warEscalado = 6.0;
+  return warEscalado;
 }
 
 function fmtWar(val) {
-  const num = parseFloat(val);
-  if (num > 0) return '+' + num.toFixed(1);
-  return num.toFixed(1);
+  return parseFloat(val).toFixed(1);
 }
 
 let isTeamEditing = false;
