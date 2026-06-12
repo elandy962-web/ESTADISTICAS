@@ -219,6 +219,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
         <div id="wrapper-tab-bat" class="tbl-card">
           <div class="tbl-hdr">
             <span class="tbl-hdr-lbl">Bateo Colectivo</span>
+            <span class="tbl-hdr-sub">WAR Simple Dinámico (CA/CE sumán +0.25)</span>
           </div>
           <div class="tbl-wrap">
             <table>
@@ -537,22 +538,15 @@ function calcPureWAR(p) {
   const bb = parseInt(p.bb) || 0; const sf = parseFloat(p.sf) || 0;
   const so = parseInt(p.so) || 0; const vb = parseInt(p.vb) || 0;
   const ca = parseInt(p.ca) || 0; const ce = parseInt(p.ce) || 0;
-  
-  // Rendimiento perfecto absoluto de prueba de estrés (20 turnos, 20 Jonrones, 20 CA, 80 CE) sumaría un peso bruto de 165
-  const pesoMao = (h1 * 1) + (h2 * 2) + (h3 * 3) + (h4 * 4) + (bb * 1) + (sf * 1) + (ca * 0.25) + (ce * 0.25);
-  const penalizaciones = (so * 0.5) + (Math.max(0, vb - (h1+h2+h3+h4) - so) * 0.25);
-  
-  const cuentaBruta = pesoMao - penalizaciones;
-  if(cuentaBruta <= 0) return 0;
-
-  // Escala controlada: 0 es el jugador de reemplazo y 6.0 es el Olimpo máximo alcanzable en un escenario irreal
-  let warEscalado = (cuentaBruta / 165) * 6;
-  if(warEscalado > 6.0) warEscalado = 6.0;
-  return warEscalado;
+  const totalH = h1 + h2 + h3 + h4;
+  const outsDeCampo = Math.max(0, vb - totalH - so);
+  return (h1 + (h2 * 1.25) + (h3 * 1.5) + (h4 * 2.0) + bb + (sf * 0.5) + (ca * 0.25) + (ce * 0.25)) - so - (outsDeCampo * 0.25);
 }
 
 function fmtWar(val) {
-  return parseFloat(val).toFixed(1);
+  const num = parseFloat(val);
+  if (num > 0) return '+' + num.toFixed(1);
+  return num.toFixed(1);
 }
 
 let isTeamEditing = false;
@@ -911,6 +905,7 @@ window.addPlayer = function(){
 window.clearStats = function(){
   if(confirm('¿Limpiar todas las entradas actuales?')){
      window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+     localStorage.setItem('vip_players', JSON.stringify(window.players));
      window.buildTablesOnce();
   }
 }
@@ -921,6 +916,7 @@ window.saveGame = function(){
   const rival = document.getElementById('inp-rival').value.trim() || 'Rival';
   if(!fecha) { showToast('Elige una fecha válida'); return; }
   
+  // 1. Clonar el estado de las estadísticas ingresadas de los jugadores
   const snap = window.players.map(p => ({ ...p }));
   const idx = window.games.findIndex(g => g.fecha === fecha && g.num === num);
   const g = { id: Date.now(), fecha, num, rival, players: snap };
@@ -928,14 +924,23 @@ window.saveGame = function(){
   if(idx >= 0) window.games[idx] = g; else window.games.push(g);
   window.games.sort((a,b) => a.fecha.localeCompare(b.fecha) || a.num - b.num);
   
+  // 2. Guardar el historial localmente
   localStorage.setItem('vip_games', JSON.stringify(window.games));
-  window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
   
-  if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
+  // 3. Forzar sincronización con Firebase enviando el historial completo antes de limpiar campos
+  if(typeof window.enviarDatosLocalesANube === 'function') {
+    window.enviarDatosLocalesANube();
+  }
+  
+  // 4. Limpiar las estadísticas temporales de la pantalla de entrada para el próximo juego
+  window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+  localStorage.setItem('vip_players', JSON.stringify(window.players));
+  
+  // 5. Actualizar los elementos visuales
   window.buildTablesOnce();
   document.getElementById('inp-juego').value = num + 1;
   document.getElementById('inp-rival').value = '';
-  showToast('Juego guardado exitosamente');
+  showToast('Juego guardado y sincronizado exitosamente');
 }
 
 function renderHistory(){
@@ -973,17 +978,7 @@ window.clearFilt = function(){
 
 window.loadGameToEdit = function(id){
   const g = window.games.find(x => x.id == id); if(!g) return;
-  
-  window.players = window.players.map(rosterP => {
-    const savedP = g.players.find(sp => sp.cod === rosterP.cod || sp.nombre === rosterP.nombre);
-    let mergedP = { ...rosterP };
-    
-    BAT_INP.forEach(f => mergedP[f] = savedP ? (parseInt(savedP[f]) || 0) : 0);
-    PICH_INP.forEach(f => mergedP[f] = savedP ? (parseInt(savedP[f]) || 0) : 0);
-    
-    return mergedP;
-  });
-
+  window.players = g.players.map(p => ({ ...p }));
   document.getElementById('inp-fecha').value = g.fecha;
   document.getElementById('inp-juego').value = g.num;
   document.getElementById('inp-rival').value = g.rival;
