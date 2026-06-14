@@ -95,7 +95,7 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 .tbl-hdr-sub { font-size: 9px; color: #85B7EB; }
 
 .tbl-wrap { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
-table { border-collapse: collapse; font-size: 13px; min-width: 780px; width: 100%; }
+table { border-collapse: collapse; font-size: 13px; min-width: 930px; width: 100%; }
 thead tr { background: var(--bg-dark); }
 thead th { color: #85B7EB; font-weight: 600; font-size: 11px; padding: 10px 4px; text-align: center; border-right: 1px solid #0C447C; white-space: nowrap; }
 
@@ -240,7 +240,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
                   <th>#</th><th>Nombre</th><th class="war-hdr">WAR</th>
                   <th>JJ</th><th>VB</th><th>CA</th><th>CE</th>
                   <th>H1</th><th>H2</th><th>H3</th><th>H4</th><th>BB</th><th>SO</th><th>SF</th>
-                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th>
+                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th><th>OBP</th><th>SLG</th><th>OPS</th>
                 </tr>
               </thead>
               <tbody id="entry-body-bat"></tbody>
@@ -353,7 +353,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
                   <th>#</th><th>Nombre</th><th class="war-hdr">WAR</th>
                   <th>JJ</th><th>VB</th><th>CA</th><th>CE</th>
                   <th>H1</th><th>H2</th><th>H3</th><th>H4</th><th>BB</th><th>SO</th><th>SF</th>
-                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th>
+                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th><th>OBP</th><th>SLG</th><th>OPS</th>
                 </tr>
               </thead>
               <tbody id="acum-body-bat"></tbody>
@@ -564,6 +564,28 @@ function calcAVE(h,vb){
   return ave.toFixed(3).replace(/^0/,'');
 }
 
+// Formatea un valor decimal tipo .688 / 1.450 / 2.138 (sin recortar a 1.000 como AVE)
+function fmtStat(val){
+  if(!val || !isFinite(val)) return '.000';
+  if(val >= 1) return val.toFixed(3);
+  return val.toFixed(3).replace(/^0/,'');
+}
+
+// SLG (Slugging) = Total de Bases / Veces al Bate
+function calcSLG(tba, vb){
+  vb = parseInt(vb) || 0;
+  if(!vb) return 0;
+  return tba / vb;
+}
+
+// OBP (Porcentaje de Embasado) = (H + BB) / (VB + BB + SF)
+function calcOBP(h, bb, sf, vb){
+  bb = parseInt(bb) || 0; sf = parseFloat(sf) || 0; vb = parseInt(vb) || 0;
+  const denom = vb + bb + sf;
+  if(!denom) return 0;
+  return (h + bb) / denom;
+}
+
 function calcPureWAR(p) {
   if(!p.jj || !p.vb) return 0;
   const h1 = parseInt(p.h1) || 0; const h2 = parseInt(p.h2) || 0;
@@ -665,7 +687,7 @@ window.buildTablesOnce = function() {
   const pitchersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Pitcher' || p.rol === 'Ambos');
 
   if(!battersList.length) {
-    tbodyBat.innerHTML = `<tr><td colspan="17" class="empty">No hay jugadores en el Roster. Agrégalos en la pestaña Jugadores.</td></tr>`;
+    tbodyBat.innerHTML = `<tr><td colspan="20" class="empty">No hay jugadores en el Roster. Agrégalos en la pestaña Jugadores.</td></tr>`;
   } else {
     battersList.forEach((p) => {
       const pi = p._origIndex;
@@ -678,6 +700,9 @@ window.buildTablesOnce = function() {
         <td class="auto-cell sep" id="live-h-${pi}">0</td>
         <td class="auto-cell" id="live-tba-${pi}">0</td>
         <td class="auto-cell" id="live-ave-${pi}">.000</td>
+        <td class="auto-cell" id="live-obp-${pi}">.000</td>
+        <td class="auto-cell" id="live-slg-${pi}">.000</td>
+        <td class="auto-cell" id="live-ops-${pi}">.000</td>
       `;
       tbodyBat.appendChild(tr);
     });
@@ -746,10 +771,20 @@ function updateLiveCalculations() {
     const tbaEl = document.getElementById(`live-tba-${pi}`);
     const aveEl = document.getElementById(`live-ave-${pi}`);
     const warEl = document.getElementById(`live-war-${pi}`);
+    const obpEl = document.getElementById(`live-obp-${pi}`);
+    const slgEl = document.getElementById(`live-slg-${pi}`);
+    const opsEl = document.getElementById(`live-ops-${pi}`);
 
     if (hEl && tbaEl && aveEl && warEl) {
       const h = calcH(p); const tba = calcTBA(p);
       hEl.textContent = h; tbaEl.textContent = tba; aveEl.textContent = calcAVE(h, p.vb);
+
+      const slgNum = calcSLG(tba, p.vb);
+      const obpNum = calcOBP(h, p.bb, p.sf, p.vb);
+      if(obpEl) obpEl.textContent = fmtStat(obpNum);
+      if(slgEl) slgEl.textContent = fmtStat(slgNum);
+      if(opsEl) opsEl.textContent = fmtStat(obpNum + slgNum);
+
       if ((p.jj || 0) > 0) {
         let pWar = calcPureWAR(p);
         warEl.textContent = fmtWar(pWar);
@@ -772,7 +807,7 @@ function updateLiveCalculations() {
 }
 
 function getLeadersMap(dataset) {
-  let leaders = { war: -Infinity, jj: 0, vb: 0, ca: 0, ce: 0, h1: 0, h2: 0, h3: 0, h4: 0, bb: 0, so: 0, sf: 0, h: 0, tba: 0, ave: 0 };
+  let leaders = { war: -Infinity, jj: 0, vb: 0, ca: 0, ce: 0, h1: 0, h2: 0, h3: 0, h4: 0, bb: 0, so: 0, sf: 0, h: 0, tba: 0, ave: 0, obp: 0, slg: 0, ops: 0 };
   dataset.forEach(p => {
     const w = p._pureWar !== undefined ? p._pureWar : 0;
     if (p.jj > 0 && w > leaders.war) leaders.war = w;
@@ -790,6 +825,11 @@ function getLeadersMap(dataset) {
     const totH = calcH(p); if (totH > leaders.h) leaders.h = totH;
     const tba = calcTBA(p); if (tba > leaders.tba) leaders.tba = tba;
     const ave = parseFloat(calcAVE(totH, p.vb)) || 0; if (ave > leaders.ave) leaders.ave = ave;
+    const slgNum = calcSLG(tba, p.vb);
+    const obpNum = calcOBP(totH, p.bb, p.sf, p.vb);
+    if (slgNum > leaders.slg) leaders.slg = slgNum;
+    if (obpNum > leaders.obp) leaders.obp = obpNum;
+    if ((obpNum + slgNum) > leaders.ops) leaders.ops = obpNum + slgNum;
   });
   return leaders;
 }
@@ -1038,6 +1078,9 @@ window.renderAcum = function(){
   if(bodyBatEl) {
     bodyBatEl.innerHTML = rBat.map(p => {
       const hc = calcH(p), tba = calcTBA(p), ave = calcAVE(hc, p.vb), aN = parseFloat(ave) || 0;
+      const slgNum = calcSLG(tba, p.vb);
+      const obpNum = calcOBP(hc, p.bb, p.sf, p.vb);
+      const opsNum = obpNum + slgNum;
       const warVal = p._pureWar;
       const cWar = p.jj > 0 ? (warVal > 0 ? 'war-cell war-pos' : (warVal < 0 ? 'war-cell war-neg' : 'war-cell war-neu')) : 'war-cell war-neu';
       
@@ -1048,6 +1091,9 @@ window.renderAcum = function(){
         <td class="auto-cell sep ${hc > 0 && hc === leadBat.h ? 'stat-leader' : ''}">${hc}</td>
         <td class="auto-cell ${tba > 0 && tba === leadBat.tba ? 'stat-leader' : ''}">${tba}</td>
         <td class="auto-cell ${aN > 0 && aN === leadBat.ave ? 'stat-leader' : ''}">${ave}</td>
+        <td class="auto-cell ${obpNum > 0 && obpNum === leadBat.obp ? 'stat-leader' : ''}">${fmtStat(obpNum)}</td>
+        <td class="auto-cell ${slgNum > 0 && slgNum === leadBat.slg ? 'stat-leader' : ''}">${fmtStat(slgNum)}</td>
+        <td class="auto-cell ${opsNum > 0 && opsNum === leadBat.ops ? 'stat-leader' : ''}">${fmtStat(opsNum)}</td>
       </tr>`;
     }).join('');
   }
