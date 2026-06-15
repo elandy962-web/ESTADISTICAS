@@ -683,11 +683,11 @@ window.buildTablesOnce = function() {
   if(!tbodyBat || !tbodyPich) return; 
   
   tbodyBat.innerHTML = ''; tbodyPich.innerHTML = '';
-  const battersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Bateador' || p.rol === 'Ambos');
-  const pitchersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Pitcher' || p.rol === 'Ambos');
+  const battersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => (p.activo !== false) && (p.rol === 'Bateador' || p.rol === 'Ambos'));
+  const pitchersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => (p.activo !== false) && (p.rol === 'Pitcher' || p.rol === 'Ambos'));
 
   if(!battersList.length) {
-    tbodyBat.innerHTML = `<tr><td colspan="20" class="empty">No hay jugadores en el Roster. Agrégalos en la pestaña Jugadores.</td></tr>`;
+    tbodyBat.innerHTML = `<tr><td colspan="20" class="empty">No hay jugadores activos en el Roster. Activa o agrega integrantes en la pestaña Jugadores.</td></tr>`;
   } else {
     battersList.forEach((p) => {
       const pi = p._origIndex;
@@ -709,7 +709,7 @@ window.buildTablesOnce = function() {
   }
 
   if(!pitchersList.length) {
-    tbodyPich.innerHTML = `<tr><td colspan="6" class="empty">No hay lanzadores en el Roster. Agrégalos en la pestaña Jugadores.</td></tr>`;
+    tbodyPich.innerHTML = `<tr><td colspan="6" class="empty">No hay lanzadores activos en el Roster. Activa o agrega integrantes en la pestaña Jugadores.</td></tr>`;
   } else {
     pitchersList.forEach((p) => {
       const pi = p._origIndex;
@@ -764,7 +764,7 @@ function onInputUpdate() {
 }
 
 function updateLiveCalculations() {
-  const battersList = window.players.filter(p => p.rol === 'Bateador' || p.rol === 'Ambos');
+  const battersList = window.players.filter(p => (p.activo !== false) && (p.rol === 'Bateador' || p.rol === 'Ambos'));
 
   window.players.forEach((p, pi) => {
     const hEl = document.getElementById(`live-h-${pi}`);
@@ -904,14 +904,29 @@ function renderPlayersManagement() {
     const row = document.createElement('div');
     row.className = 'player-edit-row';
     let badgeClass = p.rol === 'Pitcher' ? 'pich' : (p.rol === 'Ambos' ? 'both' : 'bat');
+    const activo = p.activo !== false;
+    if(!activo) row.style.opacity = '0.55';
     row.innerHTML = `
       <div style="flex:0 0 35px; font-weight:800; color:var(--primary); text-align:center;">#${p.cod}</div>
       <div style="flex:1; font-weight:600; text-transform:uppercase; font-size:12px; overflow:hidden; text-overflow:ellipsis;">${p.nombre}</div>
       <span class="p-type-badge ${badgeClass}">${p.rol}</span>
+      <button class="btn ${activo ? 'btn-p' : 'btn-d'}" onclick="togglePlayerActivo(${index})" style="height:32px; padding:0 6px; margin-left:6px; font-size:10px; min-width:62px;"><i class="ti ${activo ? 'ti-player-pause' : 'ti-player-play'}"></i> ${activo ? 'Activo' : 'Pausa'}</button>
       <button class="btn btn-p" onclick="startEditPlayer(${index})" style="height:32px; padding:0 8px; margin-left:6px; font-size:11px;"><i class="ti ti-edit"></i></button>
     `;
     container.appendChild(row);
   });
+}
+
+window.togglePlayerActivo = function(index) {
+  const p = window.players[index];
+  if(!p) return;
+  const wasActive = p.activo !== false;
+  p.activo = !wasActive;
+  localStorage.setItem('vip_players', JSON.stringify(window.players));
+  if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
+  renderPlayersManagement();
+  window.buildTablesOnce();
+  showToast(p.activo ? `${p.nombre}: ACTIVO` : `${p.nombre}: EN PAUSA`);
 }
 
 window.startEditPlayer = function(index) {
@@ -966,7 +981,7 @@ window.addPlayer = function(){
   if(!nom) { showToast('Introduce un nombre válido'); return; }
   
   const codeVal = parseInt(document.getElementById('new-cod').value) || (window.players.length + 1);
-  const p = { cod: codeVal, nombre: nom, rol: document.getElementById('new-rol').value };
+  const p = { cod: codeVal, nombre: nom, rol: document.getElementById('new-rol').value, activo: true };
   
   BAT_INP.forEach(f => p[f] = 0); 
   PICH_INP.forEach(f => p[f] = 0);
@@ -1024,10 +1039,24 @@ function renderHistory(){
         <div class="gnum">${g.num}</div>
         <div><div class="grival">vs ${g.rival}</div><div class="gdates">${g.fecha.split('-').reverse().join('/')}</div></div>
         <button class="btn btn-p" onclick="loadGameToEdit(${g.id})" style="margin-left:auto; height:32px; font-size:11px; padding: 0 8px;"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-d" onclick="deleteGame(${g.id})" style="height:32px; font-size:11px; padding: 0 8px; margin-left:6px;"><i class="ti ti-trash"></i></button>
       </div>
     </div>`;
   });
   el.innerHTML = html;
+}
+
+window.deleteGame = function(id){
+  const g = window.games.find(x => x.id == id);
+  if(!g) return;
+  if(!confirm(`¿Eliminar el juego #${g.num} vs ${g.rival} (${g.fecha.split('-').reverse().join('/')})? Esta acción no se puede deshacer.`)) return;
+
+  window.games = window.games.filter(x => x.id != id);
+  localStorage.setItem('vip_games', JSON.stringify(window.games));
+  if(filtG) filtG = filtG.filter(x => x.id != id);
+  if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
+  renderHistory();
+  showToast('Juego eliminado del historial');
 }
 
 window.filterGames = function(){
@@ -1057,9 +1086,14 @@ window.renderAcum = function(){
   const src = window.games.filter(g => (!d || g.fecha >= d) && (!h || g.fecha <= h));
   const mapBat = {}; const mapPich = {};
 
+  // Solo se incluyen jugadores que existen en el roster actual y están marcados como ACTIVOS
+  const activeMap = {};
+  window.players.forEach(p => { activeMap[p.cod + '_' + p.nombre] = (p.activo !== false); });
+
   src.forEach(g => {
     g.players.forEach(p => {
       const k = p.cod + '_' + p.nombre;
+      if(!activeMap[k]) return;
       if(p.rol === 'Bateador' || p.rol === 'Ambos') {
         if(!mapBat[k]) mapBat[k] = { cod: p.cod, nombre: p.nombre, ...Object.fromEntries(BAT_INP.map(f => [f, 0])) };
         BAT_INP.forEach(f => mapBat[k][f] += parseInt(p[f] || 0));
