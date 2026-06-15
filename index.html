@@ -94,15 +94,15 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 .tbl-hdr-lbl { font-size: 11px; font-weight: 700; color: #FFF; text-transform: uppercase; letter-spacing: .5px; }
 .tbl-hdr-sub { font-size: 9px; color: #85B7EB; }
 
-.tbl-wrap { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
+.tbl-wrap { overflow: auto; max-height: 58vh; width: 100%; -webkit-overflow-scrolling: touch; }
 table { border-collapse: collapse; font-size: 13px; min-width: 930px; width: 100%; }
 thead tr { background: var(--bg-dark); }
-thead th { color: #85B7EB; font-weight: 600; font-size: 11px; padding: 10px 4px; text-align: center; border-right: 1px solid #0C447C; white-space: nowrap; }
+thead th { color: #85B7EB; font-weight: 600; font-size: 11px; padding: 10px 4px; text-align: center; border-right: 1px solid #0C447C; white-space: nowrap; position: sticky; top: 0; z-index: 15; background: var(--bg-dark); }
 
 th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 10; min-width: 36px; width: 36px; text-align: center; padding: 6px 2px; }
 th:nth-child(2), td:nth-child(2) { position: sticky; left: 36px; z-index: 10; min-width: 105px; width: 105px; text-align: left; padding-left: 6px; box-shadow: 3px 0 5px rgba(0,0,0,0.08); }
 
-thead th:nth-child(1), thead th:nth-child(2) { background: var(--bg-dark); color: #FFF; }
+thead th:nth-child(1), thead th:nth-child(2) { background: var(--bg-dark); color: #FFF; z-index: 25; }
 td:nth-child(1) { background: #EDF2F7; color: var(--primary); font-weight: 800; border-right: 1px solid var(--border); }
 td:nth-child(2) { background: #F8FAFC; color: var(--text-main); font-weight: 700; border-right: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -136,6 +136,18 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
 .pdf-header-print { display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--primary); }
 .pdf-header-print h2 { color: var(--primary); font-size: 18px; text-transform: uppercase; }
 .pdf-header-print p { font-size: 11px; color: var(--text-muted); }
+
+/* Modo compacto: se aplica solo al generar el PDF para que entre en 1 sola hoja */
+.pdf-compact .tbl-wrap { max-height: none !important; overflow: visible !important; }
+.pdf-compact .tbl-card { margin-bottom: 4px !important; box-shadow: none !important; }
+.pdf-compact .tbl-hdr { padding: 4px 10px !important; }
+.pdf-compact .tbl-hdr-sub { display: none !important; }
+.pdf-compact thead th { padding: 4px 3px !important; font-size: 10px !important; }
+.pdf-compact td { padding: 3px 2px !important; font-size: 11px !important; }
+.pdf-compact td input[type=number] { height: 24px !important; font-size: 12px !important; }
+.pdf-compact .pdf-header-print { margin-bottom: 6px !important; padding-bottom: 6px !important; }
+.pdf-compact .pdf-header-print h2 { font-size: 15px !important; margin-bottom: 2px !important; }
+.pdf-compact .pdf-header-print p { font-size: 10px !important; }
 
 /* Botón flotante de actualización segura */
 .btn-refresh-float { position: fixed; bottom: 75px; right: 15px; width: 44px; height: 44px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; border: none; cursor: pointer; }
@@ -498,13 +510,20 @@ function descargarDatosDeNube(uid) {
   get(ref(database, 'usuarios/' + uid)).then((snapshot) => {
     const data = snapshot.val();
     if(data) {
-      if(data.players) window.players = Object.values(data.players);
-      if(data.games) window.games = Object.values(data.games);
-      if(data.teamName) localStorage.setItem('vip_team_name', data.teamName);
-      
+      window.players = data.players ? Object.values(data.players) : [];
+      window.games = data.games ? Object.values(data.games) : [];
+      localStorage.setItem('vip_team_name', data.teamName || "NOMBRE DE TU EQUIPO");
+
       localStorage.setItem('vip_players', JSON.stringify(window.players));
       localStorage.setItem('vip_games', JSON.stringify(window.games));
     } else {
+      // Cuenta nueva sin datos en la nube: empezar 100% vacío,
+      // sin heredar jugadores/juegos que hayan quedado guardados localmente de otra cuenta.
+      window.players = [];
+      window.games = [];
+      localStorage.setItem('vip_players', JSON.stringify(window.players));
+      localStorage.setItem('vip_games', JSON.stringify(window.games));
+      localStorage.setItem('vip_team_name', "NOMBRE DE TU EQUIPO");
       window.enviarDatosLocalesANube();
     }
     evaluarPantallaInicial();
@@ -848,27 +867,29 @@ window.exportPlanillaPDF = function() {
   headerEl.style.display = 'block';
 
   const container = document.getElementById('pdf-entry-area');
+  container.classList.add('pdf-compact');
   const opt = {
-    margin: [6, 4, 6, 4],
+    margin: [3, 3, 3, 3],
     filename: `Planilla_${teamName.replace(/\s+/g, '_')}_${fechaInp}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
   };
-  html2pdf().set(opt).from(container).save().then(() => { headerEl.style.display = 'none'; });
+  html2pdf().set(opt).from(container).save().then(() => { headerEl.style.display = 'none'; container.classList.remove('pdf-compact'); });
 }
 
 window.exportHistorialPDF = function() {
   const teamName = document.getElementById('inp-mi-equipo').value.trim() || "NOMBRE DE TU EQUIPO";
   const container = document.getElementById('pdf-history-area');
+  container.classList.add('pdf-compact');
   const opt = {
-    margin: [6, 4, 6, 4],
+    margin: [3, 3, 3, 3],
     filename: `Historial_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
   };
-  html2pdf().set(opt).from(container).save();
+  html2pdf().set(opt).from(container).save().then(() => { container.classList.remove('pdf-compact'); });
 }
 
 window.exportAcumPDF = function() {
@@ -884,14 +905,15 @@ window.exportAcumPDF = function() {
   document.getElementById('pdf-acum-range-label').textContent = rangoText;
 
   const container = document.getElementById('pdf-acum-area');
+  container.classList.add('pdf-compact');
   const opt = {
-    margin: [6, 4, 6, 4],
+    margin: [3, 3, 3, 3],
     filename: `Acumulado_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
   };
-  html2pdf().set(opt).from(container).save();
+  html2pdf().set(opt).from(container).save().then(() => { container.classList.remove('pdf-compact'); });
 }
 
 function renderPlayersManagement() {
