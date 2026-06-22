@@ -161,8 +161,21 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
   <div class="welcome-card">
     <i class="ti ti-ball-baseball" style="font-size: 56px; color: var(--accent); display:block; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));"></i>
     <h1>Estadísticas</h1>
-    <p>Gestiona tu roster, registra el rendimiento de tus jugadores y exporta reportes detallados con WAR dinámico en tiempo real.</p>
-    <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida()">Comenzar <i class="ti ti-arrow-right"></i></button>
+    <p>¿Qué deseas hacer hoy?</p>
+    <div style="display:flex; flex-direction:column; gap:10px; width:100%; margin-top:4px;">
+      <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida('entrada')" style="background:var(--accent);">
+        <i class="ti ti-pencil"></i> Registrar Partido
+      </button>
+      <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida('jugadores')" style="background:var(--primary-light); box-shadow:0 4px 15px rgba(24,95,165,0.4);">
+        <i class="ti ti-users"></i> Gestionar Jugadores
+      </button>
+      <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida('historial')" style="background:#0f5298; box-shadow:0 4px 15px rgba(15,82,152,0.4);">
+        <i class="ti ti-calendar"></i> Ver Historial
+      </button>
+      <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida('acumulado')" style="background:#1a6b3c; box-shadow:0 4px 15px rgba(26,107,60,0.4);">
+        <i class="ti ti-chart-bar"></i> Estadísticas Acumuladas
+      </button>
+    </div>
   </div>
 </div>
 
@@ -199,6 +212,12 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
   <div class="body">
 
     <div id="sec-entrada" class="sec on">
+      <!-- Banner modo edición -->
+      <div id="edit-mode-banner" style="display:none; background:#F59E0B; color:#1c0f00; padding:9px 12px; border-radius:10px; margin-bottom:8px; align-items:center; gap:8px; font-size:12px; font-weight:700; box-shadow:0 2px 8px rgba(245,158,11,0.3);">
+        <i class="ti ti-edit" style="font-size:17px; flex-shrink:0;"></i>
+        <span id="edit-mode-label">MODO EDICIÓN</span>
+        <button onclick="cancelarEdicion()" style="margin-left:auto; background:rgba(0,0,0,0.18); border:none; color:#1c0f00; font-weight:800; font-size:11px; padding:5px 12px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:4px;"><i class="ti ti-x"></i> Cancelar</button>
+      </div>
       <div class="toolbar">
         <div class="form-row">
           <div class="form-group" style="flex: 2;">
@@ -425,7 +444,8 @@ const database = getDatabase(app);
 
 let currentUid = localStorage.getItem('vip_uid') || null;
 
-window.avanzarDesdeBienvenida = function() {
+window.avanzarDesdeBienvenida = function(seccion) {
+  window._welcomeTargetSec = seccion || 'entrada';
   document.getElementById('welcome-screen').style.display = 'none';
   evaluarPantallaInicial();
 }
@@ -470,6 +490,12 @@ function evaluarPantallaInicial() {
     document.getElementById('inp-mi-equipo').value = savedName;
     window.updateTeamName(savedName);
     window.buildTablesOnce();
+    // Navegar a la sección elegida en bienvenida
+    const targetSec = window._welcomeTargetSec || 'entrada';
+    const navBtns = document.querySelectorAll('.nav .nb');
+    const secMap = { 'entrada': 0, 'jugadores': 1, 'historial': 2, 'acumulado': 3 };
+    const btnIdx = secMap[targetSec] !== undefined ? secMap[targetSec] : 0;
+    window.goSec(targetSec, navBtns[btnIdx]);
   } else {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-content').style.display = 'none';
@@ -1020,6 +1046,8 @@ window.addPlayer = function(){
 window.clearStats = function(){
   if(confirm('¿Limpiar todas las entradas actuales?')){
      window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+     document.getElementById('edit-mode-banner').style.display = 'none';
+     window._editingGameId = null;
      window.buildTablesOnce();
   }
 }
@@ -1031,14 +1059,19 @@ window.saveGame = function(){
   if(!fecha) { showToast('Elige una fecha válida'); return; }
   
   const snap = window.players.map(p => ({ ...p }));
-  const idx = window.games.findIndex(g => g.fecha === fecha && g.num === num);
-  const g = { id: Date.now(), fecha, num, rival, players: snap };
+  const editId = window._editingGameId;
+  const idx = editId ? window.games.findIndex(g => g.id == editId) : window.games.findIndex(g => g.fecha === fecha && g.num === num);
+  const g = { id: editId || Date.now(), fecha, num, rival, players: snap };
   
   if(idx >= 0) window.games[idx] = g; else window.games.push(g);
   window.games.sort((a,b) => a.fecha.localeCompare(b.fecha) || a.num - b.num);
   
   localStorage.setItem('vip_games', JSON.stringify(window.games));
   window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+
+  // Ocultar banner de edición
+  document.getElementById('edit-mode-banner').style.display = 'none';
+  window._editingGameId = null;
   
   if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
   window.buildTablesOnce();
@@ -1096,11 +1129,46 @@ window.clearFilt = function(){
 
 window.loadGameToEdit = function(id){
   const g = window.games.find(x => x.id == id); if(!g) return;
-  window.players = g.players.map(p => ({ ...p }));
+
+  // Cargar los jugadores del partido guardado
+  const gamePlayers = g.players.map(p => ({ ...p }));
+
+  // Añadir jugadores nuevos del roster actual que no estén en el partido
+  const savedKeys = new Set(gamePlayers.map(p => p.cod + '_' + p.nombre));
+  window.players.forEach(rosterPlayer => {
+    const key = rosterPlayer.cod + '_' + rosterPlayer.nombre;
+    if (!savedKeys.has(key)) {
+      const fresh = { ...rosterPlayer };
+      BAT_INP.forEach(f => fresh[f] = 0);
+      PICH_INP.forEach(f => fresh[f] = 0);
+      gamePlayers.push(fresh);
+    }
+  });
+  window.players = gamePlayers;
+
   document.getElementById('inp-fecha').value = g.fecha;
   document.getElementById('inp-juego').value = g.num;
   document.getElementById('inp-rival').value = g.rival;
+
+  // Mostrar banner de modo edición
+  const banner = document.getElementById('edit-mode-banner');
+  banner.style.display = 'flex';
+  document.getElementById('edit-mode-label').textContent = `MODO EDICIÓN — Partido #${g.num} vs ${g.rival} (${g.fecha.split('-').reverse().join('/')})`;
+
+  window._editingGameId = id;
   window.goSec('entrada', document.querySelectorAll('.nav .nb')[0]);
+}
+
+window.cancelarEdicion = function() {
+  // Restaurar roster desde localStorage y ocultar banner
+  window.players = JSON.parse(localStorage.getItem('vip_players')) || [];
+  window._editingGameId = null;
+  document.getElementById('edit-mode-banner').style.display = 'none';
+  document.getElementById('inp-rival').value = '';
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('inp-fecha').value = today;
+  window.buildTablesOnce();
+  showToast('Edición cancelada');
 }
 
 window.renderAcum = function(){
