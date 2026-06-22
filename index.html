@@ -94,15 +94,15 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 .tbl-hdr-lbl { font-size: 11px; font-weight: 700; color: #FFF; text-transform: uppercase; letter-spacing: .5px; }
 .tbl-hdr-sub { font-size: 9px; color: #85B7EB; }
 
-.tbl-wrap { overflow: auto; max-height: 58vh; width: 100%; -webkit-overflow-scrolling: touch; }
-table { border-collapse: collapse; font-size: 13px; min-width: 930px; width: 100%; }
+.tbl-wrap { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; font-size: 13px; min-width: 780px; width: 100%; }
 thead tr { background: var(--bg-dark); }
-thead th { color: #85B7EB; font-weight: 600; font-size: 11px; padding: 10px 4px; text-align: center; border-right: 1px solid #0C447C; white-space: nowrap; position: sticky; top: 0; z-index: 15; background: var(--bg-dark); }
+thead th { color: #85B7EB; font-weight: 600; font-size: 11px; padding: 10px 4px; text-align: center; border-right: 1px solid #0C447C; white-space: nowrap; }
 
 th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 10; min-width: 36px; width: 36px; text-align: center; padding: 6px 2px; }
 th:nth-child(2), td:nth-child(2) { position: sticky; left: 36px; z-index: 10; min-width: 105px; width: 105px; text-align: left; padding-left: 6px; box-shadow: 3px 0 5px rgba(0,0,0,0.08); }
 
-thead th:nth-child(1), thead th:nth-child(2) { background: var(--bg-dark); color: #FFF; z-index: 25; }
+thead th:nth-child(1), thead th:nth-child(2) { background: var(--bg-dark); color: #FFF; }
 td:nth-child(1) { background: #EDF2F7; color: var(--primary); font-weight: 800; border-right: 1px solid var(--border); }
 td:nth-child(2) { background: #F8FAFC; color: var(--text-main); font-weight: 700; border-right: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -137,18 +137,6 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
 .pdf-header-print h2 { color: var(--primary); font-size: 18px; text-transform: uppercase; }
 .pdf-header-print p { font-size: 11px; color: var(--text-muted); }
 
-/* Modo compacto: se aplica solo al generar el PDF para que entre en 1 sola hoja */
-.pdf-compact .tbl-wrap { max-height: none !important; overflow: visible !important; }
-.pdf-compact .tbl-card { margin-bottom: 4px !important; box-shadow: none !important; }
-.pdf-compact .tbl-hdr { padding: 4px 10px !important; }
-.pdf-compact .tbl-hdr-sub { display: none !important; }
-.pdf-compact thead th { padding: 4px 3px !important; font-size: 10px !important; }
-.pdf-compact td { padding: 3px 2px !important; font-size: 11px !important; }
-.pdf-compact td input[type=number] { height: 24px !important; font-size: 12px !important; }
-.pdf-compact .pdf-header-print { margin-bottom: 6px !important; padding-bottom: 6px !important; }
-.pdf-compact .pdf-header-print h2 { font-size: 15px !important; margin-bottom: 2px !important; }
-.pdf-compact .pdf-header-print p { font-size: 10px !important; }
-
 /* Botón flotante de actualización segura */
 .btn-refresh-float { position: fixed; bottom: 75px; right: 15px; width: 44px; height: 44px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; border: none; cursor: pointer; }
 </style>
@@ -161,8 +149,21 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
   <div class="welcome-card">
     <i class="ti ti-ball-baseball" style="font-size: 56px; color: var(--accent); display:block; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));"></i>
     <h1>Estadísticas</h1>
-    <p>Gestiona tu roster, registra el rendimiento de tus jugadores y exporta reportes detallados con WAR dinámico en tiempo real.</p>
-    <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida()">Comenzar <i class="ti ti-arrow-right"></i></button>
+    <p style="margin-bottom: 18px;">¿Qué deseas hacer hoy?</p>
+    <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
+      <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida('entrada')" style="background:var(--accent);">
+        <i class="ti ti-pencil"></i> Registrar Partido
+      </button>
+      <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida('jugadores')" style="background:var(--primary-light);">
+        <i class="ti ti-users"></i> Gestionar Jugadores
+      </button>
+      <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida('historial')" style="background:#0f5298;">
+        <i class="ti ti-calendar"></i> Ver Historial
+      </button>
+      <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida('acumulado')" style="background:#1a6b3c;">
+        <i class="ti ti-chart-bar"></i> Estadísticas Acumuladas
+      </button>
+    </div>
   </div>
 </div>
 
@@ -199,6 +200,12 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
   <div class="body">
 
     <div id="sec-entrada" class="sec on">
+      <!-- Banner de modo edición -->
+      <div id="edit-mode-banner" style="display:none; background:#F59E0B; color:#1c0f00; padding:8px 12px; border-radius:10px; margin-bottom:8px; display:none; align-items:center; gap:8px; font-size:12px; font-weight:700; box-shadow:0 2px 8px rgba(245,158,11,0.3);">
+        <i class="ti ti-edit" style="font-size:16px;"></i>
+        <span id="edit-mode-label">MODO EDICIÓN — Partido #</span>
+        <button onclick="cancelarEdicion()" style="margin-left:auto; background:rgba(0,0,0,0.15); border:none; color:#1c0f00; font-weight:800; font-size:11px; padding:4px 10px; border-radius:6px; cursor:pointer;"><i class="ti ti-x"></i> Cancelar</button>
+      </div>
       <div class="toolbar">
         <div class="form-row">
           <div class="form-group" style="flex: 2;">
@@ -252,7 +259,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
                   <th>#</th><th>Nombre</th><th class="war-hdr">WAR</th>
                   <th>JJ</th><th>VB</th><th>CA</th><th>CE</th>
                   <th>H1</th><th>H2</th><th>H3</th><th>H4</th><th>BB</th><th>SO</th><th>SF</th>
-                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th><th>OBP</th><th>SLG</th><th>OPS</th>
+                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th>
                 </tr>
               </thead>
               <tbody id="entry-body-bat"></tbody>
@@ -365,7 +372,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
                   <th>#</th><th>Nombre</th><th class="war-hdr">WAR</th>
                   <th>JJ</th><th>VB</th><th>CA</th><th>CE</th>
                   <th>H1</th><th>H2</th><th>H3</th><th>H4</th><th>BB</th><th>SO</th><th>SF</th>
-                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th><th>OBP</th><th>SLG</th><th>OPS</th>
+                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th>
                 </tr>
               </thead>
               <tbody id="acum-body-bat"></tbody>
@@ -425,7 +432,8 @@ const database = getDatabase(app);
 
 let currentUid = localStorage.getItem('vip_uid') || null;
 
-window.avanzarDesdeBienvenida = function() {
+window.avanzarDesdeBienvenida = function(seccion) {
+  window._welcomeTargetSec = seccion || 'entrada';
   document.getElementById('welcome-screen').style.display = 'none';
   evaluarPantallaInicial();
 }
@@ -470,6 +478,12 @@ function evaluarPantallaInicial() {
     document.getElementById('inp-mi-equipo').value = savedName;
     window.updateTeamName(savedName);
     window.buildTablesOnce();
+    // Navigate to the section chosen on welcome screen
+    const targetSec = window._welcomeTargetSec || 'entrada';
+    const navBtns = document.querySelectorAll('.nav .nb');
+    const secMap = { 'entrada': 0, 'jugadores': 1, 'historial': 2, 'acumulado': 3 };
+    const btnIdx = secMap[targetSec] !== undefined ? secMap[targetSec] : 0;
+    window.goSec(targetSec, navBtns[btnIdx]);
   } else {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-content').style.display = 'none';
@@ -510,20 +524,13 @@ function descargarDatosDeNube(uid) {
   get(ref(database, 'usuarios/' + uid)).then((snapshot) => {
     const data = snapshot.val();
     if(data) {
-      window.players = data.players ? Object.values(data.players) : [];
-      window.games = data.games ? Object.values(data.games) : [];
-      localStorage.setItem('vip_team_name', data.teamName || "NOMBRE DE TU EQUIPO");
-
+      if(data.players) window.players = Object.values(data.players);
+      if(data.games) window.games = Object.values(data.games);
+      if(data.teamName) localStorage.setItem('vip_team_name', data.teamName);
+      
       localStorage.setItem('vip_players', JSON.stringify(window.players));
       localStorage.setItem('vip_games', JSON.stringify(window.games));
     } else {
-      // Cuenta nueva sin datos en la nube: empezar 100% vacío,
-      // sin heredar jugadores/juegos que hayan quedado guardados localmente de otra cuenta.
-      window.players = [];
-      window.games = [];
-      localStorage.setItem('vip_players', JSON.stringify(window.players));
-      localStorage.setItem('vip_games', JSON.stringify(window.games));
-      localStorage.setItem('vip_team_name', "NOMBRE DE TU EQUIPO");
       window.enviarDatosLocalesANube();
     }
     evaluarPantallaInicial();
@@ -581,28 +588,6 @@ function calcAVE(h,vb){
   if (ave > 1.0) ave = 1.0; 
   if (ave === 1.0) return '1.000';
   return ave.toFixed(3).replace(/^0/,'');
-}
-
-// Formatea un valor decimal tipo .688 / 1.450 / 2.138 (sin recortar a 1.000 como AVE)
-function fmtStat(val){
-  if(!val || !isFinite(val)) return '.000';
-  if(val >= 1) return val.toFixed(3);
-  return val.toFixed(3).replace(/^0/,'');
-}
-
-// SLG (Slugging) = Total de Bases / Veces al Bate
-function calcSLG(tba, vb){
-  vb = parseInt(vb) || 0;
-  if(!vb) return 0;
-  return tba / vb;
-}
-
-// OBP (Porcentaje de Embasado) = (H + BB) / (VB + BB + SF)
-function calcOBP(h, bb, sf, vb){
-  bb = parseInt(bb) || 0; sf = parseFloat(sf) || 0; vb = parseInt(vb) || 0;
-  const denom = vb + bb + sf;
-  if(!denom) return 0;
-  return (h + bb) / denom;
 }
 
 function calcPureWAR(p) {
@@ -702,11 +687,11 @@ window.buildTablesOnce = function() {
   if(!tbodyBat || !tbodyPich) return; 
   
   tbodyBat.innerHTML = ''; tbodyPich.innerHTML = '';
-  const battersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => (p.activo !== false) && (p.rol === 'Bateador' || p.rol === 'Ambos'));
-  const pitchersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => (p.activo !== false) && (p.rol === 'Pitcher' || p.rol === 'Ambos'));
+  const battersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Bateador' || p.rol === 'Ambos');
+  const pitchersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => p.rol === 'Pitcher' || p.rol === 'Ambos');
 
   if(!battersList.length) {
-    tbodyBat.innerHTML = `<tr><td colspan="20" class="empty">No hay jugadores activos en el Roster. Activa o agrega integrantes en la pestaña Jugadores.</td></tr>`;
+    tbodyBat.innerHTML = `<tr><td colspan="17" class="empty">No hay jugadores en el Roster. Agrégalos en la pestaña Jugadores.</td></tr>`;
   } else {
     battersList.forEach((p) => {
       const pi = p._origIndex;
@@ -719,16 +704,13 @@ window.buildTablesOnce = function() {
         <td class="auto-cell sep" id="live-h-${pi}">0</td>
         <td class="auto-cell" id="live-tba-${pi}">0</td>
         <td class="auto-cell" id="live-ave-${pi}">.000</td>
-        <td class="auto-cell" id="live-obp-${pi}">.000</td>
-        <td class="auto-cell" id="live-slg-${pi}">.000</td>
-        <td class="auto-cell" id="live-ops-${pi}">.000</td>
       `;
       tbodyBat.appendChild(tr);
     });
   }
 
   if(!pitchersList.length) {
-    tbodyPich.innerHTML = `<tr><td colspan="6" class="empty">No hay lanzadores activos en el Roster. Activa o agrega integrantes en la pestaña Jugadores.</td></tr>`;
+    tbodyPich.innerHTML = `<tr><td colspan="6" class="empty">No hay lanzadores en el Roster. Agrégalos en la pestaña Jugadores.</td></tr>`;
   } else {
     pitchersList.forEach((p) => {
       const pi = p._origIndex;
@@ -783,27 +765,17 @@ function onInputUpdate() {
 }
 
 function updateLiveCalculations() {
-  const battersList = window.players.filter(p => (p.activo !== false) && (p.rol === 'Bateador' || p.rol === 'Ambos'));
+  const battersList = window.players.filter(p => p.rol === 'Bateador' || p.rol === 'Ambos');
 
   window.players.forEach((p, pi) => {
     const hEl = document.getElementById(`live-h-${pi}`);
     const tbaEl = document.getElementById(`live-tba-${pi}`);
     const aveEl = document.getElementById(`live-ave-${pi}`);
     const warEl = document.getElementById(`live-war-${pi}`);
-    const obpEl = document.getElementById(`live-obp-${pi}`);
-    const slgEl = document.getElementById(`live-slg-${pi}`);
-    const opsEl = document.getElementById(`live-ops-${pi}`);
 
     if (hEl && tbaEl && aveEl && warEl) {
       const h = calcH(p); const tba = calcTBA(p);
       hEl.textContent = h; tbaEl.textContent = tba; aveEl.textContent = calcAVE(h, p.vb);
-
-      const slgNum = calcSLG(tba, p.vb);
-      const obpNum = calcOBP(h, p.bb, p.sf, p.vb);
-      if(obpEl) obpEl.textContent = fmtStat(obpNum);
-      if(slgEl) slgEl.textContent = fmtStat(slgNum);
-      if(opsEl) opsEl.textContent = fmtStat(obpNum + slgNum);
-
       if ((p.jj || 0) > 0) {
         let pWar = calcPureWAR(p);
         warEl.textContent = fmtWar(pWar);
@@ -826,7 +798,7 @@ function updateLiveCalculations() {
 }
 
 function getLeadersMap(dataset) {
-  let leaders = { war: -Infinity, jj: 0, vb: 0, ca: 0, ce: 0, h1: 0, h2: 0, h3: 0, h4: 0, bb: 0, so: 0, sf: 0, h: 0, tba: 0, ave: 0, obp: 0, slg: 0, ops: 0 };
+  let leaders = { war: -Infinity, jj: 0, vb: 0, ca: 0, ce: 0, h1: 0, h2: 0, h3: 0, h4: 0, bb: 0, so: 0, sf: 0, h: 0, tba: 0, ave: 0 };
   dataset.forEach(p => {
     const w = p._pureWar !== undefined ? p._pureWar : 0;
     if (p.jj > 0 && w > leaders.war) leaders.war = w;
@@ -844,11 +816,6 @@ function getLeadersMap(dataset) {
     const totH = calcH(p); if (totH > leaders.h) leaders.h = totH;
     const tba = calcTBA(p); if (tba > leaders.tba) leaders.tba = tba;
     const ave = parseFloat(calcAVE(totH, p.vb)) || 0; if (ave > leaders.ave) leaders.ave = ave;
-    const slgNum = calcSLG(tba, p.vb);
-    const obpNum = calcOBP(totH, p.bb, p.sf, p.vb);
-    if (slgNum > leaders.slg) leaders.slg = slgNum;
-    if (obpNum > leaders.obp) leaders.obp = obpNum;
-    if ((obpNum + slgNum) > leaders.ops) leaders.ops = obpNum + slgNum;
   });
   return leaders;
 }
@@ -867,29 +834,27 @@ window.exportPlanillaPDF = function() {
   headerEl.style.display = 'block';
 
   const container = document.getElementById('pdf-entry-area');
-  container.classList.add('pdf-compact');
   const opt = {
-    margin: [3, 3, 3, 3],
+    margin: [6, 4, 6, 4],
     filename: `Planilla_${teamName.replace(/\s+/g, '_')}_${fechaInp}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
   };
-  html2pdf().set(opt).from(container).save().then(() => { headerEl.style.display = 'none'; container.classList.remove('pdf-compact'); });
+  html2pdf().set(opt).from(container).save().then(() => { headerEl.style.display = 'none'; });
 }
 
 window.exportHistorialPDF = function() {
   const teamName = document.getElementById('inp-mi-equipo').value.trim() || "NOMBRE DE TU EQUIPO";
   const container = document.getElementById('pdf-history-area');
-  container.classList.add('pdf-compact');
   const opt = {
-    margin: [3, 3, 3, 3],
+    margin: [6, 4, 6, 4],
     filename: `Historial_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
   };
-  html2pdf().set(opt).from(container).save().then(() => { container.classList.remove('pdf-compact'); });
+  html2pdf().set(opt).from(container).save();
 }
 
 window.exportAcumPDF = function() {
@@ -905,15 +870,14 @@ window.exportAcumPDF = function() {
   document.getElementById('pdf-acum-range-label').textContent = rangoText;
 
   const container = document.getElementById('pdf-acum-area');
-  container.classList.add('pdf-compact');
   const opt = {
-    margin: [3, 3, 3, 3],
+    margin: [6, 4, 6, 4],
     filename: `Acumulado_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
   };
-  html2pdf().set(opt).from(container).save().then(() => { container.classList.remove('pdf-compact'); });
+  html2pdf().set(opt).from(container).save();
 }
 
 function renderPlayersManagement() {
@@ -926,29 +890,14 @@ function renderPlayersManagement() {
     const row = document.createElement('div');
     row.className = 'player-edit-row';
     let badgeClass = p.rol === 'Pitcher' ? 'pich' : (p.rol === 'Ambos' ? 'both' : 'bat');
-    const activo = p.activo !== false;
-    if(!activo) row.style.opacity = '0.55';
     row.innerHTML = `
       <div style="flex:0 0 35px; font-weight:800; color:var(--primary); text-align:center;">#${p.cod}</div>
       <div style="flex:1; font-weight:600; text-transform:uppercase; font-size:12px; overflow:hidden; text-overflow:ellipsis;">${p.nombre}</div>
       <span class="p-type-badge ${badgeClass}">${p.rol}</span>
-      <button class="btn ${activo ? 'btn-p' : 'btn-d'}" onclick="togglePlayerActivo(${index})" style="height:32px; padding:0 6px; margin-left:6px; font-size:10px; min-width:62px;"><i class="ti ${activo ? 'ti-player-pause' : 'ti-player-play'}"></i> ${activo ? 'Activo' : 'Pausa'}</button>
       <button class="btn btn-p" onclick="startEditPlayer(${index})" style="height:32px; padding:0 8px; margin-left:6px; font-size:11px;"><i class="ti ti-edit"></i></button>
     `;
     container.appendChild(row);
   });
-}
-
-window.togglePlayerActivo = function(index) {
-  const p = window.players[index];
-  if(!p) return;
-  const wasActive = p.activo !== false;
-  p.activo = !wasActive;
-  localStorage.setItem('vip_players', JSON.stringify(window.players));
-  if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
-  renderPlayersManagement();
-  window.buildTablesOnce();
-  showToast(p.activo ? `${p.nombre}: ACTIVO` : `${p.nombre}: EN PAUSA`);
 }
 
 window.startEditPlayer = function(index) {
@@ -1003,7 +952,7 @@ window.addPlayer = function(){
   if(!nom) { showToast('Introduce un nombre válido'); return; }
   
   const codeVal = parseInt(document.getElementById('new-cod').value) || (window.players.length + 1);
-  const p = { cod: codeVal, nombre: nom, rol: document.getElementById('new-rol').value, activo: true };
+  const p = { cod: codeVal, nombre: nom, rol: document.getElementById('new-rol').value };
   
   BAT_INP.forEach(f => p[f] = 0); 
   PICH_INP.forEach(f => p[f] = 0);
@@ -1020,6 +969,8 @@ window.addPlayer = function(){
 window.clearStats = function(){
   if(confirm('¿Limpiar todas las entradas actuales?')){
      window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+     document.getElementById('edit-mode-banner').style.display = 'none';
+     window._editingGameId = null;
      window.buildTablesOnce();
   }
 }
@@ -1032,13 +983,21 @@ window.saveGame = function(){
   
   const snap = window.players.map(p => ({ ...p }));
   const idx = window.games.findIndex(g => g.fecha === fecha && g.num === num);
-  const g = { id: Date.now(), fecha, num, rival, players: snap };
+  const g = { id: window._editingGameId || Date.now(), fecha, num, rival, players: snap };
   
   if(idx >= 0) window.games[idx] = g; else window.games.push(g);
   window.games.sort((a,b) => a.fecha.localeCompare(b.fecha) || a.num - b.num);
   
   localStorage.setItem('vip_games', JSON.stringify(window.games));
-  window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+
+  // Save current roster (without per-game stats) to local storage
+  const rosterSnap = window.players.map(p => { const r = { cod: p.cod, nombre: p.nombre, rol: p.rol }; BAT_INP.forEach(f => r[f]=0); PICH_INP.forEach(f => r[f]=0); return r; });
+  localStorage.setItem('vip_players', JSON.stringify(rosterSnap));
+  window.players = rosterSnap;
+
+  // Hide edit banner
+  document.getElementById('edit-mode-banner').style.display = 'none';
+  window._editingGameId = null;
   
   if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
   window.buildTablesOnce();
@@ -1061,24 +1020,10 @@ function renderHistory(){
         <div class="gnum">${g.num}</div>
         <div><div class="grival">vs ${g.rival}</div><div class="gdates">${g.fecha.split('-').reverse().join('/')}</div></div>
         <button class="btn btn-p" onclick="loadGameToEdit(${g.id})" style="margin-left:auto; height:32px; font-size:11px; padding: 0 8px;"><i class="ti ti-edit"></i></button>
-        <button class="btn btn-d" onclick="deleteGame(${g.id})" style="height:32px; font-size:11px; padding: 0 8px; margin-left:6px;"><i class="ti ti-trash"></i></button>
       </div>
     </div>`;
   });
   el.innerHTML = html;
-}
-
-window.deleteGame = function(id){
-  const g = window.games.find(x => x.id == id);
-  if(!g) return;
-  if(!confirm(`¿Eliminar el juego #${g.num} vs ${g.rival} (${g.fecha.split('-').reverse().join('/')})? Esta acción no se puede deshacer.`)) return;
-
-  window.games = window.games.filter(x => x.id != id);
-  localStorage.setItem('vip_games', JSON.stringify(window.games));
-  if(filtG) filtG = filtG.filter(x => x.id != id);
-  if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
-  renderHistory();
-  showToast('Juego eliminado del historial');
 }
 
 window.filterGames = function(){
@@ -1096,11 +1041,47 @@ window.clearFilt = function(){
 
 window.loadGameToEdit = function(id){
   const g = window.games.find(x => x.id == id); if(!g) return;
-  window.players = g.players.map(p => ({ ...p }));
+
+  // Merge: start from saved game players, then add any new roster players not in the game
+  const gamePlayers = g.players.map(p => ({ ...p }));
+  const savedCodes = new Set(gamePlayers.map(p => p.cod + '_' + p.nombre));
+  window.players.forEach(rosterPlayer => {
+    const key = rosterPlayer.cod + '_' + rosterPlayer.nombre;
+    if (!savedCodes.has(key)) {
+      // New player not in this game — add with zero stats
+      const fresh = { ...rosterPlayer };
+      BAT_INP.forEach(f => fresh[f] = 0);
+      PICH_INP.forEach(f => fresh[f] = 0);
+      gamePlayers.push(fresh);
+    }
+  });
+  window.players = gamePlayers;
+
   document.getElementById('inp-fecha').value = g.fecha;
   document.getElementById('inp-juego').value = g.num;
   document.getElementById('inp-rival').value = g.rival;
+
+  // Show edit mode banner
+  const banner = document.getElementById('edit-mode-banner');
+  banner.style.display = 'flex';
+  document.getElementById('edit-mode-label').textContent = `MODO EDICIÓN — Partido #${g.num} vs ${g.rival} (${g.fecha.split('-').reverse().join('/')})`;
+
+  // Store editing game id
+  window._editingGameId = id;
+
   window.goSec('entrada', document.querySelectorAll('.nav .nb')[0]);
+}
+
+window.cancelarEdicion = function() {
+  // Restore players from localStorage and hide banner
+  window.players = JSON.parse(localStorage.getItem('vip_players')) || [];
+  window._editingGameId = null;
+  document.getElementById('edit-mode-banner').style.display = 'none';
+  document.getElementById('inp-rival').value = '';
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('inp-fecha').value = today;
+  window.buildTablesOnce();
+  showToast('Edición cancelada');
 }
 
 window.renderAcum = function(){
@@ -1108,14 +1089,9 @@ window.renderAcum = function(){
   const src = window.games.filter(g => (!d || g.fecha >= d) && (!h || g.fecha <= h));
   const mapBat = {}; const mapPich = {};
 
-  // Solo se incluyen jugadores que existen en el roster actual y están marcados como ACTIVOS
-  const activeMap = {};
-  window.players.forEach(p => { activeMap[p.cod + '_' + p.nombre] = (p.activo !== false); });
-
   src.forEach(g => {
     g.players.forEach(p => {
       const k = p.cod + '_' + p.nombre;
-      if(!activeMap[k]) return;
       if(p.rol === 'Bateador' || p.rol === 'Ambos') {
         if(!mapBat[k]) mapBat[k] = { cod: p.cod, nombre: p.nombre, ...Object.fromEntries(BAT_INP.map(f => [f, 0])) };
         BAT_INP.forEach(f => mapBat[k][f] += parseInt(p[f] || 0));
@@ -1134,9 +1110,6 @@ window.renderAcum = function(){
   if(bodyBatEl) {
     bodyBatEl.innerHTML = rBat.map(p => {
       const hc = calcH(p), tba = calcTBA(p), ave = calcAVE(hc, p.vb), aN = parseFloat(ave) || 0;
-      const slgNum = calcSLG(tba, p.vb);
-      const obpNum = calcOBP(hc, p.bb, p.sf, p.vb);
-      const opsNum = obpNum + slgNum;
       const warVal = p._pureWar;
       const cWar = p.jj > 0 ? (warVal > 0 ? 'war-cell war-pos' : (warVal < 0 ? 'war-cell war-neg' : 'war-cell war-neu')) : 'war-cell war-neu';
       
@@ -1147,9 +1120,6 @@ window.renderAcum = function(){
         <td class="auto-cell sep ${hc > 0 && hc === leadBat.h ? 'stat-leader' : ''}">${hc}</td>
         <td class="auto-cell ${tba > 0 && tba === leadBat.tba ? 'stat-leader' : ''}">${tba}</td>
         <td class="auto-cell ${aN > 0 && aN === leadBat.ave ? 'stat-leader' : ''}">${ave}</td>
-        <td class="auto-cell ${obpNum > 0 && obpNum === leadBat.obp ? 'stat-leader' : ''}">${fmtStat(obpNum)}</td>
-        <td class="auto-cell ${slgNum > 0 && slgNum === leadBat.slg ? 'stat-leader' : ''}">${fmtStat(slgNum)}</td>
-        <td class="auto-cell ${opsNum > 0 && opsNum === leadBat.ops ? 'stat-leader' : ''}">${fmtStat(opsNum)}</td>
       </tr>`;
     }).join('');
   }
