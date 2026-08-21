@@ -74,6 +74,41 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 .seq-btn-finish { background: var(--success); color: white; }
 .seq-btn-finish:active { background: #047857; }
 
+/* Teclado numérico */
+.seq-numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0; }
+.seq-num-btn { 
+  height: 60px; 
+  border: 2px solid var(--border); 
+  border-radius: 10px; 
+  font-size: 24px; 
+  font-weight: 800; 
+  cursor: pointer; 
+  background: #F8FAFC; 
+  color: var(--text-main);
+  transition: 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.seq-num-btn:active { 
+  background: var(--primary-light); 
+  color: white; 
+  transform: scale(0.95);
+}
+.seq-num-btn.zero { grid-column: span 3; }
+.seq-current-value { 
+  text-align: center; 
+  font-size: 32px; 
+  font-weight: 900; 
+  color: var(--primary-light); 
+  margin: 16px 0; 
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.seq-btn-final-row { display: flex; gap: 10px; margin-top: 16px; }
+.seq-btn-finish-early { flex: 1; background: var(--accent) !important; color: white !important; }
+.seq-btn-finish-early:active { background: #D97706 !important; }
+
 /* Contenedor Principal de la App */
 #app-content { display: none; }
 
@@ -1695,6 +1730,8 @@ window.showSequentialField = function(index) {
     currentValue = window.sequentialInputState.fieldValues[field.field];
   }
   
+  // Mostrar el valor actual y llenar el input
+  document.getElementById('seq-current-value').textContent = currentValue;
   const input = document.getElementById('seq-field-input');
   input.value = currentValue;
   
@@ -1711,18 +1748,54 @@ window.showSequentialField = function(index) {
   
   // Botones
   const btnBack = document.getElementById('seq-btn-back');
-  const btnNext = document.getElementById('seq-btn-next');
-  const btnFinish = document.getElementById('seq-btn-finish');
-  
   btnBack.style.display = index > 0 ? 'block' : 'none';
-  btnNext.style.display = index < SEQUENTIAL_FIELDS.length - 1 ? 'block' : 'none';
-  btnFinish.style.display = index === SEQUENTIAL_FIELDS.length - 1 ? 'block' : 'none';
   
   // Focus en el input y seleccionar todo
   setTimeout(() => {
     input.focus();
     input.select();
   }, 100);
+};
+
+window.addNumberToSequential = function(num) {
+  const field = SEQUENTIAL_FIELDS[window.sequentialInputState.currentFieldIndex];
+  const value = num;
+  
+  // Validaciones especiales
+  const allValues = { ...window.sequentialInputState.fieldValues };
+  allValues[field.field] = value;
+  
+  // Validar que h1+h2+h3+h4+so no superen VB
+  const hitsFields = ['h1', 'h2', 'h3', 'h4', 'so'];
+  const hitsSum = hitsFields.reduce((sum, f) => sum + (parseInt(allValues[f]) || 0), 0);
+  const vbValue = parseInt(allValues['vb']) || 0;
+  
+  // Si estamos ingresando un campo de hits
+  if(hitsFields.includes(field.field)) {
+    if(vbValue > 0 && hitsSum > vbValue) {
+      showToast(`Hits + SO (${hitsSum}) no pueden superar VB (${vbValue})`);
+      return;
+    }
+  }
+  
+  // Si estamos ingresando VB
+  if(field.field === 'vb') {
+    if(hitsSum > value) {
+      showToast(`VB (${value}) debe ser ≥ que Hits + SO (${hitsSum})`);
+      return;
+    }
+  }
+  
+  // Llenar el input con el valor y pasar al siguiente
+  const input = document.getElementById('seq-field-input');
+  input.value = value;
+  window.sequentialInputState.fieldValues[field.field] = value;
+  
+  // Actualizar el display del valor actual
+  document.getElementById('seq-current-value').textContent = value;
+  
+  // Pasar al siguiente campo automáticamente
+  window.showSequentialField(window.sequentialInputState.currentFieldIndex + 1);
 };
 
 window.nextSequentialField = function() {
@@ -1765,25 +1838,22 @@ window.nextSequentialField = function() {
 };
 
 window.prevSequentialField = function() {
-  const field = SEQUENTIAL_FIELDS[window.sequentialInputState.currentFieldIndex];
-  const input = document.getElementById('seq-field-input');
-  const value = input.value.trim();
-  
-  if(value !== '') {
-    window.sequentialInputState.fieldValues[field.field] = parseInt(value) || 0;
-  }
-  
+  // No necesita guardar nada porque ya se guardó cuando hizo clic en el número
   window.showSequentialField(window.sequentialInputState.currentFieldIndex - 1);
 };
 
+window.finishSequentialEarly = function() {
+  // No guardar el campo actual, solo los que ya fueron ingresados
+  window.finishSequentialInputCommon();
+};
+
 window.finishSequentialInput = function() {
-  const field = SEQUENTIAL_FIELDS[window.sequentialInputState.currentFieldIndex];
-  const input = document.getElementById('seq-field-input');
-  const value = parseInt(input.value) || 0;
-  
-  if(input.value.trim() !== '') {
-    window.sequentialInputState.fieldValues[field.field] = value;
-  }
+  // Si estamos en el último campo, ya fue guardado por el clic del número
+  // No necesitamos hacer nada más
+  window.finishSequentialInputCommon();
+};
+
+window.finishSequentialInputCommon = function() {
   
   // Guardar los valores en el jugador
   const mode = window.sequentialInputState.mode;
@@ -1827,7 +1897,8 @@ window.finishSequentialInput = function() {
 window.closeSequentialInput = function() {
   const modal = document.getElementById('sequential-modal');
   modal.classList.remove('show');
-  document.getElementById('seq-field-input').value = '';
+  document.getElementById('seq-current-value').textContent = '0';
+  document.getElementById('seq-field-input').value = '0';
   window.sequentialInputState = {
     playerKey: null,
     gameIndex: null,
@@ -1844,13 +1915,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if(input) {
     input.addEventListener('keypress', function(e) {
       if(e.key === 'Enter') {
-        const btnNext = document.getElementById('seq-btn-next');
-        const btnFinish = document.getElementById('seq-btn-finish');
-        if(btnNext.style.display !== 'none') {
-          window.nextSequentialField();
-        } else if(btnFinish.style.display !== 'none') {
-          window.finishSequentialInput();
-        }
+        window.nextSequentialField();
       }
     });
   }
@@ -1876,15 +1941,30 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="seq-field-block">
         <label class="seq-field-label" id="seq-label">Campo</label>
         <div class="seq-field-desc" id="seq-desc">Descripción</div>
-        <input type="number" id="seq-field-input" class="seq-field-input" placeholder="0">
       </div>
-      <div class="seq-info-text" id="seq-info">1 de 10</div>
+      <div class="seq-current-value" id="seq-current-value">0</div>
+      <input type="number" id="seq-field-input" class="seq-field-input" placeholder="0" inputmode="numeric" min="0" max="9">
+      <div class="seq-info-text" id="seq-info">1 de 11</div>
     </div>
     
-    <div class="seq-buttons">
+    <!-- Teclado Numérico -->
+    <div class="seq-numpad">
+      <button class="seq-num-btn" onclick="window.addNumberToSequential(1)">1</button>
+      <button class="seq-num-btn" onclick="window.addNumberToSequential(2)">2</button>
+      <button class="seq-num-btn" onclick="window.addNumberToSequential(3)">3</button>
+      <button class="seq-num-btn" onclick="window.addNumberToSequential(4)">4</button>
+      <button class="seq-num-btn" onclick="window.addNumberToSequential(5)">5</button>
+      <button class="seq-num-btn" onclick="window.addNumberToSequential(6)">6</button>
+      <button class="seq-num-btn" onclick="window.addNumberToSequential(7)">7</button>
+      <button class="seq-num-btn" onclick="window.addNumberToSequential(8)">8</button>
+      <button class="seq-num-btn" onclick="window.addNumberToSequential(9)">9</button>
+      <button class="seq-num-btn zero" onclick="window.addNumberToSequential(0)">0</button>
+    </div>
+    
+    <div class="seq-btn-final-row">
       <button class="seq-btn seq-btn-back" id="seq-btn-back" onclick="window.prevSequentialField()">← Anterior</button>
       <button class="seq-btn seq-btn-next" id="seq-btn-next" onclick="window.nextSequentialField()">Siguiente →</button>
-      <button class="seq-btn seq-btn-finish" id="seq-btn-finish" onclick="window.finishSequentialInput()" style="display:none;">Guardar ✓</button>
+      <button class="seq-btn seq-btn-finish-early" onclick="window.finishSequentialEarly()">FINALIZAR</button>
     </div>
   </div>
 </div>
