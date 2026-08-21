@@ -162,6 +162,181 @@ body.only-input-mode table { min-width: 500px !important; }
 
 /* Botón flotante */
 .btn-refresh-float { position: fixed; bottom: 75px; right: 15px; width: 44px; height: 44px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; border: none; cursor: pointer; }
+
+
+/* ==========================================================
+   VISTA COMPACTA RESPONSIVE - PC + CELULAR
+   No cambia la lógica ni los datos; solo reduce espacios.
+   ========================================================== */
+
+/* PC / pantallas grandes */
+@media (min-width: 769px) {
+  body { padding-bottom: 68px; }
+
+  .topbar {
+    padding: 8px 12px;
+    min-height: 42px;
+    gap: 6px;
+  }
+  .topbar-title { font-size: 14px; }
+  .topbar-badge { font-size: 9px; padding: 2px 7px; }
+  .btn-topbar-action { padding: 5px; }
+  .btn-logout { padding: 3px; }
+
+  .body { padding: 6px; }
+  .toolbar {
+    padding: 8px;
+    margin-bottom: 7px;
+    gap: 7px;
+    border-radius: 9px;
+  }
+  .form-row { gap: 5px; }
+  .form-group { gap: 2px; }
+  .toolbar label { font-size: 9px; }
+  .toolbar input, .toolbar select {
+    height: 32px;
+    padding: 4px 7px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+  .btn-edit-team { width: 32px; height: 32px; border-radius: 6px; }
+
+  .btn-grid { gap: 5px; }
+  .btn { height: 34px; font-size: 11px; border-radius: 6px; padding: 0 8px; }
+
+  .sub-tabs {
+    gap: 3px;
+    padding: 3px;
+    margin-bottom: 7px;
+    border-radius: 7px;
+  }
+  .sub-btn { padding: 7px 5px; font-size: 11px; border-radius: 5px; }
+  .btn-toggle-input-mode { font-size: 10px; padding: 6px 8px; }
+
+  .tbl-card { margin-bottom: 7px; border-radius: 9px; }
+  .tbl-hdr { padding: 6px 10px; }
+  .tbl-hdr-lbl { font-size: 10px; }
+  .tbl-hdr-sub { font-size: 8px; }
+  .tbl-wrap { max-height: 61vh; }
+  table { font-size: 11px; min-width: 760px; }
+  thead th { font-size: 9px; padding: 6px 3px; }
+  th:nth-child(1), td:nth-child(1) { min-width: 30px; width: 30px; padding: 4px 2px; }
+  th:nth-child(2), td:nth-child(2) { min-width: 90px; width: 90px; padding-left: 5px; }
+  td { padding: 4px 2px; }
+  td input[type=number] { width: 36px; height: 28px; font-size: 12px; border-radius: 5px; }
+
+  .sumgrid { grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 7px; }
+  .sc { padding: 6px; border-radius: 6px; }
+  .sc .lbl { font-size: 8px; }
+  .sc .val { font-size: 13px; }
+
+  .nav { height: 56px; }
+  .nb { font-size: 9px; padding: 5px 0; }
+  .nb i { font-size: 19px; }
+
+  .btn-refresh-float { width: 38px; height: 38px; right: 12px; bottom: 65px; }
+  .btn-refresh-float i { font-size: 18px !important; }
+}
+
+/* CELULAR */
+@media (max-width: 768px) {
+  body { padding-bottom: 62px; }
+
+  .topbar {
+    min-height: 42px;
+    padding: 7px 8px;
+    gap: 4px;
+  }
+  .topbar > i { font-size: 16px !important; }
+  .topbar-title { font-size: 12px; }
+  .topbar-badge {
+    width: 31px;
+    height: 28px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+    gap: 0;
+  }
+  .topbar-badge i { font-size: 15px; }
+  .btn-topbar-action { width: 28px; height: 28px; padding: 3px; }
+  .btn-topbar-action i { font-size: 14px !important; }
+  .btn-logout { width: 26px; height: 28px; padding: 2px; }
+  .btn-logout i { font-size: 16px !important; }
+
+  .body { padding: 5px 4px; }
+  .toolbar {
+    padding: 7px;
+    margin-bottom: 6px;
+    gap: 6px;
+    border-radius: 8px;
+  }
+  .form-row { gap: 5px; }
+  .form-group { gap: 2px; min-width: 0; }
+  .toolbar label { font-size: 9px; }
+  .toolbar input, .toolbar select {
+    height: 32px;
+    padding: 4px 6px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+  .btn-edit-team { width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0; }
+
+  /* En Entrada: equipo + fecha + juego caben en una sola fila */
+  #sec-entrada > .toolbar .form-row:first-child {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 94px 46px;
+    gap: 5px;
+  }
+  #sec-entrada > .toolbar .form-row:first-child .form-group { flex: none !important; min-width: 0; }
+  #sec-entrada > .toolbar .form-row:nth-child(2) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 105px;
+  }
+
+  .btn-grid { gap: 5px; }
+  .btn { height: 34px; font-size: 10px; border-radius: 6px; padding: 0 6px; }
+
+  .sub-tabs { gap: 3px; padding: 3px; margin-bottom: 6px; border-radius: 7px; }
+  .sub-btn { padding: 7px 3px; font-size: 10px; border-radius: 5px; }
+  .btn-toggle-input-mode { font-size: 9px; padding: 6px 5px; gap: 2px; }
+
+  .tbl-card { margin-bottom: 6px; border-radius: 8px; }
+  .tbl-hdr { padding: 5px 8px; }
+  .tbl-hdr-lbl { font-size: 9px; }
+  .tbl-hdr-sub { font-size: 7px; }
+  .tbl-wrap { max-height: 55vh; }
+  table { font-size: 10px; min-width: 700px; }
+  thead th { font-size: 8px; padding: 5px 2px; }
+  th:nth-child(1), td:nth-child(1) { min-width: 28px; width: 28px; padding: 4px 1px; }
+  th:nth-child(2), td:nth-child(2) { min-width: 82px; width: 82px; padding-left: 4px; }
+  td { padding: 3px 2px; }
+  td input[type=number] { width: 32px; height: 27px; font-size: 11px; border-radius: 5px; }
+
+  .sumgrid { grid-template-columns: repeat(2, 1fr); gap: 4px; margin-bottom: 6px; }
+  .sc { padding: 5px; border-radius: 6px; }
+  .sc .lbl { font-size: 7px; }
+  .sc .val { font-size: 12px; }
+
+  .nav { height: 54px; }
+  .nb { font-size: 8px; padding: 4px 0; gap: 1px; }
+  .nb i { font-size: 18px; }
+
+  .btn-refresh-float { width: 36px; height: 36px; right: 9px; bottom: 62px; }
+  .btn-refresh-float i { font-size: 17px !important; }
+}
+
+/* Teléfonos muy estrechos */
+@media (max-width: 360px) {
+  .topbar-title { font-size: 11px; }
+  .topbar { padding-left: 6px; padding-right: 6px; }
+  #sec-entrada > .toolbar .form-row:first-child { grid-template-columns: minmax(0,1fr) 84px 42px; }
+  #sec-entrada > .toolbar .form-row:nth-child(2) { grid-template-columns: minmax(0,1fr) 96px; }
+  .sub-btn { font-size: 9px; }
+  .btn-toggle-input-mode { font-size: 8px; padding-left: 4px; padding-right: 4px; }
+  table { min-width: 670px; }
+  th:nth-child(2), td:nth-child(2) { min-width: 76px; width: 76px; }
+}
+
 </style>
 </head>
 <body>
