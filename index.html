@@ -28,14 +28,14 @@
 body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px; overflow-x: hidden; }
 
 /* PANTALLA DE BIENVENIDA ACCESIBLE */
-#welcome-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, var(--primary) 0%, var(--bg-dark) 100%); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; color: white; }
+#welcome-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, var(--primary) 0%, var(--bg-dark) 100%); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; color: white; }
 .welcome-card { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); padding: 35px 24px; border-radius: 20px; max-width: 360px; width: 100%; backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 .welcome-card h1 { font-size: 26px; font-weight: 900; letter-spacing: 1px; margin-top: 10px; text-transform: uppercase; color: #FFF; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 .welcome-card p { font-size: 13px; color: #B5D4F4; margin: 15px 0 30px 0; line-height: 1.5; padding: 0 10px; }
 .btn-welcome-next { background: var(--accent); color: white; border: none; font-weight: 800; font-size: 15px; height: 50px; padding: 0 30px; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 159, 39, 0.4); width: 100%; justify-content: center; }
 
 /* Pantalla de Autenticación */
-#login-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--primary); z-index: 99998; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; }
+#login-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--primary); z-index: 99998; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; }
 .login-box { background: white; padding: 28px 20px; border-radius: 16px; width: 100%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
 .login-box h2 { font-size: 22px; color: var(--primary); font-weight: 800; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
 .login-box p { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; padding: 0 10px; }
@@ -74,9 +74,13 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 .btn-edit-team { background: #E2E8F0; color: var(--text-main); border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.1s; -webkit-tap-highlight-color: transparent; }
 .btn-edit-team.editing { background: var(--success); color: white; border-color: var(--success); }
 
-.sub-tabs { display: flex; gap: 4px; background: #E2E8F0; padding: 4px; border-radius: 8px; margin-bottom: 10px; }
-.sub-btn { flex: 1; padding: 10px 6px; border: none; background: transparent; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.sub-tabs { display: flex; gap: 4px; background: #E2E8F0; padding: 4px; border-radius: 8px; margin-bottom: 10px; align-items: center; }
+.sub-btn { flex: 1; padding: 10px 6px; border: none; background: transparent; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; text-align: center; }
 .sub-btn.on { background: var(--primary); color: white; }
+
+/* Botón especial para alternar modo solo entrada */
+.btn-toggle-input-mode { background: #CBD5E1; color: var(--text-main); border: none; border-radius: 6px; font-size: 11px; font-weight: 700; padding: 8px 10px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s; white-space: nowrap; }
+.btn-toggle-input-mode.active { background: var(--accent); color: white; }
 
 .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
 .btn { font-size: 12px; font-weight: 700; height: 42px; padding: 0 10px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: 0.1s; -webkit-tap-highlight-color: transparent; }
@@ -122,6 +126,10 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
 .war-neu { color: var(--text-muted) !important; }
 .stat-leader { background-color: var(--leader-bg) !important; color: var(--leader-text) !important; font-weight: 700; border-radius: 4px; }
 
+/* Clases dinámicas para ocultar columnas de resultados en Modo Solo Entrada */
+body.only-input-mode .hide-in-input { display: none !important; }
+body.only-input-mode table { min-width: 500px !important; }
+
 .game-row, .player-edit-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #E2E8F0; background: #FFF; }
 .gnum { width: 30px; height: 30px; background: var(--bg-dark); color: #B5D4F4; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
 .grival { font-size: 13px; font-weight: 600; color: var(--text-main); }
@@ -133,11 +141,14 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
 .p-type-badge.pich { background: #FEE2E2; color: #991B1B; }
 .p-type-badge.both { background: #FEF3C7; color: #92400E; }
 
+.badge-win { background: #D1FAE5; color: #065F46; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+.badge-loss { background: #FEE2E2; color: #991B1B; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+
 .pdf-header-print { display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed var(--primary); }
 .pdf-header-print h2 { color: var(--primary); font-size: 18px; text-transform: uppercase; }
 .pdf-header-print p { font-size: 11px; color: var(--text-muted); }
 
-/* Modo compacto: se aplica solo al generar el PDF para que entre en 1 sola hoja */
+/* Modo compacto para PDF */
 .pdf-compact .tbl-wrap { max-height: none !important; overflow: visible !important; }
 .pdf-compact .tbl-card { margin-bottom: 4px !important; box-shadow: none !important; }
 .pdf-compact .tbl-hdr { padding: 4px 10px !important; }
@@ -149,7 +160,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
 .pdf-compact .pdf-header-print h2 { font-size: 15px !important; margin-bottom: 2px !important; }
 .pdf-compact .pdf-header-print p { font-size: 10px !important; }
 
-/* Botón flotante de actualización segura */
+/* Botón flotante */
 .btn-refresh-float { position: fixed; bottom: 75px; right: 15px; width: 44px; height: 44px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; border: none; cursor: pointer; }
 </style>
 </head>
@@ -231,15 +242,22 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
             <label>Fecha</label>
             <input type="date" id="inp-fecha">
           </div>
-          <div class="form-group" style="flex: 0 0 60px;">
+          <div class="form-group" style="flex: 0 0 55px;">
             <label>Juego #</label>
             <input type="number" id="inp-juego" value="1" min="1">
           </div>
         </div>
         <div class="form-row">
-          <div class="form-row" style="width:100%;">
-            <label style="width:40px">Rival</label>
+          <div class="form-group" style="flex: 2;">
+            <label>Rival</label>
             <input type="text" id="inp-rival" placeholder="Nombre del rival">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Resultado</label>
+            <select id="inp-resultado">
+              <option value="G">Ganado (G)</option>
+              <option value="P">Perdido (P)</option>
+            </select>
           </div>
         </div>
         <div class="btn-grid">
@@ -251,6 +269,9 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
       <div class="sub-tabs">
         <button class="sub-btn on" id="sub-tab-bat" onclick="switchEntryTab('bat')"><i class="ti ti-user"></i> Bateadores</button>
         <button class="sub-btn" id="sub-tab-pich" onclick="switchEntryTab('pich')"><i class="ti ti-user-shield"></i> Lanzadores</button>
+        <button class="btn-toggle-input-mode" id="btn-toggle-input-view" onclick="toggleOnlyInputMode()" title="Ocultar resultados y mostrar solo campos de entrada">
+          <i class="ti ti-eye-off"></i> Solo Entrada
+        </button>
       </div>
 
       <div id="pdf-entry-area">
@@ -268,10 +289,10 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
             <table>
               <thead>
                 <tr>
-                  <th>#</th><th>Nombre</th><th class="war-hdr">WAR</th>
+                  <th>#</th><th>Nombre</th><th class="war-hdr hide-in-input">WAR</th>
                   <th>JJ</th><th>VB</th><th>CA</th><th>CE</th>
                   <th>H1</th><th>H2</th><th>H3</th><th>H4</th><th>BB</th><th>SO</th><th>SF</th>
-                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th><th>OBP</th><th>SLG</th><th>OPS</th>
+                  <th class="auto sep hide-in-input">H</th><th class="hide-in-input">TBA</th><th class="hide-in-input">AVE</th><th class="hide-in-input">OBP</th><th class="hide-in-input">SLG</th><th class="hide-in-input">OPS</th>
                 </tr>
               </thead>
               <tbody id="entry-body-bat"></tbody>
@@ -369,14 +390,61 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
         </div>
         <button class="btn btn-pdf" onclick="exportAcumPDF()"><i class="ti ti-file-type-pdf"></i> Exportar Acumulado PDF</button>
       </div>
+
+      <!-- Sub-pestañas para Acumulado Simple / Estadísticas Avanzadas -->
+      <div class="sub-tabs">
+        <button class="sub-btn on" id="sub-tab-acum-simple" onclick="switchAcumTab('simple')"><i class="ti ti-chart-bar"></i> Acumulado Simple</button>
+        <button class="sub-btn" id="sub-tab-acum-avanzado" onclick="switchAcumTab('avanzado')"><i class="ti ti-chart-arcs"></i> Estadísticas Avanzadas</button>
+      </div>
+
       <div id="pdf-acum-area">
         <div class="pdf-header-print" id="pdf-acum-print-header" style="display:block !important;">
           <h2 class="print-team-name-label">NOMBRE DE TU EQUIPO</h2>
           <p id="pdf-acum-range-label">Reporte Estadístico Acumulado General</p>
         </div>
 
-        <div class="tbl-card">
-          <div class="tbl-hdr"><span class="tbl-hdr-lbl">Acumulado Colectivo de Bateo</span></div>
+        <!-- Tarjeta de Récord General del Equipo -->
+        <div class="tbl-card" style="margin-bottom: 10px;">
+          <div class="tbl-hdr"><span class="tbl-hdr-lbl">Récord del Equipo (Ganados - Perdidos)</span></div>
+          <div style="padding: 12px; display: flex; justify-content: space-around; background: #FFF; text-align: center;">
+            <div>
+              <div style="font-size: 10px; color: var(--text-muted); font-weight: bold; text-transform: uppercase;">Ganados (G)</div>
+              <div id="team-record-wins" style="font-size: 18px; font-weight: 800; color: var(--success);">0</div>
+            </div>
+            <div style="border-left: 1px solid var(--border);"></div>
+            <div>
+              <div style="font-size: 10px; color: var(--text-muted); font-weight: bold; text-transform: uppercase;">Perdidos (P)</div>
+              <div id="team-record-losses" style="font-size: 18px; font-weight: 800; color: var(--danger);">0</div>
+            </div>
+            <div style="border-left: 1px solid var(--border);"></div>
+            <div>
+              <div style="font-size: 10px; color: var(--text-muted); font-weight: bold; text-transform: uppercase;">Porcentaje (PCT)</div>
+              <div id="team-record-pct" style="font-size: 18px; font-weight: 800; color: var(--primary);">.000</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla Acumulado Simple -->
+        <div id="wrapper-acum-simple" class="tbl-card">
+          <div class="tbl-hdr"><span class="tbl-hdr-lbl">Acumulado Simple de Bateo</span></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Nombre</th>
+                  <th>JJ</th><th>VB</th><th>CA</th><th>CE</th>
+                  <th>H1</th><th>H2</th><th>H3</th><th>H4</th><th>BB</th><th>SO</th><th>SF</th>
+                  <th class="auto sep">H</th><th>TBA</th><th>AVE</th>
+                </tr>
+              </thead>
+              <tbody id="acum-body-bat-simple"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tabla Estadísticas Avanzadas -->
+        <div id="wrapper-acum-avanzado" class="tbl-card" style="display:none;">
+          <div class="tbl-hdr"><span class="tbl-hdr-lbl">Estadísticas Avanzadas de Bateo</span></div>
           <div class="tbl-wrap">
             <table>
               <thead>
@@ -387,7 +455,7 @@ td input[type=number]:focus { outline: none; border-color: var(--primary-light);
                   <th class="auto sep">H</th><th>TBA</th><th>AVE</th><th>OBP</th><th>SLG</th><th>OPS</th>
                 </tr>
               </thead>
-              <tbody id="acum-body-bat"></tbody>
+              <tbody id="acum-body-bat-avanzado"></tbody>
             </table>
           </div>
         </div>
@@ -463,9 +531,9 @@ window.addEventListener('DOMContentLoaded', () => {
     } else {
       currentUid = null;
       localStorage.removeItem('vip_uid');
-      if (document.getElementById('welcome-screen').style.display === 'none') {
-        evaluarPantallaInicial();
-      }
+      document.getElementById('welcome-screen').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('app-content').style.display = 'none';
     }
   });
 });
@@ -481,22 +549,28 @@ function actualizarEstadoInternet() {
 }
 
 function evaluarPantallaInicial() {
-  if (document.getElementById('welcome-screen').style.display !== 'none') return;
-
   if (currentUid) {
     document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('welcome-screen').style.display = 'none';
     document.getElementById('app-content').style.display = 'block';
     const savedName = localStorage.getItem('vip_team_name') || "NOMBRE DE TU EQUIPO";
     document.getElementById('inp-mi-equipo').value = savedName;
     window.updateTeamName(savedName);
-    window.buildTablesOnce();
-    // Navegar a la sección elegida en bienvenida
     const targetSec = window._welcomeTargetSec || 'entrada';
     const navBtns = document.querySelectorAll('.nav .nb');
     const secMap = { 'entrada': 0, 'jugadores': 1, 'historial': 2, 'acumulado': 3 };
     const btnIdx = secMap[targetSec] !== undefined ? secMap[targetSec] : 0;
+    if (targetSec === 'entrada') {
+      window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+      document.getElementById('inp-rival').value = '';
+      document.getElementById('inp-resultado').value = 'G';
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('inp-fecha').value = today;
+    }
+    window.buildTablesOnce();
     window.goSec(targetSec, navBtns[btnIdx]);
   } else {
+    document.getElementById('welcome-screen').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-content').style.display = 'none';
   }
@@ -511,7 +585,8 @@ window.ejecutarAccionAuth = function() {
   if(!navigator.onLine) {
     const cachedEmail = localStorage.getItem('vip_cached_email');
     if(currentUid && cachedEmail === email) {
-      evaluarPantallaInicial();
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('welcome-screen').style.display = 'flex';
     } else {
       alert("Sin conexión a internet no puedes iniciar sesión en un dispositivo nuevo.");
     }
@@ -527,7 +602,9 @@ window.solicitarCierreSesion = function() {
   if(confirm("¿Deseas cerrar sesión? (Tus datos locales no se borrarán)")) {
     localStorage.removeItem('vip_uid'); 
     signOut(auth).then(() => {
-      window.location.reload();
+      document.getElementById('welcome-screen').style.display = 'none';
+      document.getElementById('app-content').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
     });
   }
 }
@@ -539,12 +616,9 @@ function descargarDatosDeNube(uid) {
       window.players = data.players ? Object.values(data.players) : [];
       window.games = data.games ? Object.values(data.games) : [];
       localStorage.setItem('vip_team_name', data.teamName || "NOMBRE DE TU EQUIPO");
-
       localStorage.setItem('vip_players', JSON.stringify(window.players));
       localStorage.setItem('vip_games', JSON.stringify(window.games));
     } else {
-      // Cuenta nueva sin datos en la nube: empezar 100% vacío,
-      // sin heredar jugadores/juegos que hayan quedado guardados localmente de otra cuenta.
       window.players = [];
       window.games = [];
       localStorage.setItem('vip_players', JSON.stringify(window.players));
@@ -552,9 +626,13 @@ function descargarDatosDeNube(uid) {
       localStorage.setItem('vip_team_name', "NOMBRE DE TU EQUIPO");
       window.enviarDatosLocalesANube();
     }
-    evaluarPantallaInicial();
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-content').style.display = 'none';
+    document.getElementById('welcome-screen').style.display = 'flex';
   }).catch(()=>{
-    evaluarPantallaInicial();
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-content').style.display = 'none';
+    document.getElementById('welcome-screen').style.display = 'flex';
   });
 }
 
@@ -575,11 +653,11 @@ window.forzarSincronizacionManual = function() {
     return;
   }
   window.enviarDatosLocalesANube();
-  alert("¡Sincronización exitosa! Tus datos locales de Safari han sido guardados de manera segura en la nube.");
+  alert("¡Sincronización exitosa! Tus datos locales han sido guardados en la nube.");
 }
 
 window.actualizarAplicacion = function() {
-  if(confirm("¿Actualizar aplicación? Se limpiará la memoria caché y se cargará la última versión disponible.")) {
+  if(confirm("¿Actualizar aplicación? Se limpiará la memoria caché y se cargará la última versión.")) {
     window.location.reload(true);
   }
 }
@@ -609,21 +687,18 @@ function calcAVE(h,vb){
   return ave.toFixed(3).replace(/^0/,'');
 }
 
-// Formatea un valor decimal tipo .688 / 1.450 / 2.138 (sin recortar a 1.000 como AVE)
 function fmtStat(val){
   if(!val || !isFinite(val)) return '.000';
   if(val >= 1) return val.toFixed(3);
   return val.toFixed(3).replace(/^0/,'');
 }
 
-// SLG (Slugging) = Total de Bases / Veces al Bate
 function calcSLG(tba, vb){
   vb = parseInt(vb) || 0;
   if(!vb) return 0;
   return tba / vb;
 }
 
-// OBP (Porcentaje de Embasado) = (H + BB) / (VB + BB + SF)
 function calcOBP(h, bb, sf, vb){
   bb = parseInt(bb) || 0; sf = parseFloat(sf) || 0; vb = parseInt(vb) || 0;
   const denom = vb + bb + sf;
@@ -705,6 +780,30 @@ window.switchEntryTab = function(mode) {
   document.getElementById('wrapper-tab-pich').style.display = mode === 'pich' ? 'block' : 'none';
 }
 
+window.toggleOnlyInputMode = function() {
+  const body = document.body;
+  const btn = document.getElementById('btn-toggle-input-view');
+  body.classList.toggle('only-input-mode');
+  const isActive = body.classList.contains('only-input-mode');
+  
+  if(isActive) {
+    btn.classList.add('active');
+    btn.innerHTML = '<i class="ti ti-eye"></i> Ver Todo';
+    showToast('Modo Solo Entrada activado');
+  } else {
+    btn.classList.remove('active');
+    btn.innerHTML = '<i class="ti ti-eye-off"></i> Solo Entrada';
+    showToast('Vista completa activada');
+  }
+}
+
+window.switchAcumTab = function(mode) {
+  document.getElementById('sub-tab-acum-simple').classList.toggle('on', mode === 'simple');
+  document.getElementById('sub-tab-acum-avanzado').classList.toggle('on', mode === 'avanzado');
+  document.getElementById('wrapper-acum-simple').style.display = mode === 'simple' ? 'block' : 'none';
+  document.getElementById('wrapper-acum-avanzado').style.display = mode === 'avanzado' ? 'block' : 'none';
+}
+
 let inputSequence = [];
 function setupNavigationEvents() {
   inputSequence = Array.from(document.querySelectorAll('#pdf-entry-area input[type=number]'));
@@ -740,14 +839,14 @@ window.buildTablesOnce = function() {
       tr.id = `row-bat-${pi}`;
       tr.innerHTML = `
         <td>${p.cod}</td><td>${p.nombre}</td>
-        <td class="war-cell" id="live-war-${pi}">0.0</td>
+        <td class="war-cell hide-in-input" id="live-war-${pi}">0.0</td>
         ${BAT_INP.map(f => `<td><input type="number" inputmode="numeric" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
-        <td class="auto-cell sep" id="live-h-${pi}">0</td>
-        <td class="auto-cell" id="live-tba-${pi}">0</td>
-        <td class="auto-cell" id="live-ave-${pi}">.000</td>
-        <td class="auto-cell" id="live-obp-${pi}">.000</td>
-        <td class="auto-cell" id="live-slg-${pi}">.000</td>
-        <td class="auto-cell" id="live-ops-${pi}">.000</td>
+        <td class="auto-cell sep hide-in-input" id="live-h-${pi}">0</td>
+        <td class="auto-cell hide-in-input" id="live-tba-${pi}">0</td>
+        <td class="auto-cell hide-in-input" id="live-ave-${pi}">.000</td>
+        <td class="auto-cell hide-in-input" id="live-obp-${pi}">.000</td>
+        <td class="auto-cell hide-in-input" id="live-slg-${pi}">.000</td>
+        <td class="auto-cell hide-in-input" id="live-ops-${pi}">.000</td>
       `;
       tbodyBat.appendChild(tr);
     });
@@ -833,9 +932,9 @@ function updateLiveCalculations() {
       if ((p.jj || 0) > 0) {
         let pWar = calcPureWAR(p);
         warEl.textContent = fmtWar(pWar);
-        warEl.className = "war-cell " + (pWar > 0 ? "war-pos" : (pWar < 0 ? "war-neg" : "war-neu"));
+        warEl.className = "war-cell hide-in-input " + (pWar > 0 ? "war-pos" : (pWar < 0 ? "war-neg" : "war-neu"));
       } else {
-        warEl.textContent = "0.0"; warEl.className = "war-cell war-neu";
+        warEl.textContent = "0.0"; warEl.className = "war-cell hide-in-input war-neu";
       }
     }
   });
@@ -885,9 +984,10 @@ window.exportPlanillaPDF = function() {
   const fechaFmt = fechaInp ? fechaInp.split('-').reverse().join('/') : 'Sin Fecha';
   const juegoNum = document.getElementById('inp-juego').value || '1';
   const rival = document.getElementById('inp-rival').value.trim() || 'Rival';
+  const resultado = document.getElementById('inp-resultado').value === 'G' ? 'Ganado' : 'Perdido';
 
   document.getElementById('pdf-print-team-title').textContent = teamName;
-  document.getElementById('pdf-print-game-details').textContent = `Planilla Oficial · Fecha: ${fechaFmt} · Juego #${juegoNum} vs ${rival}`;
+  document.getElementById('pdf-print-game-details').textContent = `Planilla Oficial · Fecha: ${fechaFmt} · Juego #${juegoNum} vs ${rival} [${resultado}]`;
 
   const headerEl = document.getElementById('pdf-entry-print-header');
   headerEl.style.display = 'block';
@@ -1056,12 +1156,13 @@ window.saveGame = function(){
   const fecha = document.getElementById('inp-fecha').value;
   const num = parseInt(document.getElementById('inp-juego').value) || 1;
   const rival = document.getElementById('inp-rival').value.trim() || 'Rival';
+  const resultado = document.getElementById('inp-resultado').value || 'G';
   if(!fecha) { showToast('Elige una fecha válida'); return; }
   
   const snap = window.players.map(p => ({ ...p }));
   const editId = window._editingGameId;
   const idx = editId ? window.games.findIndex(g => g.id == editId) : window.games.findIndex(g => g.fecha === fecha && g.num === num);
-  const g = { id: editId || Date.now(), fecha, num, rival, players: snap };
+  const g = { id: editId || Date.now(), fecha, num, rival, resultado, players: snap };
   
   if(idx >= 0) window.games[idx] = g; else window.games.push(g);
   window.games.sort((a,b) => a.fecha.localeCompare(b.fecha) || a.num - b.num);
@@ -1069,7 +1170,6 @@ window.saveGame = function(){
   localStorage.setItem('vip_games', JSON.stringify(window.games));
   window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
 
-  // Ocultar banner de edición
   document.getElementById('edit-mode-banner').style.display = 'none';
   window._editingGameId = null;
   
@@ -1077,6 +1177,7 @@ window.saveGame = function(){
   window.buildTablesOnce();
   document.getElementById('inp-juego').value = num + 1;
   document.getElementById('inp-rival').value = '';
+  document.getElementById('inp-resultado').value = 'G';
   showToast('Juego guardado exitosamente');
 }
 
@@ -1088,11 +1189,17 @@ function renderHistory(){
   
   let html = '';
   src.forEach(g => {
+    const resBadge = g.resultado === 'P' ? '<span class="badge-loss">P</span>' : '<span class="badge-win">G</span>';
     html += `
     <div class="game-row" style="flex-direction:column; align-items:stretch; border:1px solid var(--border); margin-bottom:8px; border-radius:8px;">
-      <div style="display:flex; align-items:center; width:100%;">
+      <div style="display:flex; align-items:center; width:100%; gap:8px;">
         <div class="gnum">${g.num}</div>
-        <div><div class="grival">vs ${g.rival}</div><div class="gdates">${g.fecha.split('-').reverse().join('/')}</div></div>
+        <div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="grival">vs ${g.rival}</span> ${resBadge}
+          </div>
+          <div class="gdates">${g.fecha.split('-').reverse().join('/')}</div>
+        </div>
         <button class="btn btn-p" onclick="loadGameToEdit(${g.id})" style="margin-left:auto; height:32px; font-size:11px; padding: 0 8px;"><i class="ti ti-edit"></i></button>
         <button class="btn btn-d" onclick="deleteGame(${g.id})" style="height:32px; font-size:11px; padding: 0 8px; margin-left:6px;"><i class="ti ti-trash"></i></button>
       </div>
@@ -1130,10 +1237,8 @@ window.clearFilt = function(){
 window.loadGameToEdit = function(id){
   const g = window.games.find(x => x.id == id); if(!g) return;
 
-  // Cargar los jugadores del partido guardado
   const gamePlayers = g.players.map(p => ({ ...p }));
 
-  // Añadir jugadores nuevos del roster actual que no estén en el partido
   const savedKeys = new Set(gamePlayers.map(p => p.cod + '_' + p.nombre));
   window.players.forEach(rosterPlayer => {
     const key = rosterPlayer.cod + '_' + rosterPlayer.nombre;
@@ -1149,8 +1254,8 @@ window.loadGameToEdit = function(id){
   document.getElementById('inp-fecha').value = g.fecha;
   document.getElementById('inp-juego').value = g.num;
   document.getElementById('inp-rival').value = g.rival;
+  document.getElementById('inp-resultado').value = g.resultado || 'G';
 
-  // Mostrar banner de modo edición
   const banner = document.getElementById('edit-mode-banner');
   banner.style.display = 'flex';
   document.getElementById('edit-mode-label').textContent = `MODO EDICIÓN — Partido #${g.num} vs ${g.rival} (${g.fecha.split('-').reverse().join('/')})`;
@@ -1160,11 +1265,11 @@ window.loadGameToEdit = function(id){
 }
 
 window.cancelarEdicion = function() {
-  // Restaurar roster desde localStorage y ocultar banner
   window.players = JSON.parse(localStorage.getItem('vip_players')) || [];
   window._editingGameId = null;
   document.getElementById('edit-mode-banner').style.display = 'none';
   document.getElementById('inp-rival').value = '';
+  document.getElementById('inp-resultado').value = 'G';
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('inp-fecha').value = today;
   window.buildTablesOnce();
@@ -1174,9 +1279,21 @@ window.cancelarEdicion = function() {
 window.renderAcum = function(){
   const d = document.getElementById('a-desde').value, h = document.getElementById('a-hasta').value;
   const src = window.games.filter(g => (!d || g.fecha >= d) && (!h || g.fecha <= h));
-  const mapBat = {}; const mapPich = {};
+  
+  let totalWins = 0;
+  let totalLosses = 0;
+  src.forEach(g => {
+    if(g.resultado === 'P') totalLosses++;
+    else totalWins++; 
+  });
+  
+  document.getElementById('team-record-wins').textContent = totalWins;
+  document.getElementById('team-record-losses').textContent = totalLosses;
+  const totalGamesCount = totalWins + totalLosses;
+  let pctVal = totalGamesCount > 0 ? (totalWins / totalGamesCount) : 0;
+  document.getElementById('team-record-pct').textContent = fmtStat(pctVal);
 
-  // Solo se incluyen jugadores que existen en el roster actual y están marcados como ACTIVOS
+  const mapBat = {}; const mapPich = {};
   const activeMap = {};
   window.players.forEach(p => { activeMap[p.cod + '_' + p.nombre] = (p.activo !== false); });
 
@@ -1198,9 +1315,23 @@ window.renderAcum = function(){
   const rBat = Object.values(mapBat).map(p => { p._pureWar = calcPureWAR(p); return p; }).sort((a,b) => b._pureWar - a._pureWar);
   const leadBat = getLeadersMap(rBat);
 
-  const bodyBatEl = document.getElementById('acum-body-bat');
-  if(bodyBatEl) {
-    bodyBatEl.innerHTML = rBat.map(p => {
+  const bodyBatSimpleEl = document.getElementById('acum-body-bat-simple');
+  if(bodyBatSimpleEl) {
+    bodyBatSimpleEl.innerHTML = rBat.map(p => {
+      const hc = calcH(p), tba = calcTBA(p), ave = calcAVE(hc, p.vb), aN = parseFloat(ave) || 0;
+      return `<tr>
+        <td>${p.cod}</td><td style="font-weight:bold;">${p.nombre}</td>
+        ${BAT_INP.map(f => `<td class="${p[f] > 0 && p[f] === leadBat[f] ? 'stat-leader' : ''}">${p[f]||0}</td>`).join('')}
+        <td class="auto-cell sep ${hc > 0 && hc === leadBat.h ? 'stat-leader' : ''}">${hc}</td>
+        <td class="auto-cell ${tba > 0 && tba === leadBat.tba ? 'stat-leader' : ''}">${tba}</td>
+        <td class="auto-cell ${aN > 0 && aN === leadBat.ave ? 'stat-leader' : ''}">${ave}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const bodyBatAvanzadoEl = document.getElementById('acum-body-bat-avanzado');
+  if(bodyBatAvanzadoEl) {
+    bodyBatAvanzadoEl.innerHTML = rBat.map(p => {
       const hc = calcH(p), tba = calcTBA(p), ave = calcAVE(hc, p.vb), aN = parseFloat(ave) || 0;
       const slgNum = calcSLG(tba, p.vb);
       const obpNum = calcOBP(hc, p.bb, p.sf, p.vb);
