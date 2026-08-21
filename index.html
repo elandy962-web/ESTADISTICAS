@@ -46,6 +46,34 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 /* Indicador de red Offline */
 #offline-indicator { background: #EA580C; color: white; text-align: center; font-size: 11px; font-weight: bold; padding: 5px; display: none; width: 100%; position: fixed; top: 0; z-index: 9999999; }
 
+/* Modal para entrada secuencial */
+#sequential-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 5000; display: none; align-items: flex-end; justify-content: center; }
+#sequential-modal.show { display: flex; }
+.sequential-sheet { background: var(--bg-card); border-radius: 16px 16px 0 0; width: 100%; max-width: 100%; padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; max-height: 90vh; overflow-y: auto; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.seq-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 16px; }
+.seq-title { font-size: 16px; font-weight: 800; color: var(--text-main); }
+.seq-player-name { font-size: 13px; color: var(--accent); font-weight: 700; }
+.seq-close-btn { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+.seq-field-container { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+.seq-field-block { display: flex; flex-direction: column; gap: 8px; }
+.seq-field-label { font-size: 13px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; }
+.seq-field-desc { font-size: 11px; color: var(--text-muted); }
+.seq-field-input { font-size: 18px; padding: 14px; border-radius: 10px; border: 2px solid var(--border); background: #FFF; color: var(--text-main); height: 52px; text-align: center; font-weight: 700; }
+.seq-field-input:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(24,95,165,0.15); }
+.seq-progress { display: flex; gap: 6px; margin-bottom: 24px; }
+.seq-progress-bar { flex: 1; height: 6px; background: #E2E8F0; border-radius: 3px; overflow: hidden; }
+.seq-progress-bar.active { background: var(--primary); }
+.seq-info-text { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 8px; }
+.seq-buttons { display: flex; gap: 10px; }
+.seq-btn { flex: 1; height: 48px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
+.seq-btn-back { background: #E2E8F0; color: var(--text-main); }
+.seq-btn-back:active { background: #CBD5E1; }
+.seq-btn-next { background: var(--primary-light); color: white; }
+.seq-btn-next:active { background: var(--primary); }
+.seq-btn-finish { background: var(--success); color: white; }
+.seq-btn-finish:active { background: #047857; }
+
 /* Contenedor Principal de la App */
 #app-content { display: none; }
 
@@ -1013,7 +1041,7 @@ window.buildTablesOnce = function() {
       const tr = document.createElement('tr');
       tr.id = `row-bat-${pi}`;
       tr.innerHTML = `
-        <td>${p.cod}</td><td>${p.nombre}</td>
+        <td>${p.cod}</td><td style="cursor:pointer; color:var(--primary-light); font-weight:bold; padding:6px 8px; border-radius:4px; user-select:none;" class="player-click" data-pi="${pi}">${p.nombre}</td>
         <td class="war-cell hide-in-input" id="live-war-${pi}">0.0</td>
         ${BAT_INP.map(f => `<td><input type="number" inputmode="numeric" value="${p[f]||0}" data-pi="${pi}" data-f="${f}"></td>`).join('')}
         <td class="auto-cell sep hide-in-input" id="live-h-${pi}">0</td>
@@ -1024,6 +1052,12 @@ window.buildTablesOnce = function() {
         <td class="auto-cell hide-in-input" id="live-ops-${pi}">.000</td>
       `;
       tbodyBat.appendChild(tr);
+      
+      // Agregar evento de clic al nombre del jugador
+      const playerCell = tr.querySelector('.player-click');
+      playerCell.addEventListener('click', function() {
+        window.openSequentialInputDirect(pi);
+      });
     });
   }
 
@@ -1555,6 +1589,305 @@ function showToast(msg){
   t.textContent = msg; t.style.opacity = '1'; 
   clearTimeout(toastT); toastT = setTimeout(() => t.style.opacity = '0', 2200);
 }
+
+/* ========== ENTRADA SECUENCIAL DE ESTADÍSTICAS ========== */
+
+window.sequentialInputState = {
+  playerKey: null,
+  gameIndex: null,
+  playerIndex: null,
+  currentFieldIndex: 0,
+  fieldValues: {},
+  mode: null // 'direct' o 'game'
+};
+
+// Orden de campos para entrada secuencial
+const SEQUENTIAL_FIELDS = [
+  { field: 'jj', label: 'Juegos Jugados', desc: 'Total de juegos que jugó' },
+  { field: 'vb', label: 'Veces al Bate', desc: 'Turnos oficiales' },
+  { field: 'ca', label: 'Carreras Anotadas', desc: 'Veces que anotó' },
+  { field: 'ce', label: 'Carreras Empujadas', desc: 'Runs Batted In (RBI)' },
+  { field: 'h1', label: 'Sencillos', desc: 'Hits de 1 base' },
+  { field: 'h2', label: 'Dobles', desc: 'Hits de 2 bases' },
+  { field: 'h3', label: 'Triples', desc: 'Hits de 3 bases' },
+  { field: 'h4', label: 'Home Runs', desc: 'Jonrones (4 bases)' },
+  { field: 'bb', label: 'Bases por Bolas', desc: 'Walks (BB)' },
+  { field: 'so', label: 'Ponches', desc: 'Strikes Out (SO)' },
+  { field: 'sf', label: 'Sacrificios Fly', desc: 'Fly outs de sacrificio' }
+];
+
+window.openSequentialInput = function(playerKey, gameIndex) {
+  window.sequentialInputState.playerKey = playerKey;
+  window.sequentialInputState.gameIndex = gameIndex;
+  window.sequentialInputState.playerIndex = null;
+  window.sequentialInputState.currentFieldIndex = 0;
+  window.sequentialInputState.fieldValues = {};
+  window.sequentialInputState.mode = 'game';
+  
+  // Actualizar nombre del jugador
+  const player = window.games[gameIndex].players.find(p => (p.cod + '_' + p.nombre) === playerKey);
+  if(player) {
+    document.getElementById('seq-player-name').textContent = player.nombre;
+  }
+  
+  // Generar barras de progreso
+  const progressContainer = document.getElementById('seq-progress');
+  progressContainer.innerHTML = SEQUENTIAL_FIELDS.map(() => 
+    '<div class="seq-progress-bar"></div>'
+  ).join('');
+  
+  const modal = document.getElementById('sequential-modal');
+  modal.classList.add('show');
+  
+  window.showSequentialField(0);
+};
+
+window.openSequentialInputDirect = function(playerIndex) {
+  window.sequentialInputState.playerKey = null;
+  window.sequentialInputState.gameIndex = null;
+  window.sequentialInputState.playerIndex = playerIndex;
+  window.sequentialInputState.currentFieldIndex = 0;
+  window.sequentialInputState.fieldValues = {};
+  window.sequentialInputState.mode = 'direct';
+  
+  // Actualizar nombre del jugador
+  const player = window.players[playerIndex];
+  if(player) {
+    document.getElementById('seq-player-name').textContent = player.nombre;
+  }
+  
+  // Generar barras de progreso
+  const progressContainer = document.getElementById('seq-progress');
+  progressContainer.innerHTML = SEQUENTIAL_FIELDS.map(() => 
+    '<div class="seq-progress-bar"></div>'
+  ).join('');
+  
+  const modal = document.getElementById('sequential-modal');
+  modal.classList.add('show');
+  
+  window.showSequentialField(0);
+};
+
+window.showSequentialField = function(index) {
+  if(index >= SEQUENTIAL_FIELDS.length) {
+    window.finishSequentialInput();
+    return;
+  }
+  
+  const field = SEQUENTIAL_FIELDS[index];
+  window.sequentialInputState.currentFieldIndex = index;
+  
+  // Obtener el valor actual del jugador
+  let player = null;
+  const mode = window.sequentialInputState.mode;
+  
+  if(mode === 'direct') {
+    player = window.players[window.sequentialInputState.playerIndex];
+  } else if(mode === 'game') {
+    const gameIndex = window.sequentialInputState.gameIndex;
+    const playerKey = window.sequentialInputState.playerKey;
+    player = window.games[gameIndex].players.find(p => (p.cod + '_' + p.nombre) === playerKey);
+  }
+  
+  let currentValue = player ? (player[field.field] || 0) : 0;
+  // Si ya está en fieldValues (usuario lo cambió), usar ese valor
+  if(window.sequentialInputState.fieldValues[field.field] !== undefined) {
+    currentValue = window.sequentialInputState.fieldValues[field.field];
+  }
+  
+  const input = document.getElementById('seq-field-input');
+  input.value = currentValue;
+  
+  document.getElementById('seq-label').textContent = field.label;
+  document.getElementById('seq-desc').textContent = field.desc;
+  
+  // Actualizar progreso
+  const progress = document.querySelectorAll('.seq-progress-bar');
+  progress.forEach((bar, i) => {
+    bar.classList.toggle('active', i < index + 1);
+  });
+  
+  document.getElementById('seq-info').textContent = `${index + 1} de ${SEQUENTIAL_FIELDS.length}`;
+  
+  // Botones
+  const btnBack = document.getElementById('seq-btn-back');
+  const btnNext = document.getElementById('seq-btn-next');
+  const btnFinish = document.getElementById('seq-btn-finish');
+  
+  btnBack.style.display = index > 0 ? 'block' : 'none';
+  btnNext.style.display = index < SEQUENTIAL_FIELDS.length - 1 ? 'block' : 'none';
+  btnFinish.style.display = index === SEQUENTIAL_FIELDS.length - 1 ? 'block' : 'none';
+  
+  // Focus en el input y seleccionar todo
+  setTimeout(() => {
+    input.focus();
+    input.select();
+  }, 100);
+};
+
+window.nextSequentialField = function() {
+  const field = SEQUENTIAL_FIELDS[window.sequentialInputState.currentFieldIndex];
+  const input = document.getElementById('seq-field-input');
+  const value = parseInt(input.value) || 0;
+  
+  if(input.value.trim() === '') {
+    showToast('Por favor ingresa un valor');
+    return;
+  }
+  
+  // Validaciones especiales
+  const allValues = { ...window.sequentialInputState.fieldValues };
+  allValues[field.field] = value;
+  
+  // Validar que h1+h2+h3+h4+so no superen VB
+  const hitsFields = ['h1', 'h2', 'h3', 'h4', 'so'];
+  const hitsSum = hitsFields.reduce((sum, f) => sum + (parseInt(allValues[f]) || 0), 0);
+  const vbValue = parseInt(allValues['vb']) || 0;
+  
+  // Si estamos ingresando un campo de hits
+  if(hitsFields.includes(field.field)) {
+    if(vbValue > 0 && hitsSum > vbValue) {
+      showToast(`Hits + SO (${hitsSum}) no pueden superar VB (${vbValue})`);
+      return;
+    }
+  }
+  
+  // Si estamos ingresando VB
+  if(field.field === 'vb') {
+    if(hitsSum > value) {
+      showToast(`VB (${value}) debe ser ≥ que Hits + SO (${hitsSum})`);
+      return;
+    }
+  }
+  
+  window.sequentialInputState.fieldValues[field.field] = value;
+  window.showSequentialField(window.sequentialInputState.currentFieldIndex + 1);
+};
+
+window.prevSequentialField = function() {
+  const field = SEQUENTIAL_FIELDS[window.sequentialInputState.currentFieldIndex];
+  const input = document.getElementById('seq-field-input');
+  const value = input.value.trim();
+  
+  if(value !== '') {
+    window.sequentialInputState.fieldValues[field.field] = parseInt(value) || 0;
+  }
+  
+  window.showSequentialField(window.sequentialInputState.currentFieldIndex - 1);
+};
+
+window.finishSequentialInput = function() {
+  const field = SEQUENTIAL_FIELDS[window.sequentialInputState.currentFieldIndex];
+  const input = document.getElementById('seq-field-input');
+  const value = parseInt(input.value) || 0;
+  
+  if(input.value.trim() !== '') {
+    window.sequentialInputState.fieldValues[field.field] = value;
+  }
+  
+  // Guardar los valores en el jugador
+  const mode = window.sequentialInputState.mode;
+  let player = null;
+  
+  if(mode === 'direct') {
+    player = window.players[window.sequentialInputState.playerIndex];
+  } else if(mode === 'game') {
+    const gameIndex = window.sequentialInputState.gameIndex;
+    const playerKey = window.sequentialInputState.playerKey;
+    player = window.games[gameIndex].players.find(p => (p.cod + '_' + p.nombre) === playerKey);
+  }
+  
+  if(player) {
+    Object.keys(window.sequentialInputState.fieldValues).forEach(fieldKey => {
+      player[fieldKey] = window.sequentialInputState.fieldValues[fieldKey];
+    });
+  }
+  
+  // Cerrar modal y guardar
+  window.closeSequentialInput();
+  
+  if(mode === 'game') {
+    window.saveGameToFirebase();
+  } else if(mode === 'direct') {
+    // Actualizar los inputs en la tabla
+    Object.keys(window.sequentialInputState.fieldValues).forEach(fieldKey => {
+      const inputs = document.querySelectorAll(`input[data-pi="${window.sequentialInputState.playerIndex}"][data-f="${fieldKey}"]`);
+      inputs.forEach(inp => {
+        inp.value = window.sequentialInputState.fieldValues[fieldKey];
+        // Dispara el evento input para validaciones
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    });
+  }
+  
+  window.buildTablesOnce();
+  showToast('Estadísticas guardadas ✓');
+};
+
+window.closeSequentialInput = function() {
+  const modal = document.getElementById('sequential-modal');
+  modal.classList.remove('show');
+  document.getElementById('seq-field-input').value = '';
+  window.sequentialInputState = {
+    playerKey: null,
+    gameIndex: null,
+    playerIndex: null,
+    currentFieldIndex: 0,
+    fieldValues: {},
+    mode: null
+  };
+};
+
+// Permitir Enter para siguiente
+document.addEventListener('DOMContentLoaded', function() {
+  const input = document.getElementById('seq-field-input');
+  if(input) {
+    input.addEventListener('keypress', function(e) {
+      if(e.key === 'Enter') {
+        const btnNext = document.getElementById('seq-btn-next');
+        const btnFinish = document.getElementById('seq-btn-finish');
+        if(btnNext.style.display !== 'none') {
+          window.nextSequentialField();
+        } else if(btnFinish.style.display !== 'none') {
+          window.finishSequentialInput();
+        }
+      }
+    });
+  }
+});
 </script>
+
+<!-- MODAL DE ENTRADA SECUENCIAL -->
+<div id="sequential-modal">
+  <div class="sequential-sheet">
+    <div class="seq-header">
+      <div>
+        <div class="seq-title">Ingresar Estadísticas</div>
+        <div class="seq-player-name" id="seq-player-name">Jugador</div>
+      </div>
+      <button class="seq-close-btn" onclick="window.closeSequentialInput()">✕</button>
+    </div>
+    
+    <div class="seq-progress" id="seq-progress">
+      <!-- Se genera dinámicamente -->
+    </div>
+    
+    <div class="seq-field-container">
+      <div class="seq-field-block">
+        <label class="seq-field-label" id="seq-label">Campo</label>
+        <div class="seq-field-desc" id="seq-desc">Descripción</div>
+        <input type="number" id="seq-field-input" class="seq-field-input" placeholder="0">
+      </div>
+      <div class="seq-info-text" id="seq-info">1 de 10</div>
+    </div>
+    
+    <div class="seq-buttons">
+      <button class="seq-btn seq-btn-back" id="seq-btn-back" onclick="window.prevSequentialField()">← Anterior</button>
+      <button class="seq-btn seq-btn-next" id="seq-btn-next" onclick="window.nextSequentialField()">Siguiente →</button>
+      <button class="seq-btn seq-btn-finish" id="seq-btn-finish" onclick="window.finishSequentialInput()" style="display:none;">Guardar ✓</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
