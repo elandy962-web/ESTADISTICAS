@@ -389,6 +389,28 @@ body.only-input-mode table { min-width: 500px !important; }
 }
 
 /* Teléfonos muy estrechos */
+@media (max-width: 500px) {
+  * { box-sizing: border-box; }
+  table { font-size: 9px; min-width: 650px; margin: 4px 0; border-spacing: 0; }
+  thead th { font-size: 8px; padding: 2px 1px !important; line-height: 1.1; white-space: nowrap; }
+  tbody tr { height: 20px; }
+  td { padding: 1px 1px !important; height: 20px; line-height: 1.1; vertical-align: middle; }
+  td input { font-size: 10px; padding: 2px 2px; height: 18px; margin: 0; }
+  .section { margin-bottom: 4px; padding: 4px; }
+  .section-title, .subsec-title { font-size: 9px; margin-bottom: 3px; padding: 2px 4px; font-weight: 700; line-height: 1; }
+  h3 { margin: 3px 0 2px 0; font-size: 10px; line-height: 1; }
+  p { margin: 1px 0; font-size: 9px; line-height: 1; }
+  input, button, select { font-size: 10px; height: auto; padding: 3px 4px; }
+  .btn { font-size: 9px; padding: 3px 6px; }
+  .toolbar { gap: 2px; margin-bottom: 4px; }
+  .form-row { gap: 2px; margin-bottom: 3px; }
+  .form-row > * { font-size: 10px; }
+  .badge { font-size: 8px; padding: 1px 3px; }
+  input[type="number"] { font-size: 10px; }
+  label { font-size: 9px; margin: 2px 0 1px 0; }
+  .live-cell { font-size: 9px; padding: 1px; }
+}
+
 @media (max-width: 360px) {
   .topbar-title { font-size: 11px; }
   .topbar { padding-left: 6px; padding-right: 6px; }
