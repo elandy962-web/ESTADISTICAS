@@ -447,6 +447,12 @@ body.only-input-mode table { min-width: 500px !important; }
         <i class="ti ti-chart-bar"></i> Estadísticas Acumuladas
       </button>
     </div>
+    <div style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.2); width:100%;">
+      <p style="font-size:11px; margin-bottom:8px; opacity:0.8; text-align:center;">¿Problemas técnicos?</p>
+      <button class="btn-welcome-next" onclick="actualizarAplicacion()" style="background:#EA580C; box-shadow:0 4px 15px rgba(234,88,12,0.4); font-size:13px;">
+        <i class="ti ti-broom"></i> Limpiar Cache y Actualizar
+      </button>
+    </div>
   </div>
 </div>
 
@@ -917,10 +923,65 @@ window.forzarSincronizacionManual = function() {
 }
 
 window.actualizarAplicacion = function() {
-  if(confirm("¿Actualizar aplicación? Se limpiará la memoria caché y se cargará la última versión.")) {
-    window.location.reload(true);
+  if(confirm("¿Actualizar aplicación? Se limpiará todo el cache y se cargará la última versión.")) {
+    try {
+      // Mostrar mensaje de progreso
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:99998;display:flex;align-items:center;justify-content:center;';
+      
+      const msg = document.createElement('div');
+      msg.style.cssText = 'background:#1185CE;color:white;padding:30px 50px;border-radius:12px;z-index:99999;font-size:16px;font-weight:bold;text-align:center;';
+      msg.textContent = '🔄 Limpiando cache...\nPor favor espera...';
+      
+      overlay.appendChild(msg);
+      document.body.appendChild(overlay);
+      
+      // Limpiar todo lo posible
+      setTimeout(() => {
+        try {
+          // 1. Limpiar localStorage
+          localStorage.clear();
+        } catch(e) { console.log('localStorage error:', e); }
+        
+        try {
+          // 2. Limpiar sessionStorage
+          sessionStorage.clear();
+        } catch(e) { console.log('sessionStorage error:', e); }
+        
+        try {
+          // 3. Desregistrar Service Worker
+          if('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+              registrations.forEach(registration => {
+                registration.unregister();
+              });
+            }).catch(err => console.log('SW error:', err));
+          }
+        } catch(e) { console.log('SW check error:', e); }
+        
+        try {
+          // 4. Limpiar cookies
+          document.cookie.split(";").forEach(c => {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+          });
+        } catch(e) { console.log('Cookies error:', e); }
+        
+        // 5. Forzar hard reload sin cache
+        setTimeout(() => {
+          const timestamp = new Date().getTime();
+          const urlWithTimestamp = window.location.href.split('?')[0] + '?_t=' + timestamp;
+          window.location.href = urlWithTimestamp;
+        }, 300);
+        
+      }, 800);
+      
+    } catch(err) {
+      console.error('Error crítico:', err);
+      alert('Error al limpiar. Recargando...');
+      window.location.reload(true);
+    }
   }
-}
+};
 </script>
 
 <script>
