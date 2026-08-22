@@ -4,6 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Estadísticas</title>
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="./manifest.json">
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%231185CE' width='192' height='192'/%3E%3Ccircle cx='96' cy='96' r='70' fill='%23FFA500'/%3E%3Ccircle cx='96' cy='96' r='65' fill='white'/%3E%3Cpath d='M 70 96 Q 96 110 122 96 Q 96 82 70 96' fill='%231185CE' stroke='%231185CE' stroke-width='3'/%3E%3Ccircle cx='85' cy='90' r='3' fill='%231185CE'/%3E%3Ccircle cx='107' cy='90' r='3' fill='%231185CE'/%3E%3C/svg%3E">
+
+<!-- Apple Touch Icon -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%231185CE' width='192' height='192' rx='45'/%3E%3Ccircle cx='96' cy='96' r='70' fill='%23FFA500'/%3E%3Ccircle cx='96' cy='96' r='65' fill='white'/%3E%3Cpath d='M 70 96 Q 96 110 122 96 Q 96 82 70 96' fill='%231185CE' stroke='%231185CE' stroke-width='3'/%3E%3Ccircle cx='85' cy='90' r='3' fill='%231185CE'/%3E%3Ccircle cx='107' cy='90' r='3' fill='%231185CE'/%3E%3C/svg%3E">
+
+<!-- Theme Color -->
+<meta name="theme-color" content="#1185CE">
+
+<!-- Description -->
+<meta name="description" content="Aplicación para registrar y gestionar estadísticas de béisbol en tiempo real">
+<meta name="application-name" content="Estadísticas de Béisbol">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Estadísticas">
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -391,24 +411,24 @@ body.only-input-mode table { min-width: 500px !important; }
 /* Teléfonos muy estrechos */
 @media (max-width: 500px) {
   * { box-sizing: border-box; }
-  table { font-size: 9px; min-width: 650px; margin: 4px 0; border-spacing: 0; }
-  thead th { font-size: 8px; padding: 2px 1px !important; line-height: 1.1; white-space: nowrap; }
-  tbody tr { height: 20px; }
-  td { padding: 1px 1px !important; height: 20px; line-height: 1.1; vertical-align: middle; }
-  td input { font-size: 10px; padding: 2px 2px; height: 18px; margin: 0; }
+  table { font-size: 12px; min-width: 650px; margin: 2px 0; border-spacing: 0; }
+  thead th { font-size: 11px; padding: 3px 1px !important; line-height: 1.1; white-space: nowrap; font-weight: 700; }
+  tbody tr { height: 26px; }
+  td { padding: 2px 1px !important; height: 26px; line-height: 1.4; vertical-align: middle; font-weight: 600; }
+  td input { font-size: 12px; padding: 3px 2px; height: 22px; margin: 0; font-weight: 700; }
   .section { margin-bottom: 4px; padding: 4px; }
-  .section-title, .subsec-title { font-size: 9px; margin-bottom: 3px; padding: 2px 4px; font-weight: 700; line-height: 1; }
-  h3 { margin: 3px 0 2px 0; font-size: 10px; line-height: 1; }
-  p { margin: 1px 0; font-size: 9px; line-height: 1; }
-  input, button, select { font-size: 10px; height: auto; padding: 3px 4px; }
-  .btn { font-size: 9px; padding: 3px 6px; }
+  .section-title, .subsec-title { font-size: 10px; margin-bottom: 3px; padding: 2px 4px; font-weight: 700; line-height: 1; }
+  h3 { margin: 3px 0 2px 0; font-size: 11px; line-height: 1; font-weight: 700; }
+  p { margin: 1px 0; font-size: 10px; line-height: 1; }
+  input, button, select { font-size: 11px; height: auto; padding: 3px 4px; }
+  .btn { font-size: 10px; padding: 3px 6px; }
   .toolbar { gap: 2px; margin-bottom: 4px; }
   .form-row { gap: 2px; margin-bottom: 3px; }
-  .form-row > * { font-size: 10px; }
-  .badge { font-size: 8px; padding: 1px 3px; }
-  input[type="number"] { font-size: 10px; }
-  label { font-size: 9px; margin: 2px 0 1px 0; }
-  .live-cell { font-size: 9px; padding: 1px; }
+  .form-row > * { font-size: 11px; }
+  .badge { font-size: 9px; padding: 1px 3px; }
+  input[type="number"] { font-size: 11px; font-weight: 700; }
+  label { font-size: 10px; margin: 2px 0 1px 0; font-weight: 600; }
+  .live-cell { font-size: 11px; padding: 1px; font-weight: 600; }
 }
 
 @media (max-width: 360px) {
@@ -925,59 +945,99 @@ window.forzarSincronizacionManual = function() {
 window.actualizarAplicacion = function() {
   if(confirm("¿Actualizar aplicación? Se limpiará todo el cache y se cargará la última versión.")) {
     try {
-      // Mostrar mensaje de progreso
+      // Mostrar overlay de progreso
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:99998;display:flex;align-items:center;justify-content:center;';
       
       const msg = document.createElement('div');
-      msg.style.cssText = 'background:#1185CE;color:white;padding:30px 50px;border-radius:12px;z-index:99999;font-size:16px;font-weight:bold;text-align:center;';
-      msg.textContent = '🔄 Limpiando cache...\nPor favor espera...';
+      msg.style.cssText = 'background:#1185CE;color:white;padding:30px 50px;border-radius:12px;z-index:99999;font-size:16px;font-weight:bold;text-align:center;line-height:1.4;';
+      msg.innerHTML = '🔄 Limpiando cache...<br>Por favor espera...';
       
       overlay.appendChild(msg);
       document.body.appendChild(overlay);
       
-      // Limpiar todo lo posible
-      setTimeout(() => {
+      // Función asíncrona para limpiar
+      const limpiarCache = async () => {
         try {
           // 1. Limpiar localStorage
           localStorage.clear();
-        } catch(e) { console.log('localStorage error:', e); }
+          console.log('✓ localStorage limpio');
+        } catch(e) { console.log('localStorage:', e); }
         
         try {
           // 2. Limpiar sessionStorage
           sessionStorage.clear();
-        } catch(e) { console.log('sessionStorage error:', e); }
+          console.log('✓ sessionStorage limpio');
+        } catch(e) { console.log('sessionStorage:', e); }
         
         try {
-          // 3. Desregistrar Service Worker
-          if('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(registrations => {
-              registrations.forEach(registration => {
-                registration.unregister();
-              });
-            }).catch(err => console.log('SW error:', err));
-          }
-        } catch(e) { console.log('SW check error:', e); }
-        
-        try {
-          // 4. Limpiar cookies
+          // 3. Limpiar Cookies
           document.cookie.split(";").forEach(c => {
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date(0).toUTCString() + ";path=/");
           });
-        } catch(e) { console.log('Cookies error:', e); }
+          console.log('✓ Cookies limpiadas');
+        } catch(e) { console.log('Cookies:', e); }
         
-        // 5. Forzar hard reload sin cache
+        try {
+          // 4. Limpiar Caches API (IMPORTANTE PARA CHROME Y FIREFOX)
+          if('caches' in window) {
+            const cacheNames = await caches.keys();
+            console.log('Caches encontrados:', cacheNames);
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+            console.log('✓ Caches API limpiadas');
+          }
+        } catch(e) { console.log('Caches API:', e); }
+        
+        try {
+          // 5. Desregistrar Service Workers
+          if('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            console.log('SWs encontrados:', registrations.length);
+            await Promise.all(registrations.map(r => r.unregister()));
+            console.log('✓ Service Workers desregistrados');
+          }
+        } catch(e) { console.log('SW:', e); }
+        
+        try {
+          // 6. Limpiar IndexedDB (si existe)
+          if('indexedDB' in window) {
+            try {
+              const dbs = await indexedDB.databases();
+              for(const db of dbs) {
+                indexedDB.deleteDatabase(db.name);
+              }
+              console.log('✓ IndexedDB limpio');
+            } catch(err) {
+              console.log('IndexedDB error:', err);
+            }
+          }
+        } catch(e) { console.log('IndexedDB:', e); }
+      };
+      
+      // Ejecutar limpieza
+      setTimeout(async () => {
+        await limpiarCache();
+        
+        // 7. Forzar hard reload
         setTimeout(() => {
           const timestamp = new Date().getTime();
-          const urlWithTimestamp = window.location.href.split('?')[0] + '?_t=' + timestamp;
-          window.location.href = urlWithTimestamp;
+          const urlWithTimestamp = window.location.href.split('?')[0] + '?_nocache=' + timestamp;
+          
+          // Forzar from-server fetch
+          fetch(urlWithTimestamp, { 
+            cache: 'no-store'
+          }).catch(() => {
+            // Si falla el fetch, igual recargamos
+          }).finally(() => {
+            window.location.href = urlWithTimestamp;
+            setTimeout(() => window.location.reload(true), 500);
+          });
         }, 300);
-        
       }, 800);
       
     } catch(err) {
       console.error('Error crítico:', err);
-      alert('Error al limpiar. Recargando...');
+      alert('Recargando aplicación...');
       window.location.reload(true);
     }
   }
@@ -2055,6 +2115,40 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </div>
 </div>
+
+<!-- PWA Registration -->
+<script>
+// Registrar manifest.json
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      // Registrar service worker si existe
+      const swUrl = './sw.js';
+      fetch(swUrl, {method: 'HEAD'}).then(() => {
+        navigator.serviceWorker.register(swUrl, {scope: './'}).then(reg => {
+          console.log('✓ Service Worker registrado:', reg);
+        }).catch(err => {
+          console.log('SW error (no critical):', err);
+        });
+      }).catch(() => {
+        console.log('No sw.js file, using standard PWA');
+      });
+    } catch(e) {
+      console.log('PWA error:', e);
+    }
+  });
+}
+
+// Mostrar mensaje para instalar como app (opcional)
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  console.log('PWA instalable disponible');
+  // Aquí podrías mostrar un botón "Instalar app"
+  // Por ahora se instala automáticamente desde el menú del navegador
+});
+</script>
 
 </body>
 </html>
