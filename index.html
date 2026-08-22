@@ -1674,7 +1674,9 @@ window.openSequentialInput = function(playerKey, gameIndex) {
   const modal = document.getElementById('sequential-modal');
   modal.classList.add('show');
   
-  window.showSequentialField(0);
+  // Auto-llenar JJ con 1 y pasar al siguiente
+  window.sequentialInputState.fieldValues['jj'] = 1;
+  window.showSequentialField(1);
 };
 
 window.openSequentialInputDirect = function(playerIndex) {
@@ -1700,7 +1702,9 @@ window.openSequentialInputDirect = function(playerIndex) {
   const modal = document.getElementById('sequential-modal');
   modal.classList.add('show');
   
-  window.showSequentialField(0);
+  // Auto-llenar JJ con 1 y pasar al siguiente
+  window.sequentialInputState.fieldValues['jj'] = 1;
+  window.showSequentialField(1);
 };
 
 window.showSequentialField = function(index) {
