@@ -9,10 +9,10 @@
 <link rel="manifest" href="./manifest.json">
 
 <!-- Favicon -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23185FA5' width='192' height='192'/%3E%3Ccircle cx='96' cy='96' r='75' fill='white'/%3E%3Ccircle cx='96' cy='96' r='74' fill='none' stroke='%23F0F0F0' stroke-width='1'/%3E%3Cpath d='M 45 96 Q 96 135 147 96' fill='none' stroke='%23CC0000' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M 147 96 Q 96 135 45 96' fill='none' stroke='%23CC0000' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='55' cy='75' r='1.5' fill='%23999999'/%3E%3Ccircle cx='137' cy='75' r='1.5' fill='%23999999'/%3E%3Ccircle cx='55' cy='117' r='1.5' fill='%23999999'/%3E%3Ccircle cx='137' cy='117' r='1.5' fill='%23999999'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="./icon-192.png">
 
 <!-- Apple Touch Icon -->
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23185FA5' width='192' height='192' rx='45'/%3E%3Ccircle cx='96' cy='96' r='75' fill='white'/%3E%3Ccircle cx='96' cy='96' r='74' fill='none' stroke='%23F0F0F0' stroke-width='1'/%3E%3Cpath d='M 45 96 Q 96 135 147 96' fill='none' stroke='%23CC0000' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M 147 96 Q 96 135 45 96' fill='none' stroke='%23CC0000' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='55' cy='75' r='1.5' fill='%23999999'/%3E%3Ccircle cx='137' cy='75' r='1.5' fill='%23999999'/%3E%3Ccircle cx='55' cy='117' r='1.5' fill='%23999999'/%3E%3Ccircle cx='137' cy='117' r='1.5' fill='%23999999'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="./icon-180.png">
 
 <!-- Theme Color -->
 <meta name="theme-color" content="#1185CE">
@@ -233,15 +233,19 @@ body.only-input-mode table { min-width: 500px !important; }
 
 /* Modo compacto para PDF */
 .pdf-compact .tbl-wrap { max-height: none !important; overflow: visible !important; }
-.pdf-compact .tbl-card { margin-bottom: 4px !important; box-shadow: none !important; }
-.pdf-compact .tbl-hdr { padding: 4px 10px !important; }
+.pdf-compact .tbl-card { margin-bottom: 0 !important; box-shadow: none !important; padding: 0 !important; }
+.pdf-compact .tbl-hdr { padding: 1px 4px !important; margin: 0 !important; }
 .pdf-compact .tbl-hdr-sub { display: none !important; }
-.pdf-compact thead th { padding: 4px 3px !important; font-size: 10px !important; }
-.pdf-compact td { padding: 3px 2px !important; font-size: 11px !important; }
-.pdf-compact td input[type=number] { height: 24px !important; font-size: 12px !important; }
-.pdf-compact .pdf-header-print { margin-bottom: 6px !important; padding-bottom: 6px !important; }
-.pdf-compact .pdf-header-print h2 { font-size: 15px !important; margin-bottom: 2px !important; }
-.pdf-compact .pdf-header-print p { font-size: 10px !important; }
+.pdf-compact thead th { padding: 1px 1px !important; font-size: 9px !important; line-height: 1 !important; height: 14px !important; }
+.pdf-compact td { padding: 0 1px !important; font-size: 10px !important; height: 15px !important; line-height: 1 !important; }
+.pdf-compact td input[type=number] { height: 14px !important; font-size: 9px !important; padding: 0 !important; margin: 0 !important; }
+.pdf-compact .pdf-header-print { margin: 0 !important; padding: 2px 0 !important; }
+.pdf-compact .pdf-header-print h2 { font-size: 14px !important; margin: 0 !important; padding: 2px 0 !important; }
+.pdf-compact .pdf-header-print p { font-size: 9px !important; margin: 0 !important; padding: 0 !important; }
+.pdf-compact table { margin: 0 !important; padding: 0 !important; }
+.pdf-compact tbody tr { height: 15px !important; }
+.pdf-compact .section { margin: 2px 0 !important; padding: 1px !important; }
+.pdf-compact h3 { font-size: 9px !important; margin: 1px 0 !important; padding: 1px !important; }
 
 /* Botón flotante */
 .btn-refresh-float { position: fixed; bottom: 75px; right: 15px; width: 44px; height: 44px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; border: none; cursor: pointer; }
