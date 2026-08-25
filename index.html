@@ -232,165 +232,30 @@ body.only-input-mode table { min-width: 500px !important; }
 .pdf-header-print p { font-size: 11px; color: var(--text-muted); }
 
 /* Modo compacto para PDF */
-.pdf-compact .tbl-wrap { max-height: none !important; overflow: visible !important; }
-.pdf-compact .tbl-card { margin-bottom: 0 !important; box-shadow: none !important; padding: 0 !important; }
-.pdf-compact .tbl-hdr { padding: 1px 4px !important; margin: 0 !important; }
-.pdf-compact .tbl-hdr-sub { display: none !important; }
-.pdf-compact thead th { padding: 1px 1px !important; font-size: 9px !important; line-height: 1 !important; height: 14px !important; }
-.pdf-compact td { padding: 0 1px !important; font-size: 10px !important; height: 15px !important; line-height: 1 !important; }
-.pdf-compact td input[type=number] { height: 14px !important; font-size: 9px !important; padding: 0 !important; margin: 0 !important; }
-.pdf-compact .pdf-header-print { margin: 0 !important; padding: 2px 0 !important; }
-.pdf-compact .pdf-header-print h2 { font-size: 14px !important; margin: 0 !important; padding: 2px 0 !important; }
-.pdf-compact .pdf-header-print p { font-size: 9px !important; margin: 0 !important; padding: 0 !important; }
-.pdf-compact table { margin: 0 !important; padding: 0 !important; }
-.pdf-compact tbody tr { height: 15px !important; }
-.pdf-compact .section { margin: 2px 0 !important; padding: 1px !important; }
-.pdf-compact h3 { font-size: 9px !important; margin: 1px 0 !important; padding: 1px !important; }
-
-/* ==========================================================
-   PDF EXTRA COMPACTO - ELIMINA EL AIRE EN BLANCO
-   Solo afecta al reporte generado en PDF.
-   ========================================================== */
-.pdf-compact,
-.pdf-compact * {
-  box-sizing: border-box !important;
-}
-
-.pdf-compact {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.pdf-compact .tbl-card,
-.pdf-compact .tbl-wrap {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.pdf-compact .tbl-card + .tbl-card {
-  margin-top: 1px !important;
-}
-
-.pdf-compact table {
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  margin: 0 !important;
-  border-spacing: 0 !important;
-  border-collapse: collapse !important;
-}
-
-.pdf-compact thead,
-.pdf-compact tbody,
-.pdf-compact tr {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.pdf-compact thead th {
-  padding: 1px 2px !important;
-  height: 13px !important;
-  min-height: 13px !important;
-  line-height: 11px !important;
-  vertical-align: middle !important;
-}
-
-.pdf-compact tbody tr {
-  height: 14px !important;
-  min-height: 14px !important;
-}
-
-.pdf-compact tbody td {
-  padding: 0 2px !important;
-  height: 14px !important;
-  min-height: 14px !important;
-  line-height: 12px !important;
-  vertical-align: middle !important;
-}
-
-.pdf-compact td:nth-child(1),
-.pdf-compact th:nth-child(1) {
-  min-width: 25px !important;
-  width: 25px !important;
-  padding: 0 !important;
-}
-
-.pdf-compact td:nth-child(2),
-.pdf-compact th:nth-child(2) {
-  min-width: 90px !important;
-  width: 90px !important;
-  padding-left: 3px !important;
-}
-
-.pdf-compact td input,
-.pdf-compact input[type="number"] {
-  width: 30px !important;
-  max-width: 30px !important;
-  height: 13px !important;
-  min-height: 13px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  line-height: 12px !important;
-}
-
-/* El historial usa filas DIV, por eso también hay que compactarlas. */
-.pdf-compact .game-row,
-.pdf-compact .player-edit-row {
-  gap: 4px !important;
-  padding: 2px 4px !important;
-  min-height: 18px !important;
-  height: auto !important;
-  margin: 0 !important;
-}
-
-.pdf-compact .gnum {
-  width: 20px !important;
-  height: 18px !important;
-  font-size: 9px !important;
-  border-radius: 3px !important;
-}
-
-.pdf-compact .grival {
-  font-size: 9px !important;
-  line-height: 11px !important;
-}
-
-.pdf-compact .gdates {
-  font-size: 8px !important;
-  line-height: 10px !important;
-}
-
-.pdf-compact .badge-win,
-.pdf-compact .badge-loss {
-  font-size: 8px !important;
-  padding: 1px 3px !important;
-  line-height: 10px !important;
-}
-
-.pdf-compact .empty {
-  padding: 4px !important;
-  font-size: 9px !important;
-}
-
-/* Tarjeta de récord del acumulado: sin espacios verticales innecesarios. */
-.pdf-compact [style*="padding: 12px"] {
-  padding: 3px !important;
-}
-
-.pdf-compact [style*="font-size: 18px"] {
-  font-size: 12px !important;
-  line-height: 13px !important;
-}
-
-.pdf-compact [style*="font-size: 10px"] {
-  font-size: 8px !important;
-  line-height: 9px !important;
-}
-
+.pdf-compact * { margin: 0 !important; padding: 0 !important; }
+.pdf-compact { line-height: 1 !important; }
+.pdf-compact .pdf-header-print { margin: 0 !important; padding: 2px 0 !important; margin-bottom: 2px !important; }
+.pdf-compact .pdf-header-print h2 { font-size: 13px !important; margin: 0 !important; padding: 0 !important; line-height: 1 !important; }
+.pdf-compact .pdf-header-print p { font-size: 8px !important; margin: 0 !important; padding: 0 !important; line-height: 1 !important; }
+.pdf-compact .tbl-card { margin: 0 !important; padding: 0 !important; margin-bottom: 0 !important; box-shadow: none !important; page-break-inside: avoid; }
+.pdf-compact .tbl-hdr { padding: 1px 2px !important; margin: 0 !important; line-height: 1 !important; }
+.pdf-compact .tbl-hdr-lbl { font-size: 8px !important; font-weight: 800 !important; }
+.pdf-compact .tbl-wrap { margin: 0 !important; padding: 0 !important; overflow: visible !important; }
+.pdf-compact table { margin: 0 !important; padding: 0 !important; border-collapse: collapse; border-spacing: 0; width: 100%; }
+.pdf-compact thead { margin: 0 !important; padding: 0 !important; }
+.pdf-compact thead th { padding: 1px 0 !important; margin: 0 !important; font-size: 7px !important; font-weight: 700 !important; line-height: 1 !important; height: 12px !important; border: 1px solid #DDD; text-align: center; background: #F0F0F0; }
+.pdf-compact tbody { margin: 0 !important; padding: 0 !important; }
+.pdf-compact tbody tr { height: 12px !important; margin: 0 !important; padding: 0 !important; border-bottom: 1px solid #EEE; }
+.pdf-compact tbody tr:nth-child(even) { background: #FAFAFA; }
+.pdf-compact td { padding: 0 !important; margin: 0 !important; font-size: 8px !important; height: 12px !important; line-height: 1 !important; vertical-align: center; border-right: 1px solid #DDD; border-bottom: 1px solid #EEE; text-align: center; }
+.pdf-compact td:first-child { border-left: 1px solid #DDD; text-align: center; }
+.pdf-compact td input { height: 10px !important; font-size: 7px !important; padding: 0 !important; margin: 0 !important; border: none !important; }
+.pdf-compact [style*="padding: 12px"] { padding: 0 !important; }
+.pdf-compact [style*="margin-bottom: 10px"] { margin-bottom: 0 !important; }
+.pdf-compact [style*="padding: 10px"] { padding: 0 !important; }
+.pdf-compact h3 { font-size: 8px !important; margin: 1px 0 !important; padding: 1px !important; line-height: 1 !important; }
+.pdf-compact .section { margin: 0 !important; padding: 1px !important; }
+.pdf-compact .section-title { font-size: 8px !important; padding: 1px 2px !important; margin: 0 !important; line-height: 1 !important; }
 
 /* Botón flotante */
 .btn-refresh-float { position: fixed; bottom: 75px; right: 15px; width: 44px; height: 44px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; border: none; cursor: pointer; }
@@ -1701,12 +1566,11 @@ window.exportPlanillaPDF = function() {
   const container = document.getElementById('pdf-entry-area');
   container.classList.add('pdf-compact');
   const opt = {
-    margin: [3, 3, 3, 3],
+    margin: [1, 1, 1, 1],
     filename: `Planilla_${teamName.replace(/\s+/g, '_')}_${fechaInp}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#FFFFFF', scrollX: 0, scrollY: 0 },
-    pagebreak: { mode: ['css', 'legacy'] },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true }
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
   };
   html2pdf().set(opt).from(container).save().then(() => { headerEl.style.display = 'none'; container.classList.remove('pdf-compact'); });
 }
@@ -1719,9 +1583,8 @@ window.exportHistorialPDF = function() {
     margin: [3, 3, 3, 3],
     filename: `Historial_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#FFFFFF', scrollX: 0, scrollY: 0 },
-    pagebreak: { mode: ['css', 'legacy'] },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true }
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
   };
   html2pdf().set(opt).from(container).save().then(() => { container.classList.remove('pdf-compact'); });
 }
@@ -1741,12 +1604,11 @@ window.exportAcumPDF = function() {
   const container = document.getElementById('pdf-acum-area');
   container.classList.add('pdf-compact');
   const opt = {
-    margin: [3, 3, 3, 3],
+    margin: [1, 1, 1, 1],
     filename: `Acumulado_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#FFFFFF', scrollX: 0, scrollY: 0 },
-    pagebreak: { mode: ['css', 'legacy'] },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true }
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
   };
   html2pdf().set(opt).from(container).save().then(() => { container.classList.remove('pdf-compact'); });
 }
