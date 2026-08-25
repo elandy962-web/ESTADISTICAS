@@ -135,6 +135,9 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 .topbar { background: var(--primary); padding: 12px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 .topbar-title { color: #E6F1FB; font-size: 15px; font-weight: 700; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .topbar-badge { background: var(--success); color: white; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+/* Botón de reporte pegado al lado del botón existente con estilo compacto */
+.topbar-badge-report { background: var(--accent); color: white; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-left: 2px; }
+
 .btn-topbar-action { background: transparent; border: none; color: #FFF; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 6px; background: rgba(255,255,255,0.1); margin-left: 2px; }
 .btn-logout { background: transparent; border: none; color: #FFAAAA; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; margin-left: 4px; }
 
@@ -282,6 +285,7 @@ body.only-input-mode table { min-width: 500px !important; }
   }
   .topbar-title { font-size: 14px; }
   .topbar-badge { font-size: 9px; padding: 2px 7px; }
+  .topbar-badge-report { font-size: 9px; padding: 2px 7px; }
   .btn-topbar-action { padding: 5px; }
   .btn-logout { padding: 3px; }
 
@@ -352,14 +356,20 @@ body.only-input-mode table { min-width: 500px !important; }
   .topbar > i { font-size: 16px !important; }
   .topbar-title { font-size: 12px; }
   .topbar-badge {
-    width: 31px;
     height: 28px;
-    padding: 0;
+    padding: 0 6px;
     justify-content: center;
-    font-size: 0;
-    gap: 0;
+    font-size: 9px;
+    gap: 3px;
   }
-  .topbar-badge i { font-size: 15px; }
+  .topbar-badge-report {
+    height: 28px;
+    padding: 0 6px;
+    justify-content: center;
+    font-size: 9px;
+    gap: 3px;
+  }
+  .topbar-badge i, .topbar-badge-report i { font-size: 14px; }
   .btn-topbar-action { width: 28px; height: 28px; padding: 3px; }
   .btn-topbar-action i { font-size: 14px !important; }
   .btn-logout { width: 26px; height: 28px; padding: 2px; }
@@ -431,7 +441,6 @@ body.only-input-mode table { min-width: 500px !important; }
 @media (max-width: 500px) {
   * { box-sizing: border-box; }
   
-  /* Tablas ultra compactas */
   table { 
     font-size: 11px; 
     min-width: 650px; 
@@ -442,7 +451,6 @@ body.only-input-mode table { min-width: 500px !important; }
     width: 100%;
   }
   
-  /* Headers sin aire */
   thead { padding: 0; margin: 0; }
   thead th { 
     font-size: 9px; 
@@ -457,7 +465,6 @@ body.only-input-mode table { min-width: 500px !important; }
     color: #85B7EB !important;
   }
   
-  /* Filas mínimas */
   tbody { padding: 0; margin: 0; }
   tbody tr { 
     height: 16px; 
@@ -467,7 +474,6 @@ body.only-input-mode table { min-width: 500px !important; }
   }
   tbody tr:nth-child(even) { background: #F8FAFC; }
   
-  /* Celdas apretadas */
   td { 
     padding: 0 !important;
     margin: 0 !important;
@@ -485,7 +491,6 @@ body.only-input-mode table { min-width: 500px !important; }
     text-align: center;
   }
   
-  /* Input dentro de tablas sin aire */
   td input { 
     font-size: 10px; 
     padding: 0 !important;
@@ -497,7 +502,6 @@ body.only-input-mode table { min-width: 500px !important; }
     text-align: center;
   }
   
-  /* Secciones sin aire */
   .section { 
     margin: 0 !important; 
     padding: 1px !important;
@@ -528,7 +532,6 @@ body.only-input-mode table { min-width: 500px !important; }
     align-items: center;
   }
   
-  /* Títulos sin aire */
   h3 { 
     margin: 0 !important; 
     padding: 1px 2px !important;
@@ -547,7 +550,6 @@ body.only-input-mode table { min-width: 500px !important; }
     line-height: 1;
   }
   
-  /* Inputs y botones compactos */
   input, button, select { 
     font-size: 10px; 
     height: 24px; 
@@ -562,7 +564,6 @@ body.only-input-mode table { min-width: 500px !important; }
     margin: 0 !important;
   }
   
-  /* Toolbars y forms sin aire */
   .toolbar { 
     gap: 1px; 
     margin: 1px 0 !important;
@@ -607,10 +608,8 @@ body.only-input-mode table { min-width: 500px !important; }
     margin: 0 !important;
   }
   
-  /* Eliminar espacios de secciones visibles */
   .section:before, .section:after { content: none !important; }
   
-  /* Dividers ultra finos */
   hr { 
     margin: 0 !important;
     padding: 0 !important;
@@ -687,8 +686,14 @@ body.only-input-mode table { min-width: 500px !important; }
     <i class="ti ti-ball-baseball" style="font-size:18px;color:var(--accent)"></i>
     <span class="topbar-title" id="topbar-team-name">NOMBRE DE TU EQUIPO</span>
     
+    <!-- Botón existente de Subir Datos -->
     <button class="topbar-badge" onclick="forzarSincronizacionManual()" title="Forzar respaldo en la nube">
       <i class="ti ti-cloud-upload"></i> Subir Datos
+    </button>
+    
+    <!-- NUEVO BOTÓN DE REPORTE PEGADO AL LADO DEL EXISTENTE -->
+    <button class="topbar-badge-report" onclick="irAReporteEstadistico()" title="Ver Reporte de Estadísticas">
+      <i class="ti ti-file-analytics"></i> Reporte
     </button>
     
     <button class="btn-topbar-action" onclick="actualizarAplicacion()" title="Actualizar App">
@@ -1138,10 +1143,15 @@ window.forzarSincronizacionManual = function() {
   alert("¡Sincronización exitosa! Tus datos locales han sido guardados en la nube.");
 }
 
+/* Función para el nuevo botón de reporte (lleva directo a la sección de acumulado/estadísticas) */
+window.irAReporteEstadistico = function() {
+  const navBtns = document.querySelectorAll('.nav .nb');
+  window.goSec('acumulado', navBtns[3]);
+}
+
 window.actualizarAplicacion = function() {
   if(confirm("¿Actualizar aplicación? Se limpiará todo el cache y se cargará la última versión.")) {
     try {
-      // Mostrar overlay de progreso
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:99998;display:flex;align-items:center;justify-content:center;';
       
@@ -1152,79 +1162,34 @@ window.actualizarAplicacion = function() {
       overlay.appendChild(msg);
       document.body.appendChild(overlay);
       
-      // Función asíncrona para limpiar
       const limpiarCache = async () => {
+        try { localStorage.clear(); } catch(e) {}
+        try { sessionStorage.clear(); } catch(e) {}
         try {
-          // 1. Limpiar localStorage
-          localStorage.clear();
-          console.log('✓ localStorage limpio');
-        } catch(e) { console.log('localStorage:', e); }
-        
-        try {
-          // 2. Limpiar sessionStorage
-          sessionStorage.clear();
-          console.log('✓ sessionStorage limpio');
-        } catch(e) { console.log('sessionStorage:', e); }
-        
-        try {
-          // 3. Limpiar Cookies
           document.cookie.split(";").forEach(c => {
             document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date(0).toUTCString() + ";path=/");
           });
-          console.log('✓ Cookies limpiadas');
-        } catch(e) { console.log('Cookies:', e); }
-        
+        } catch(e) {}
         try {
-          // 4. Limpiar Caches API (IMPORTANTE PARA CHROME Y FIREFOX)
           if('caches' in window) {
             const cacheNames = await caches.keys();
-            console.log('Caches encontrados:', cacheNames);
             await Promise.all(cacheNames.map(name => caches.delete(name)));
-            console.log('✓ Caches API limpiadas');
           }
-        } catch(e) { console.log('Caches API:', e); }
-        
+        } catch(e) {}
         try {
-          // 5. Desregistrar Service Workers
           if('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
-            console.log('SWs encontrados:', registrations.length);
             await Promise.all(registrations.map(r => r.unregister()));
-            console.log('✓ Service Workers desregistrados');
           }
-        } catch(e) { console.log('SW:', e); }
-        
-        try {
-          // 6. Limpiar IndexedDB (si existe)
-          if('indexedDB' in window) {
-            try {
-              const dbs = await indexedDB.databases();
-              for(const db of dbs) {
-                indexedDB.deleteDatabase(db.name);
-              }
-              console.log('✓ IndexedDB limpio');
-            } catch(err) {
-              console.log('IndexedDB error:', err);
-            }
-          }
-        } catch(e) { console.log('IndexedDB:', e); }
+        } catch(e) {}
       };
       
-      // Ejecutar limpieza
       setTimeout(async () => {
         await limpiarCache();
-        
-        // 7. Forzar hard reload
         setTimeout(() => {
           const timestamp = new Date().getTime();
           const urlWithTimestamp = window.location.href.split('?')[0] + '?_nocache=' + timestamp;
-          
-          // Forzar from-server fetch
-          fetch(urlWithTimestamp, { 
-            cache: 'no-store'
-          }).catch(() => {
-            // Si falla el fetch, igual recargamos
-          }).finally(() => {
+          fetch(urlWithTimestamp, { cache: 'no-store' }).catch(() => {}).finally(() => {
             window.location.href = urlWithTimestamp;
             setTimeout(() => window.location.reload(true), 500);
           });
@@ -1232,8 +1197,6 @@ window.actualizarAplicacion = function() {
       }, 800);
       
     } catch(err) {
-      console.error('Error crítico:', err);
-      alert('Recargando aplicación...');
       window.location.reload(true);
     }
   }
@@ -1324,7 +1287,6 @@ window.toggleEditTeam = function() {
     localStorage.setItem('vip_team_name', input.value);
     window.updateTeamName(input.value);
     if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
-    showToast('Nombre de equipo actualizado');
   }
 }
 
@@ -1366,11 +1328,9 @@ window.toggleOnlyInputMode = function() {
   if(isActive) {
     btn.classList.add('active');
     btn.innerHTML = '<i class="ti ti-eye"></i> Ver Todo';
-    showToast('Modo Solo Entrada activado');
   } else {
     btn.classList.remove('active');
     btn.innerHTML = '<i class="ti ti-eye-off"></i> Solo Entrada';
-    showToast('Vista completa activada');
   }
 }
 
@@ -1426,12 +1386,6 @@ window.buildTablesOnce = function() {
         <td class="auto-cell hide-in-input" id="live-ops-${pi}">.000</td>
       `;
       tbodyBat.appendChild(tr);
-      
-      // Agregar evento de clic al nombre del jugador
-      const playerCell = tr.querySelector('.player-click');
-      playerCell.addEventListener('click', function() {
-        window.openSequentialInputDirect(pi);
-      });
     });
   }
 
@@ -1473,7 +1427,6 @@ function onInputUpdate() {
     if (otrosTurnos + valInput > vbActual) {
       valInput = Math.max(0, vbActual - otrosTurnos);
       this.value = valInput; 
-      showToast(`Hits + SO no superan VB (${vbActual})`);
     }
   }
 
@@ -1482,7 +1435,6 @@ function onInputUpdate() {
     if (valInput < turnosConsumidos) {
       valInput = turnosConsumidos;
       this.value = valInput;
-      showToast(`VB mínimo es (${turnosConsumidos})`);
     }
   }
 
@@ -1531,34 +1483,6 @@ function updateLiveCalculations() {
       <div class="sc"><div class="lbl">AVE Colectivo</div><div class="val" style="color:var(--primary-light)">${calcAVE(totH,totVb)}</div></div>
     `;
   }
-}
-
-function getLeadersMap(dataset) {
-  let leaders = { war: -Infinity, jj: 0, vb: 0, ca: 0, ce: 0, h1: 0, h2: 0, h3: 0, h4: 0, bb: 0, so: 0, sf: 0, h: 0, tba: 0, ave: 0, obp: 0, slg: 0, ops: 0 };
-  dataset.forEach(p => {
-    const w = p._pureWar !== undefined ? p._pureWar : 0;
-    if (p.jj > 0 && w > leaders.war) leaders.war = w;
-    if (p.jj > leaders.jj) leaders.jj = p.jj;
-    if (p.vb > leaders.vb) leaders.vb = p.vb;
-    if (p.ca > leaders.ca) leaders.ca = p.ca;
-    if (p.ce > leaders.ce) leaders.ce = p.ce;
-    if (p.h1 > leaders.h1) leaders.h1 = p.h1;
-    if (p.h2 > leaders.h2) leaders.h2 = p.h2;
-    if (p.h3 > leaders.h3) leaders.h3 = p.h3;
-    if (p.h4 > leaders.h4) leaders.h4 = p.h4;
-    if (p.bb > leaders.bb) leaders.bb = p.bb;
-    if (p.so > leaders.so) leaders.so = p.so;
-    if (p.sf > leaders.sf) leaders.sf = p.sf;
-    const totH = calcH(p); if (totH > leaders.h) leaders.h = totH;
-    const tba = calcTBA(p); if (tba > leaders.tba) leaders.tba = tba;
-    const ave = parseFloat(calcAVE(totH, p.vb)) || 0; if (ave > leaders.ave) leaders.ave = ave;
-    const slgNum = calcSLG(tba, p.vb);
-    const obpNum = calcOBP(totH, p.bb, p.sf, p.vb);
-    if (slgNum > leaders.slg) leaders.slg = slgNum;
-    if (obpNum > leaders.obp) leaders.obp = obpNum;
-    if ((obpNum + slgNum) > leaders.ops) leaders.ops = obpNum + slgNum;
-  });
-  return leaders;
 }
 
 window.exportPlanillaPDF = function() {
@@ -1657,7 +1581,6 @@ window.togglePlayerActivo = function(index) {
   if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
   renderPlayersManagement();
   window.buildTablesOnce();
-  showToast(p.activo ? `${p.nombre}: ACTIVO` : `${p.nombre}: EN PAUSA`);
 }
 
 window.startEditPlayer = function(index) {
@@ -1709,7 +1632,7 @@ window.deletePlayerExplicit = function() {
 
 window.addPlayer = function(){
   const nom = document.getElementById('new-nom').value.trim().toUpperCase();
-  if(!nom) { showToast('Introduce un nombre válido'); return; }
+  if(!nom) return;
   
   const codeVal = parseInt(document.getElementById('new-cod').value) || (window.players.length + 1);
   const p = { cod: codeVal, nombre: nom, rol: document.getElementById('new-rol').value, activo: true };
@@ -1723,7 +1646,6 @@ window.addPlayer = function(){
   document.getElementById('new-cod').value = ''; 
   document.getElementById('new-nom').value = '';
   renderPlayersManagement();
-  showToast('Agregado con éxito');
 }
 
 window.clearStats = function(){
@@ -1740,7 +1662,7 @@ window.saveGame = function(){
   const num = parseInt(document.getElementById('inp-juego').value) || 1;
   const rival = document.getElementById('inp-rival').value.trim() || 'Rival';
   const resultado = document.getElementById('inp-resultado').value || 'G';
-  if(!fecha) { showToast('Elige una fecha válida'); return; }
+  if(!fecha) return;
   
   const snap = window.players.map(p => ({ ...p }));
   const editId = window._editingGameId;
@@ -1761,7 +1683,6 @@ window.saveGame = function(){
   document.getElementById('inp-juego').value = num + 1;
   document.getElementById('inp-rival').value = '';
   document.getElementById('inp-resultado').value = 'G';
-  showToast('Juego guardado exitosamente');
 }
 
 function renderHistory(){
@@ -1794,557 +1715,203 @@ function renderHistory(){
 window.deleteGame = function(id){
   const g = window.games.find(x => x.id == id);
   if(!g) return;
-  if(!confirm(`¿Eliminar el juego #${g.num} vs ${g.rival} (${g.fecha.split('-').reverse().join('/')})? Esta acción no se puede deshacer.`)) return;
+  if(!confirm(`¿Eliminar el juego #${g.num} vs ${g.rival}?`)) return;
 
   window.games = window.games.filter(x => x.id != id);
   localStorage.setItem('vip_games', JSON.stringify(window.games));
   if(filtG) filtG = filtG.filter(x => x.id != id);
   if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
   renderHistory();
-  showToast('Juego eliminado del historial');
+}
+
+window.loadGameToEdit = function(id){
+  const g = window.games.find(x => x.id == id);
+  if(!g) return;
+  
+  document.getElementById('inp-fecha').value = g.fecha;
+  document.getElementById('inp-juego').value = g.num;
+  document.getElementById('inp-rival').value = g.rival;
+  document.getElementById('inp-resultado').value = g.resultado;
+  
+  window.players.forEach(p => {
+    const found = g.players.find(gp => gp.cod === p.cod);
+    if(found) {
+      BAT_INP.forEach(f => p[f] = found[f] || 0);
+      PICH_INP.forEach(f => p[f] = found[f] || 0);
+    } else {
+      BAT_INP.forEach(f => p[f] = 0);
+      PICH_INP.forEach(f => p[f] = 0);
+    }
+  });
+  
+  window._editingGameId = g.id;
+  document.getElementById('edit-mode-banner').style.display = 'flex';
+  document.getElementById('edit-mode-label').textContent = `EDITANDO JUEGO #${g.num} vs ${g.rival} (${g.fecha})`;
+  
+  const navBtns = document.querySelectorAll('.nav .nb');
+  window.goSec('entrada', navBtns[0]);
+  window.buildTablesOnce();
+}
+
+window.cancelEdicion = function(){
+  window.players.forEach(p => { BAT_INP.forEach(f => p[f] = 0); PICH_INP.forEach(f => p[f] = 0); });
+  document.getElementById('edit-mode-banner').style.display = 'none';
+  window._editingGameId = null;
+  document.getElementById('inp-rival').value = '';
+  window.buildTablesOnce();
 }
 
 window.filterGames = function(){
-  const d = document.getElementById('f-desde').value, h = document.getElementById('f-hasta').value;
-  filtG = window.games.filter(g => (!d || g.fecha >= d) && (!h || g.fecha <= h)); 
+  const d = document.getElementById('f-desde').value;
+  const h = document.getElementById('f-hasta').value;
+  filtG = window.games.filter(g => {
+    if(d && g.fecha < d) return false;
+    if(h && g.fecha > h) return false;
+    return true;
+  });
   renderHistory();
 }
 
 window.clearFilt = function(){
-  filtG = null; 
-  document.getElementById('f-desde').value = ''; 
-  document.getElementById('f-hasta').value = ''; 
+  document.getElementById('f-desde').value = '';
+  document.getElementById('f-hasta').value = '';
+  filtG = null;
   renderHistory();
-}
-
-window.loadGameToEdit = function(id){
-  const g = window.games.find(x => x.id == id); if(!g) return;
-
-  const gamePlayers = g.players.map(p => ({ ...p }));
-
-  const savedKeys = new Set(gamePlayers.map(p => p.cod + '_' + p.nombre));
-  window.players.forEach(rosterPlayer => {
-    const key = rosterPlayer.cod + '_' + rosterPlayer.nombre;
-    if (!savedKeys.has(key)) {
-      const fresh = { ...rosterPlayer };
-      BAT_INP.forEach(f => fresh[f] = 0);
-      PICH_INP.forEach(f => fresh[f] = 0);
-      gamePlayers.push(fresh);
-    }
-  });
-  window.players = gamePlayers;
-
-  document.getElementById('inp-fecha').value = g.fecha;
-  document.getElementById('inp-juego').value = g.num;
-  document.getElementById('inp-rival').value = g.rival;
-  document.getElementById('inp-resultado').value = g.resultado || 'G';
-
-  const banner = document.getElementById('edit-mode-banner');
-  banner.style.display = 'flex';
-  document.getElementById('edit-mode-label').textContent = `MODO EDICIÓN — Partido #${g.num} vs ${g.rival} (${g.fecha.split('-').reverse().join('/')})`;
-
-  window._editingGameId = id;
-  window.goSec('entrada', document.querySelectorAll('.nav .nb')[0]);
-}
-
-window.cancelarEdicion = function() {
-  window.players = JSON.parse(localStorage.getItem('vip_players')) || [];
-  window._editingGameId = null;
-  document.getElementById('edit-mode-banner').style.display = 'none';
-  document.getElementById('inp-rival').value = '';
-  document.getElementById('inp-resultado').value = 'G';
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('inp-fecha').value = today;
-  window.buildTablesOnce();
-  showToast('Edición cancelada');
-}
-
-window.renderAcum = function(){
-  const d = document.getElementById('a-desde').value, h = document.getElementById('a-hasta').value;
-  const src = window.games.filter(g => (!d || g.fecha >= d) && (!h || g.fecha <= h));
-  
-  let totalWins = 0;
-  let totalLosses = 0;
-  src.forEach(g => {
-    if(g.resultado === 'P') totalLosses++;
-    else totalWins++; 
-  });
-  
-  document.getElementById('team-record-wins').textContent = totalWins;
-  document.getElementById('team-record-losses').textContent = totalLosses;
-  const totalGamesCount = totalWins + totalLosses;
-  let pctVal = totalGamesCount > 0 ? (totalWins / totalGamesCount) : 0;
-  document.getElementById('team-record-pct').textContent = fmtStat(pctVal);
-
-  const mapBat = {}; const mapPich = {};
-  const activeMap = {};
-  window.players.forEach(p => { activeMap[p.cod + '_' + p.nombre] = (p.activo !== false); });
-
-  src.forEach(g => {
-    g.players.forEach(p => {
-      const k = p.cod + '_' + p.nombre;
-      if(!activeMap[k]) return;
-      if(p.rol === 'Bateador' || p.rol === 'Ambos') {
-        if(!mapBat[k]) mapBat[k] = { cod: p.cod, nombre: p.nombre, ...Object.fromEntries(BAT_INP.map(f => [f, 0])) };
-        BAT_INP.forEach(f => mapBat[k][f] += parseInt(p[f] || 0));
-      }
-      if(p.rol === 'Pitcher' || p.rol === 'Ambos') {
-        if(!mapPich[k]) mapPich[k] = { cod: p.cod, nombre: p.nombre, ...Object.fromEntries(PICH_INP.map(f => [f, 0])) };
-        PICH_INP.forEach(f => mapPich[k][f] += parseInt(p[f] || 0));
-      }
-    });
-  });
-
-  const rBat = Object.values(mapBat).map(p => { p._pureWar = calcPureWAR(p); return p; }).sort((a,b) => b._pureWar - a._pureWar);
-  const leadBat = getLeadersMap(rBat);
-
-  const bodyBatSimpleEl = document.getElementById('acum-body-bat-simple');
-  if(bodyBatSimpleEl) {
-    bodyBatSimpleEl.innerHTML = rBat.map(p => {
-      const hc = calcH(p), tba = calcTBA(p), ave = calcAVE(hc, p.vb), aN = parseFloat(ave) || 0;
-      return `<tr>
-        <td>${p.cod}</td><td style="font-weight:bold;">${p.nombre}</td>
-        ${BAT_INP.map(f => `<td class="${p[f] > 0 && p[f] === leadBat[f] ? 'stat-leader' : ''}">${p[f]||0}</td>`).join('')}
-        <td class="auto-cell sep ${hc > 0 && hc === leadBat.h ? 'stat-leader' : ''}">${hc}</td>
-        <td class="auto-cell ${tba > 0 && tba === leadBat.tba ? 'stat-leader' : ''}">${tba}</td>
-        <td class="auto-cell ${aN > 0 && aN === leadBat.ave ? 'stat-leader' : ''}">${ave}</td>
-      </tr>`;
-    }).join('');
-  }
-
-  const bodyBatAvanzadoEl = document.getElementById('acum-body-bat-avanzado');
-  if(bodyBatAvanzadoEl) {
-    bodyBatAvanzadoEl.innerHTML = rBat.map(p => {
-      const hc = calcH(p), tba = calcTBA(p), ave = calcAVE(hc, p.vb), aN = parseFloat(ave) || 0;
-      const slgNum = calcSLG(tba, p.vb);
-      const obpNum = calcOBP(hc, p.bb, p.sf, p.vb);
-      const opsNum = obpNum + slgNum;
-      const warVal = p._pureWar;
-      const cWar = p.jj > 0 ? (warVal > 0 ? 'war-cell war-pos' : (warVal < 0 ? 'war-cell war-neg' : 'war-cell war-neu')) : 'war-cell war-neu';
-      
-      return `<tr>
-        <td>${p.cod}</td><td style="font-weight:bold;">${p.nombre}</td>
-        <td class="${cWar} ${p.jj > 0 && warVal === leadBat.war ? 'stat-leader' : ''}">${p.jj > 0 ? fmtWar(warVal) : '0.0'}</td>
-        ${BAT_INP.map(f => `<td class="${p[f] > 0 && p[f] === leadBat[f] ? 'stat-leader' : ''}">${p[f]||0}</td>`).join('')}
-        <td class="auto-cell sep ${hc > 0 && hc === leadBat.h ? 'stat-leader' : ''}">${hc}</td>
-        <td class="auto-cell ${tba > 0 && tba === leadBat.tba ? 'stat-leader' : ''}">${tba}</td>
-        <td class="auto-cell ${aN > 0 && aN === leadBat.ave ? 'stat-leader' : ''}">${ave}</td>
-        <td class="auto-cell ${obpNum > 0 && obpNum === leadBat.obp ? 'stat-leader' : ''}">${fmtStat(obpNum)}</td>
-        <td class="auto-cell ${slgNum > 0 && slgNum === leadBat.slg ? 'stat-leader' : ''}">${fmtStat(slgNum)}</td>
-        <td class="auto-cell ${opsNum > 0 && opsNum === leadBat.ops ? 'stat-leader' : ''}">${fmtStat(opsNum)}</td>
-      </tr>`;
-    }).join('');
-  }
-
-  const rPich = Object.values(mapPich);
-  const bodyPichEl = document.getElementById('acum-body-pich');
-  if(bodyPichEl) {
-    bodyPichEl.innerHTML = rPich.map(p => {
-      return `<tr><td>${p.cod}</td><td style="font-weight:bold;">${p.nombre}</td><td>${p.jg||0}</td><td>${p.jp||0}</td><td>${p.bb_p||0}</td><td>${p.so_p||0}</td></tr>`;
-    }).join('');
-  }
 }
 
 window.clearAcumF = function(){
   document.getElementById('a-desde').value = '';
   document.getElementById('a-hasta').value = '';
-  window.renderAcum();
+  renderAcum();
 }
 
-let toastT;
-function showToast(msg){
-  let t = document.getElementById('_t');
-  if(!t){
-    t = document.createElement('div');
-    t.id = '_t';
-    t.style.cssText = 'position:fixed;bottom:75px;left:50%;transform:translateX(-50%);padding:10px 14px;border-radius:20px;font-size:12px;background:#0C447C;color:#FFF;opacity:0;transition:opacity .2s;z-index:10000;font-weight:bold;text-align:center;width:85%;max-width:300px;';
-    document.body.appendChild(t);
-  }
-  t.textContent = msg; t.style.opacity = '1'; 
-  clearTimeout(toastT); toastT = setTimeout(() => t.style.opacity = '0', 2200);
-}
-
-/* ========== ENTRADA SECUENCIAL DE ESTADÍSTICAS ========== */
-
-window.sequentialInputState = {
-  playerKey: null,
-  gameIndex: null,
-  playerIndex: null,
-  currentFieldIndex: 0,
-  fieldValues: {},
-  mode: null // 'direct' o 'game'
-};
-
-// Orden de campos para entrada secuencial
-const SEQUENTIAL_FIELDS = [
-  { field: 'jj', label: 'Juegos Jugados', desc: 'Total de juegos que jugó' },
-  { field: 'vb', label: 'Veces al Bate', desc: 'Turnos oficiales' },
-  { field: 'ca', label: 'Carreras Anotadas', desc: 'Veces que anotó' },
-  { field: 'ce', label: 'Carreras Empujadas', desc: 'Runs Batted In (RBI)' },
-  { field: 'h1', label: 'Sencillos', desc: 'Hits de 1 base' },
-  { field: 'h2', label: 'Dobles', desc: 'Hits de 2 bases' },
-  { field: 'h3', label: 'Triples', desc: 'Hits de 3 bases' },
-  { field: 'h4', label: 'Home Runs', desc: 'Jonrones (4 bases)' },
-  { field: 'bb', label: 'Bases por Bolas', desc: 'Walks (BB)' },
-  { field: 'so', label: 'Ponches', desc: 'Strikes Out (SO)' },
-  { field: 'sf', label: 'Sacrificios Fly', desc: 'Fly outs de sacrificio' }
-];
-
-window.openSequentialInput = function(playerKey, gameIndex) {
-  window.sequentialInputState.playerKey = playerKey;
-  window.sequentialInputState.gameIndex = gameIndex;
-  window.sequentialInputState.playerIndex = null;
-  window.sequentialInputState.currentFieldIndex = 0;
-  window.sequentialInputState.fieldValues = {};
-  window.sequentialInputState.mode = 'game';
+function renderAcum(){
+  const d = document.getElementById('a-desde').value;
+  const h = document.getElementById('a-hasta').value;
   
-  // Actualizar nombre del jugador
-  const player = window.games[gameIndex].players.find(p => (p.cod + '_' + p.nombre) === playerKey);
-  if(player) {
-    document.getElementById('seq-player-name').textContent = player.nombre;
-  }
-  
-  // Generar barras de progreso
-  const progressContainer = document.getElementById('seq-progress');
-  progressContainer.innerHTML = SEQUENTIAL_FIELDS.map(() => 
-    '<div class="seq-progress-bar"></div>'
-  ).join('');
-  
-  const modal = document.getElementById('sequential-modal');
-  modal.classList.add('show');
-  
-  // Auto-llenar JJ con 1 y pasar al siguiente
-  window.sequentialInputState.fieldValues['jj'] = 1;
-  window.showSequentialField(1);
-};
-
-window.openSequentialInputDirect = function(playerIndex) {
-  window.sequentialInputState.playerKey = null;
-  window.sequentialInputState.gameIndex = null;
-  window.sequentialInputState.playerIndex = playerIndex;
-  window.sequentialInputState.currentFieldIndex = 0;
-  window.sequentialInputState.fieldValues = {};
-  window.sequentialInputState.mode = 'direct';
-  
-  // Actualizar nombre del jugador
-  const player = window.players[playerIndex];
-  if(player) {
-    document.getElementById('seq-player-name').textContent = player.nombre;
-  }
-  
-  // Generar barras de progreso
-  const progressContainer = document.getElementById('seq-progress');
-  progressContainer.innerHTML = SEQUENTIAL_FIELDS.map(() => 
-    '<div class="seq-progress-bar"></div>'
-  ).join('');
-  
-  const modal = document.getElementById('sequential-modal');
-  modal.classList.add('show');
-  
-  // Auto-llenar JJ con 1 y pasar al siguiente
-  window.sequentialInputState.fieldValues['jj'] = 1;
-  window.showSequentialField(1);
-};
-
-window.showSequentialField = function(index) {
-  if(index >= SEQUENTIAL_FIELDS.length) {
-    window.finishSequentialInput();
-    return;
-  }
-  
-  const field = SEQUENTIAL_FIELDS[index];
-  window.sequentialInputState.currentFieldIndex = index;
-  
-  // Obtener el valor actual del jugador
-  let player = null;
-  const mode = window.sequentialInputState.mode;
-  
-  if(mode === 'direct') {
-    player = window.players[window.sequentialInputState.playerIndex];
-  } else if(mode === 'game') {
-    const gameIndex = window.sequentialInputState.gameIndex;
-    const playerKey = window.sequentialInputState.playerKey;
-    player = window.games[gameIndex].players.find(p => (p.cod + '_' + p.nombre) === playerKey);
-  }
-  
-  let currentValue = player ? (player[field.field] || 0) : 0;
-  // Si ya está en fieldValues (usuario lo cambió), usar ese valor
-  if(window.sequentialInputState.fieldValues[field.field] !== undefined) {
-    currentValue = window.sequentialInputState.fieldValues[field.field];
-  }
-  
-  // Mostrar el valor actual y llenar el input
-  document.getElementById('seq-current-value').textContent = currentValue;
-  const input = document.getElementById('seq-field-input');
-  input.value = currentValue;
-  
-  document.getElementById('seq-label').textContent = field.label;
-  document.getElementById('seq-desc').textContent = field.desc;
-  
-  // Actualizar progreso
-  const progress = document.querySelectorAll('.seq-progress-bar');
-  progress.forEach((bar, i) => {
-    bar.classList.toggle('active', i < index + 1);
+  const filteredGames = window.games.filter(g => {
+    if(d && g.fecha < d) return false;
+    if(h && g.fecha > h) return false;
+    return true;
   });
-  
-  document.getElementById('seq-info').textContent = `${index + 1} de ${SEQUENTIAL_FIELDS.length}`;
-  
-  // Botones
-  const btnBack = document.getElementById('seq-btn-back');
-  btnBack.style.display = index > 0 ? 'block' : 'none';
-  
-  // Focus en el input y seleccionar todo
-  setTimeout(() => {
-    input.focus();
-    input.select();
-  }, 100);
-};
 
-window.addNumberToSequential = function(num) {
-  const field = SEQUENTIAL_FIELDS[window.sequentialInputState.currentFieldIndex];
-  const value = num;
-  
-  // Validaciones especiales
-  const allValues = { ...window.sequentialInputState.fieldValues };
-  allValues[field.field] = value;
-  
-  // Validar que h1+h2+h3+h4+so no superen VB
-  const hitsFields = ['h1', 'h2', 'h3', 'h4', 'so'];
-  const hitsSum = hitsFields.reduce((sum, f) => sum + (parseInt(allValues[f]) || 0), 0);
-  const vbValue = parseInt(allValues['vb']) || 0;
-  
-  // Si estamos ingresando un campo de hits
-  if(hitsFields.includes(field.field)) {
-    if(vbValue > 0 && hitsSum > vbValue) {
-      showToast(`Hits + SO (${hitsSum}) no pueden superar VB (${vbValue})`);
-      return;
-    }
-  }
-  
-  // Si estamos ingresando VB
-  if(field.field === 'vb') {
-    if(hitsSum > value) {
-      showToast(`VB (${value}) debe ser ≥ que Hits + SO (${hitsSum})`);
-      return;
-    }
-  }
-  
-  // Llenar el input con el valor y pasar al siguiente
-  const input = document.getElementById('seq-field-input');
-  input.value = value;
-  window.sequentialInputState.fieldValues[field.field] = value;
-  
-  // Actualizar el display del valor actual
-  document.getElementById('seq-current-value').textContent = value;
-  
-  // Pasar al siguiente campo automáticamente
-  window.showSequentialField(window.sequentialInputState.currentFieldIndex + 1);
-};
+  let wins = 0; let losses = 0;
+  filteredGames.forEach(g => {
+    if(g.resultado === 'P') losses++; else wins++;
+  });
+  const totalG = wins + losses;
+  let pct = totalG > 0 ? (wins / totalG).toFixed(3) : '.000';
+  if(pct === '1.000') pct = '1.000';
+  else pct = pct.replace(/^0/, '');
 
-window.nextSequentialField = function() {
-  const field = SEQUENTIAL_FIELDS[window.sequentialInputState.currentFieldIndex];
-  const input = document.getElementById('seq-field-input');
-  const value = parseInt(input.value) || 0;
-  
-  if(input.value.trim() === '') {
-    showToast('Por favor ingresa un valor');
-    return;
-  }
-  
-  // Validaciones especiales
-  const allValues = { ...window.sequentialInputState.fieldValues };
-  allValues[field.field] = value;
-  
-  // Validar que h1+h2+h3+h4+so no superen VB
-  const hitsFields = ['h1', 'h2', 'h3', 'h4', 'so'];
-  const hitsSum = hitsFields.reduce((sum, f) => sum + (parseInt(allValues[f]) || 0), 0);
-  const vbValue = parseInt(allValues['vb']) || 0;
-  
-  // Si estamos ingresando un campo de hits
-  if(hitsFields.includes(field.field)) {
-    if(vbValue > 0 && hitsSum > vbValue) {
-      showToast(`Hits + SO (${hitsSum}) no pueden superar VB (${vbValue})`);
-      return;
-    }
-  }
-  
-  // Si estamos ingresando VB
-  if(field.field === 'vb') {
-    if(hitsSum > value) {
-      showToast(`VB (${value}) debe ser ≥ que Hits + SO (${hitsSum})`);
-      return;
-    }
-  }
-  
-  window.sequentialInputState.fieldValues[field.field] = value;
-  window.showSequentialField(window.sequentialInputState.currentFieldIndex + 1);
-};
+  document.getElementById('team-record-wins').textContent = wins;
+  document.getElementById('team-record-losses').textContent = losses;
+  document.getElementById('team-record-pct').textContent = pct;
 
-window.prevSequentialField = function() {
-  // No necesita guardar nada porque ya se guardó cuando hizo clic en el número
-  window.showSequentialField(window.sequentialInputState.currentFieldIndex - 1);
-};
+  const mapBat = {}; const mapPich = {};
+  
+  window.players.forEach(p => {
+    mapBat[p.cod] = { cod: p.cod, nombre: p.nombre, jj: 0, vb: 0, ca: 0, ce: 0, h1: 0, h2: 0, h3: 0, h4: 0, bb: 0, so: 0, sf: 0 };
+    mapPich[p.cod] = { cod: p.cod, nombre: p.nombre, jg: 0, jp: 0, bb_p: 0, so_p: 0 };
+  });
 
-window.finishSequentialEarly = function() {
-  // No guardar el campo actual, solo los que ya fueron ingresados
-  window.finishSequentialInputCommon();
-};
-
-window.finishSequentialInput = function() {
-  // Si estamos en el último campo, ya fue guardado por el clic del número
-  // No necesitamos hacer nada más
-  window.finishSequentialInputCommon();
-};
-
-window.finishSequentialInputCommon = function() {
-  
-  // Guardar los valores en el jugador
-  const mode = window.sequentialInputState.mode;
-  let player = null;
-  
-  if(mode === 'direct') {
-    player = window.players[window.sequentialInputState.playerIndex];
-  } else if(mode === 'game') {
-    const gameIndex = window.sequentialInputState.gameIndex;
-    const playerKey = window.sequentialInputState.playerKey;
-    player = window.games[gameIndex].players.find(p => (p.cod + '_' + p.nombre) === playerKey);
-  }
-  
-  if(player) {
-    Object.keys(window.sequentialInputState.fieldValues).forEach(fieldKey => {
-      player[fieldKey] = window.sequentialInputState.fieldValues[fieldKey];
-    });
-  }
-  
-  // Cerrar modal y guardar
-  window.closeSequentialInput();
-  
-  if(mode === 'game') {
-    window.saveGameToFirebase();
-  } else if(mode === 'direct') {
-    // Actualizar los inputs en la tabla
-    Object.keys(window.sequentialInputState.fieldValues).forEach(fieldKey => {
-      const inputs = document.querySelectorAll(`input[data-pi="${window.sequentialInputState.playerIndex}"][data-f="${fieldKey}"]`);
-      inputs.forEach(inp => {
-        inp.value = window.sequentialInputState.fieldValues[fieldKey];
-        // Dispara el evento input para validaciones
-        inp.dispatchEvent(new Event('input', { bubbles: true }));
-      });
-    });
-  }
-  
-  window.buildTablesOnce();
-  showToast('Estadísticas guardadas ✓');
-};
-
-window.closeSequentialInput = function() {
-  const modal = document.getElementById('sequential-modal');
-  modal.classList.remove('show');
-  document.getElementById('seq-current-value').textContent = '0';
-  document.getElementById('seq-field-input').value = '0';
-  window.sequentialInputState = {
-    playerKey: null,
-    gameIndex: null,
-    playerIndex: null,
-    currentFieldIndex: 0,
-    fieldValues: {},
-    mode: null
-  };
-};
-
-// Permitir Enter para siguiente
-document.addEventListener('DOMContentLoaded', function() {
-  const input = document.getElementById('seq-field-input');
-  if(input) {
-    input.addEventListener('keypress', function(e) {
-      if(e.key === 'Enter') {
-        window.nextSequentialField();
+  filteredGames.forEach(g => {
+    if(!g.players) return;
+    g.players.forEach(gp => {
+      if(mapBat[gp.cod]) {
+        if((gp.vb || 0) > 0 || (calcH(gp)) > 0 || (gp.jj || 0) > 0) {
+          mapBat[gp.cod].jj += (gp.jj ? 1 : (gp.vb > 0 ? 1 : 0));
+        }
+        BAT_INP.forEach(f => {
+          if(f !== 'jj') mapBat[gp.cod][f] = (mapBat[gp.cod][f] || 0) + (parseInt(gp[f]) || 0);
+        });
+      }
+      if(mapPich[gp.cod]) {
+        PICH_INP.forEach(f => {
+          mapPich[gp.cod][f] = (mapPich[gp.cod][f] || 0) + (parseInt(gp[f]) || 0);
+        });
       }
     });
-  }
-});
-</script>
-
-<!-- MODAL DE ENTRADA SECUENCIAL -->
-<div id="sequential-modal">
-  <div class="sequential-sheet">
-    <div class="seq-header">
-      <div>
-        <div class="seq-title">Ingresar Estadísticas</div>
-        <div class="seq-player-name" id="seq-player-name">Jugador</div>
-      </div>
-      <button class="seq-close-btn" onclick="window.closeSequentialInput()">✕</button>
-    </div>
-    
-    <div class="seq-progress" id="seq-progress">
-      <!-- Se genera dinámicamente -->
-    </div>
-    
-    <div class="seq-field-container">
-      <div class="seq-field-block">
-        <label class="seq-field-label" id="seq-label">Campo</label>
-        <div class="seq-field-desc" id="seq-desc">Descripción</div>
-      </div>
-      <div class="seq-current-value" id="seq-current-value">0</div>
-      <input type="number" id="seq-field-input" class="seq-field-input" placeholder="0" inputmode="numeric" min="0" max="9">
-      <div class="seq-info-text" id="seq-info">1 de 11</div>
-    </div>
-    
-    <!-- Teclado Numérico -->
-    <div class="seq-numpad">
-      <button class="seq-num-btn" onclick="window.addNumberToSequential(1)">1</button>
-      <button class="seq-num-btn" onclick="window.addNumberToSequential(2)">2</button>
-      <button class="seq-num-btn" onclick="window.addNumberToSequential(3)">3</button>
-      <button class="seq-num-btn" onclick="window.addNumberToSequential(4)">4</button>
-      <button class="seq-num-btn" onclick="window.addNumberToSequential(5)">5</button>
-      <button class="seq-num-btn" onclick="window.addNumberToSequential(6)">6</button>
-      <button class="seq-num-btn" onclick="window.addNumberToSequential(7)">7</button>
-      <button class="seq-num-btn" onclick="window.addNumberToSequential(8)">8</button>
-      <button class="seq-num-btn" onclick="window.addNumberToSequential(9)">9</button>
-      <button class="seq-num-btn zero" onclick="window.addNumberToSequential(0)">0</button>
-    </div>
-    
-    <div class="seq-btn-final-row">
-      <button class="seq-btn seq-btn-back" id="seq-btn-back" onclick="window.prevSequentialField()">← Anterior</button>
-      <button class="seq-btn seq-btn-next" id="seq-btn-next" onclick="window.nextSequentialField()">Siguiente →</button>
-      <button class="seq-btn seq-btn-finish-early" onclick="window.finishSequentialEarly()">FINALIZAR</button>
-    </div>
-  </div>
-</div>
-
-<!-- PWA Registration -->
-<script>
-// Registrar manifest.json
-if('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      // Registrar service worker si existe
-      const swUrl = './sw.js';
-      fetch(swUrl, {method: 'HEAD'}).then(() => {
-        navigator.serviceWorker.register(swUrl, {scope: './'}).then(reg => {
-          console.log('✓ Service Worker registrado:', reg);
-        }).catch(err => {
-          console.log('SW error (no critical):', err);
-        });
-      }).catch(() => {
-        console.log('No sw.js file, using standard PWA');
-      });
-    } catch(e) {
-      console.log('PWA error:', e);
-    }
   });
+
+  const acumBatArr = Object.values(mapBat).filter(p => p.vb > 0 || calcH(p) > 0 || p.jj > 0 || p.bb > 0 || p.so > 0);
+  acumBatArr.forEach(p => { p._pureWar = calcPureWAR(p); });
+
+  const simpleTbody = document.getElementById('acum-body-bat-simple');
+  const avanzadoTbody = document.getElementById('acum-body-bat-avanzado');
+  const pichTbody = document.getElementById('acum-body-pich');
+
+  if(!acumBatArr.length) {
+    simpleTbody.innerHTML = `<tr><td colspan="16" class="empty">No hay registros de bateo en el período seleccionado.</td></tr>`;
+    avanzadoTbody.innerHTML = `<tr><td colspan="20" class="empty">No hay registros de bateo en el período seleccionado.</td></tr>`;
+  } else {
+    const leaders = getLeadersMap(acumBatArr);
+
+    simpleTbody.innerHTML = acumBatArr.map(p => {
+      const h = calcH(p); const tba = calcTBA(p); const ave = calcAVE(h, p.vb);
+      return `<tr>
+        <td>${p.cod}</td><td style="text-align:left; padding-left:6px; font-weight:700;">${p.nombre}</td>
+        <td>${p.jj||0}</td>
+        <td class="${p.vb === leaders.vb && leaders.vb > 0 ? 'stat-leader' : ''}">${p.vb||0}</td>
+        <td class="${p.ca === leaders.ca && leaders.ca > 0 ? 'stat-leader' : ''}">${p.ca||0}</td>
+        <td class="${p.ce === leaders.ce && leaders.ce > 0 ? 'stat-leader' : ''}">${p.ce||0}</td>
+        <td class="${p.h1 === leaders.h1 && leaders.h1 > 0 ? 'stat-leader' : ''}">${p.h1||0}</td>
+        <td class="${p.h2 === leaders.h2 && leaders.h2 > 0 ? 'stat-leader' : ''}">${p.h2||0}</td>
+        <td class="${p.h3 === leaders.h3 && leaders.h3 > 0 ? 'stat-leader' : ''}">${p.h3||0}</td>
+        <td class="${p.h4 === leaders.h4 && leaders.h4 > 0 ? 'stat-leader' : ''}">${p.h4||0}</td>
+        <td class="${p.bb === leaders.bb && leaders.bb > 0 ? 'stat-leader' : ''}">${p.bb||0}</td>
+        <td class="${p.so === leaders.so && leaders.so > 0 ? 'stat-leader' : ''}">${p.so||0}</td>
+        <td class="${p.sf === leaders.sf && leaders.sf > 0 ? 'stat-leader' : ''}">${p.sf||0}</td>
+        <td class="auto-cell sep ${h === leaders.h && leaders.h > 0 ? 'stat-leader' : ''}">${h}</td>
+        <td class="${tba === leaders.tba && leaders.tba > 0 ? 'stat-leader' : ''}">${tba}</td>
+        <td style="font-weight:800; color:var(--primary-light);" class="${parseFloat(ave) === leaders.ave && leaders.ave > 0 ? 'stat-leader' : ''}">${ave}</td>
+      </tr>`;
+    }).join('');
+
+    avanzadoTbody.innerHTML = acumBatArr.map(p => {
+      const h = calcH(p); const tba = calcTBA(p); const ave = calcAVE(h, p.vb);
+      const slgNum = calcSLG(tba, p.vb);
+      const obpNum = calcOBP(h, p.bb, p.sf, p.vb);
+      const opsNum = obpNum + slgNum;
+      const w = p._pureWar || 0;
+      const warCls = w > 0 ? "war-pos" : (w < 0 ? "war-neg" : "war-neu");
+
+      return `<tr>
+        <td>${p.cod}</td><td style="text-align:left; padding-left:6px; font-weight:700;">${p.nombre}</td>
+        <td class="war-cell ${warCls} ${w === leaders.war && leaders.war > -Infinity ? 'stat-leader' : ''}">${fmtWar(w)}</td>
+        <td>${p.jj||0}</td>
+        <td class="${p.vb === leaders.vb && leaders.vb > 0 ? 'stat-leader' : ''}">${p.vb||0}</td>
+        <td class="${p.ca === leaders.ca && leaders.ca > 0 ? 'stat-leader' : ''}">${p.ca||0}</td>
+        <td class="${p.ce === leaders.ce && leaders.ce > 0 ? 'stat-leader' : ''}">${p.ce||0}</td>
+        <td class="${p.h1 === leaders.h1 && leaders.h1 > 0 ? 'stat-leader' : ''}">${p.h1||0}</td>
+        <td class="${p.h2 === leaders.h2 && leaders.h2 > 0 ? 'stat-leader' : ''}">${p.h2||0}</td>
+        <td class="${p.h3 === leaders.h3 && leaders.h3 > 0 ? 'stat-leader' : ''}">${p.h3||0}</td>
+        <td class="${p.h4 === leaders.h4 && leaders.h4 > 0 ? 'stat-leader' : ''}">${p.h4||0}</td>
+        <td class="${p.bb === leaders.bb && leaders.bb > 0 ? 'stat-leader' : ''}">${p.bb||0}</td>
+        <td class="${p.so === leaders.so && leaders.so > 0 ? 'stat-leader' : ''}">${p.so||0}</td>
+        <td class="${p.sf === leaders.sf && leaders.sf > 0 ? 'stat-leader' : ''}">${p.sf||0}</td>
+        <td class="auto-cell sep ${h === leaders.h && leaders.h > 0 ? 'stat-leader' : ''}">${h}</td>
+        <td class="${tba === leaders.tba && leaders.tba > 0 ? 'stat-leader' : ''}">${tba}</td>
+        <td style="font-weight:800; color:var(--primary-light);" class="${parseFloat(ave) === leaders.ave && leaders.ave > 0 ? 'stat-leader' : ''}">${ave}</td>
+        <td class="${obpNum === leaders.obp && leaders.obp > 0 ? 'stat-leader' : ''}">${fmtStat(obpNum)}</td>
+        <td class="${slgNum === leaders.slg && leaders.slg > 0 ? 'stat-leader' : ''}">${fmtStat(slgNum)}</td>
+        <td class="${opsNum === leaders.ops && leaders.ops > 0 ? 'stat-leader' : ''}">${fmtStat(opsNum)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const acumPichArr = Object.values(mapPich).filter(p => (p.jg||0) > 0 || (p.jp||0) > 0 || (p.bb_p||0) > 0 || (p.so_p||0) > 0);
+  if(!acumPichArr.length) {
+    pichTbody.innerHTML = `<tr><td colspan="6" class="empty">No hay registros de pitcheo en el período seleccionado.</td></tr>`;
+  } else {
+    pichTbody.innerHTML = acumPichArr.map(p => `
+      <tr>
+        <td>${p.cod}</td><td style="text-align:left; padding-left:6px; font-weight:700;">${p.nombre}</td>
+        <td>${p.jg||0}</td><td>${p.jp||0}</td><td>${p.bb_p||0}</td><td>${p.so_p||0}</td>
+      </tr>
+    `).join('');
+  }
 }
-
-// Mostrar mensaje para instalar como app (opcional)
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  console.log('PWA instalable disponible');
-  // Aquí podrías mostrar un botón "Instalar app"
-  // Por ahora se instala automáticamente desde el menú del navegador
-});
 </script>
-
 </body>
 </html>
