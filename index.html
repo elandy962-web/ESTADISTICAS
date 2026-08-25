@@ -231,31 +231,238 @@ body.only-input-mode table { min-width: 500px !important; }
 .pdf-header-print h2 { color: var(--primary); font-size: 18px; text-transform: uppercase; }
 .pdf-header-print p { font-size: 11px; color: var(--text-muted); }
 
-/* Modo compacto para PDF */
-.pdf-compact * { margin: 0 !important; padding: 0 !important; }
-.pdf-compact { line-height: 1 !important; }
-.pdf-compact .pdf-header-print { margin: 0 !important; padding: 2px 0 !important; margin-bottom: 2px !important; }
-.pdf-compact .pdf-header-print h2 { font-size: 13px !important; margin: 0 !important; padding: 0 !important; line-height: 1 !important; }
-.pdf-compact .pdf-header-print p { font-size: 8px !important; margin: 0 !important; padding: 0 !important; line-height: 1 !important; }
-.pdf-compact .tbl-card { margin: 0 !important; padding: 0 !important; margin-bottom: 0 !important; box-shadow: none !important; page-break-inside: avoid; }
-.pdf-compact .tbl-hdr { padding: 1px 2px !important; margin: 0 !important; line-height: 1 !important; }
-.pdf-compact .tbl-hdr-lbl { font-size: 8px !important; font-weight: 800 !important; }
-.pdf-compact .tbl-wrap { margin: 0 !important; padding: 0 !important; overflow: visible !important; }
-.pdf-compact table { margin: 0 !important; padding: 0 !important; border-collapse: collapse; border-spacing: 0; width: 100%; }
-.pdf-compact thead { margin: 0 !important; padding: 0 !important; }
-.pdf-compact thead th { padding: 1px 0 !important; margin: 0 !important; font-size: 7px !important; font-weight: 700 !important; line-height: 1 !important; height: 12px !important; border: 1px solid #DDD; text-align: center; background: #F0F0F0; }
-.pdf-compact tbody { margin: 0 !important; padding: 0 !important; }
-.pdf-compact tbody tr { height: 12px !important; margin: 0 !important; padding: 0 !important; border-bottom: 1px solid #EEE; }
-.pdf-compact tbody tr:nth-child(even) { background: #FAFAFA; }
-.pdf-compact td { padding: 0 !important; margin: 0 !important; font-size: 8px !important; height: 12px !important; line-height: 1 !important; vertical-align: center; border-right: 1px solid #DDD; border-bottom: 1px solid #EEE; text-align: center; }
-.pdf-compact td:first-child { border-left: 1px solid #DDD; text-align: center; }
-.pdf-compact td input { height: 10px !important; font-size: 7px !important; padding: 0 !important; margin: 0 !important; border: none !important; }
-.pdf-compact [style*="padding: 12px"] { padding: 0 !important; }
-.pdf-compact [style*="margin-bottom: 10px"] { margin-bottom: 0 !important; }
-.pdf-compact [style*="padding: 10px"] { padding: 0 !important; }
-.pdf-compact h3 { font-size: 8px !important; margin: 1px 0 !important; padding: 1px !important; line-height: 1 !important; }
-.pdf-compact .section { margin: 0 !important; padding: 1px !important; }
-.pdf-compact .section-title { font-size: 8px !important; padding: 1px 2px !important; margin: 0 !important; line-height: 1 !important; }
+/* ==========================================================
+   PDF EXTREMADAMENTE COMPACTO
+   SOLO PARA EL REPORTE PDF
+   ========================================================== */
+
+.pdf-compact,
+.pdf-compact * {
+    box-sizing: border-box !important;
+}
+
+.pdf-compact {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+}
+
+/* ENCABEZADO */
+.pdf-compact .pdf-header-print {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 0 2px 0 !important;
+    padding: 0 0 2px 0 !important;
+    border-bottom: 1px solid var(--primary) !important;
+}
+
+.pdf-compact .pdf-header-print h2 {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 13px !important;
+    line-height: 14px !important;
+}
+
+.pdf-compact .pdf-header-print p {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 8px !important;
+    line-height: 9px !important;
+}
+
+/* TARJETAS */
+.pdf-compact .tbl-card {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 0 1px 0 !important;
+    padding: 0 !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+/* ENCABEZADO DE TABLA */
+.pdf-compact .tbl-hdr {
+    display: flex !important;
+    width: 100% !important;
+    height: 12px !important;
+    min-height: 12px !important;
+    margin: 0 !important;
+    padding: 1px 3px !important;
+    background: var(--bg-dark) !important;
+}
+
+.pdf-compact .tbl-hdr-lbl {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 8px !important;
+    line-height: 10px !important;
+}
+
+.pdf-compact .tbl-hdr-sub {
+    display: none !important;
+}
+
+/* CONTENEDOR DE TABLA */
+.pdf-compact .tbl-wrap {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+}
+
+/* TABLA */
+.pdf-compact table {
+    display: table !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    font-size: 8px !important;
+}
+
+/* ENCABEZADOS */
+.pdf-compact thead {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.pdf-compact thead tr {
+    height: 11px !important;
+    min-height: 11px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.pdf-compact thead th {
+    height: 11px !important;
+    min-height: 11px !important;
+    margin: 0 !important;
+    padding: 0 1px !important;
+    font-size: 7px !important;
+    line-height: 9px !important;
+    vertical-align: middle !important;
+    text-align: center !important;
+    position: static !important;
+    background: var(--bg-dark) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #0C447C !important;
+}
+
+/* FILAS */
+.pdf-compact tbody {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.pdf-compact tbody tr {
+    height: 12px !important;
+    min-height: 12px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.pdf-compact tbody td {
+    height: 12px !important;
+    min-height: 12px !important;
+    margin: 0 !important;
+    padding: 0 1px !important;
+    font-size: 8px !important;
+    line-height: 10px !important;
+    vertical-align: middle !important;
+    text-align: center !important;
+    border: 1px solid #E2E8F0 !important;
+}
+
+/* COLUMNA # */
+.pdf-compact td:nth-child(1),
+.pdf-compact th:nth-child(1) {
+    width: 20px !important;
+    min-width: 20px !important;
+    max-width: 20px !important;
+    padding: 0 !important;
+    position: static !important;
+}
+
+/* COLUMNA NOMBRE */
+.pdf-compact td:nth-child(2),
+.pdf-compact th:nth-child(2) {
+    width: 75px !important;
+    min-width: 75px !important;
+    max-width: 75px !important;
+    padding: 0 2px !important;
+    position: static !important;
+    text-align: left !important;
+    box-shadow: none !important;
+}
+
+/* INPUTS */
+.pdf-compact td input,
+.pdf-compact input[type="number"] {
+    display: block !important;
+    width: 25px !important;
+    max-width: 25px !important;
+    height: 11px !important;
+    min-height: 11px !important;
+    max-height: 11px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    font-size: 8px !important;
+    line-height: 10px !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+}
+
+/* TEXTO INTERNO */
+.pdf-compact td span,
+.pdf-compact td div {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 10px !important;
+}
+
+/* SECCIONES */
+.pdf-compact > * {
+    margin-top: 0 !important;
+    margin-bottom: 1px !important;
+}
+
+.pdf-compact .section {
+    margin: 1px 0 !important;
+    padding: 0 !important;
+}
+
+.pdf-compact h3 {
+    margin: 0 !important;
+    padding: 1px 2px !important;
+    font-size: 8px !important;
+    line-height: 9px !important;
+}
+
+.pdf-compact .tbl-hdr-sub {
+    display: none !important;
+}
 
 /* Botón flotante */
 .btn-refresh-float { position: fixed; bottom: 75px; right: 15px; width: 44px; height: 44px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; border: none; cursor: pointer; }
@@ -1550,29 +1757,81 @@ function getLeadersMap(dataset) {
 }
 
 window.exportPlanillaPDF = function() {
-  const teamName = document.getElementById('inp-mi-equipo').value.trim() || "NOMBRE DE TU EQUIPO";
+  const element = document.getElementById('pdf-entry-area');
+
+  const teamName =
+    document.getElementById('inp-mi-equipo').value.trim() || 'NOMBRE DE TU EQUIPO';
+
   const fechaInp = document.getElementById('inp-fecha').value;
-  const fechaFmt = fechaInp ? fechaInp.split('-').reverse().join('/') : 'Sin Fecha';
-  const juegoNum = document.getElementById('inp-juego').value || '1';
-  const rival = document.getElementById('inp-rival').value.trim() || 'Rival';
-  const resultado = document.getElementById('inp-resultado').value === 'G' ? 'Ganado' : 'Perdido';
+  const fechaFmt = fechaInp
+    ? fechaInp.split('-').reverse().join('/')
+    : 'Sin Fecha';
+
+  const juego =
+    document.getElementById('inp-juego').value || '1';
+
+  const rival =
+    document.getElementById('inp-rival').value.trim() || 'Rival';
+
+  const resultado =
+    document.getElementById('inp-resultado').value === 'G'
+      ? 'Ganado'
+      : 'Perdido';
 
   document.getElementById('pdf-print-team-title').textContent = teamName;
-  document.getElementById('pdf-print-game-details').textContent = `Planilla Oficial · Fecha: ${fechaFmt} · Juego #${juegoNum} vs ${rival} [${resultado}]`;
+  document.getElementById('pdf-print-game-details').textContent =
+    `Planilla Oficial · Fecha: ${fechaFmt} · Juego #${juego} vs ${rival} [${resultado}]`;
 
   const headerEl = document.getElementById('pdf-entry-print-header');
   headerEl.style.display = 'block';
 
-  const container = document.getElementById('pdf-entry-area');
-  container.classList.add('pdf-compact');
+  element.classList.add('pdf-compact');
+
   const opt = {
-    margin: [1, 1, 1, 1],
-    filename: `Planilla_${teamName.replace(/\s+/g, '_')}_${fechaInp}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    margin: [2, 2, 2, 2],
+
+    filename:
+      `Planilla_${teamName.replace(/\s+/g, '_')}_Juego_${juego}.pdf`,
+
+    image: {
+      type: 'jpeg',
+      quality: 0.98
+    },
+
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      letterRendering: true,
+      backgroundColor: '#FFFFFF',
+      scrollX: 0,
+      scrollY: 0
+    },
+
+    pagebreak: {
+      mode: ['css', 'legacy']
+    },
+
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'portrait',
+      compress: true
+    }
   };
-  html2pdf().set(opt).from(container).save().then(() => { headerEl.style.display = 'none'; container.classList.remove('pdf-compact'); });
+
+  html2pdf()
+    .set(opt)
+    .from(element)
+    .save()
+    .then(() => {
+      headerEl.style.display = 'none';
+      element.classList.remove('pdf-compact');
+    })
+    .catch((error) => {
+      console.error('Error generando PDF:', error);
+      headerEl.style.display = 'none';
+      element.classList.remove('pdf-compact');
+    });
 }
 
 window.exportHistorialPDF = function() {
@@ -1604,7 +1863,7 @@ window.exportAcumPDF = function() {
   const container = document.getElementById('pdf-acum-area');
   container.classList.add('pdf-compact');
   const opt = {
-    margin: [1, 1, 1, 1],
+    margin: [3, 3, 3, 3],
     filename: `Acumulado_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
