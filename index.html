@@ -241,14 +241,14 @@ body.only-input-mode table { min-width: 500px !important; }
 .pdf-compact .tbl-hdr { padding: 0 0.5px !important; margin: 0 !important; line-height: 1 !important; }
 .pdf-compact .tbl-hdr-lbl { font-size: 6px !important; font-weight: 800 !important; }
 .pdf-compact .tbl-wrap { margin: 0 !important; padding: 0 !important; overflow: visible !important; width: 100%; }
-.pdf-compact table { margin: 0 !important; padding: 0 !important; border-collapse: collapse; border-spacing: 0; width: 100%; table-layout: fixed; }
+.pdf-compact table { margin: 0 !important; padding: 0 !important; border-collapse: collapse; border-spacing: 0; width: 100%; table-layout: auto; font-size: 6px; }
 .pdf-compact thead { margin: 0 !important; padding: 0 !important; }
 .pdf-compact thead th { padding: 0 !important; margin: 0 !important; font-size: 5px !important; font-weight: 700 !important; line-height: 1 !important; height: 10px !important; border: 0.3px solid #DDD; text-align: center; background: #F0F0F0; word-break: break-word; }
 .pdf-compact tbody { margin: 0 !important; padding: 0 !important; }
 .pdf-compact tbody tr { height: 10px !important; margin: 0 !important; padding: 0 !important; border-bottom: 0.3px solid #EEE; }
 .pdf-compact tbody tr:nth-child(even) { background: #FAFAFA; }
 .pdf-compact td { padding: 0 !important; margin: 0 !important; font-size: 6px !important; height: 10px !important; line-height: 1 !important; vertical-align: center; border-right: 0.3px solid #DDD; border-bottom: 0.3px solid #EEE; text-align: center; overflow: hidden; white-space: nowrap; }
-.pdf-compact td:first-child { border-left: 0.3px solid #DDD; font-size: 7px !important; font-weight: 700; text-align: left; padding-left: 1px !important; }
+.pdf-compact td:first-child { border-left: 0.3px solid #DDD; font-size: 7px !important; font-weight: 700; text-align: left; padding-left: 1px !important; max-width: 40px; }
 .pdf-compact td input { height: 8px !important; font-size: 6px !important; padding: 0 !important; margin: 0 !important; border: none !important; background: transparent; }
 .pdf-compact [style*="padding: 12px"] { padding: 0 !important; }
 .pdf-compact [style*="margin-bottom: 10px"] { margin-bottom: 0 !important; }
@@ -660,6 +660,9 @@ body.only-input-mode table { min-width: 500px !important; }
         <i class="ti ti-broom"></i> Limpiar Cache y Actualizar
       </button>
     </div>
+    <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.15); text-align:center;">
+      <span id="app-version" style="font-size:9px; opacity:0.6; font-weight:700; letter-spacing:0.5px;">v1.0</span>
+    </div>
   </div>
 </div>
 
@@ -982,6 +985,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
+
+// Versión de la Aplicación
+const APP_VERSION = '1.0';
+document.getElementById('app-version').textContent = 'v' + APP_VERSION;
 
 let currentUid = localStorage.getItem('vip_uid') || null;
 
@@ -1573,7 +1580,7 @@ window.exportPlanillaPDF = function() {
     filename: `Planilla_${teamName.replace(/\s+/g, '_')}_${fechaInp}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
   html2pdf().set(opt).from(container).save().then(() => { headerEl.style.display = 'none'; container.classList.remove('pdf-compact'); });
 }
@@ -1587,7 +1594,7 @@ window.exportHistorialPDF = function() {
     filename: `Historial_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
   html2pdf().set(opt).from(container).save().then(() => { container.classList.remove('pdf-compact'); });
 }
@@ -1611,7 +1618,7 @@ window.exportAcumPDF = function() {
     filename: `Acumulado_${teamName.replace(/\s+/g, '_')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
   html2pdf().set(opt).from(container).save().then(() => { container.classList.remove('pdf-compact'); });
 }
