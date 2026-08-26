@@ -1639,7 +1639,7 @@ window.exportAcumPDF = function() {
 
 /* ==========================================================
    CREAR IMAGEN DEL ACUMULADO
-   Captura el reporte acumulado completo como PNG.
+   Captura el reporte acumulado completo y muestra una vista previa.
    - Incluye encabezado, récord y tablas.
    - Expande los contenedores con scroll para no cortar filas.
    - Respeta la pestaña de acumulado que esté activa.
@@ -1704,7 +1704,10 @@ window.exportAcumImage = async function() {
       const titleEl = card.querySelector('.tbl-hdr-lbl');
       const title = titleEl ? titleEl.innerText.trim() : '';
       const rows = Array.from(table.rows).map(row =>
-        Array.from(row.cells).map(cell => cell.innerText.trim().replace(/\s+/g, ' '))
+        Array.from(row.cells).map(cell => ({
+          text: cell.innerText.trim().replace(/\s+/g, ' '),
+          isLeader: cell.classList.contains('stat-leader')
+        }))
       );
 
       if (rows.length) tableData.push({ title, rows });
@@ -1763,8 +1766,8 @@ window.exportAcumImage = async function() {
       return s + '…';
     };
 
-    const drawCell = (x, y, w, h, text, header, nameCol) => {
-      ctx.fillStyle = header ? '#0C447C' : '#FFFFFF';
+    const drawCell = (x, y, w, h, text, header, nameCol, isLeader) => {
+      ctx.fillStyle = header ? '#0C447C' : (isLeader ? '#FFF1A8' : '#FFFFFF');
       ctx.fillRect(x, y, w, h);
       ctx.strokeStyle = '#D8E0E8';
       ctx.lineWidth = 1;
@@ -1774,7 +1777,7 @@ window.exportAcumImage = async function() {
         ? '700 15px Arial'
         : (nameCol ? '700 16px Arial' : '600 15px Arial');
       ctx.font = font;
-      ctx.fillStyle = header ? '#FFFFFF' : '#1F2937';
+      ctx.fillStyle = header ? '#FFFFFF' : (isLeader ? '#7A4B00' : '#1F2937');
       ctx.textAlign = nameCol ? 'left' : 'center';
       const shown = fitText(text, w - 12, font);
       ctx.fillText(shown, nameCol ? x + 6 : x + w / 2, y + h / 2);
@@ -1870,27 +1873,21 @@ window.exportAcumImage = async function() {
       rows.forEach((row, ri) => {
         for (let ci = 0; ci < maxCols; ci++) {
           const x = PAD + widths.slice(0, ci).reduce((a,b) => a+b, 0);
-          const text = row[ci] || '';
-          drawCell(x, y, widths[ci], ROW_H, text, ri === 0, ci === nameIndex);
+          const cell = row[ci] || { text: '', isLeader: false };
+          drawCell(x, y, widths[ci], ROW_H, cell.text, ri === 0, ci === nameIndex, cell.isLeader);
         }
         y += ROW_H;
       });
       y += 25;
     });
 
-    // Descargar PNG.
+    // Mostrar vista previa antes de descargar.
     const safeName = teamName
       .replace(/[\\/:*?"<>|]/g, '')
       .replace(/\s+/g, '_');
 
-    const link = document.createElement('a');
-    link.download = `Acumulado_${safeName}.png`;
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    showToast('Imagen del acumulado creada correctamente');
+    mostrarVistaPreviaAcumulado(canvas, safeName);
+    showToast('Vista previa creada correctamente');
   } catch (error) {
     console.error('Error creando imagen del acumulado:', error);
     showToast('No se pudo crear la imagen del acumulado');
@@ -1901,6 +1898,43 @@ window.exportAcumImage = async function() {
     }
   }
 };
+
+function mostrarVistaPreviaAcumulado(canvas, safeName) {
+  document.getElementById('acum-image-preview-modal')?.remove();
+
+  const pngUrl = canvas.toDataURL('image/png');
+  const modal = document.createElement('div');
+  modal.id = 'acum-image-preview-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(3,15,28,.88);display:flex;flex-direction:column;padding:12px;box-sizing:border-box;';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:10px;display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <strong style="flex:1;color:#0C447C;font-size:14px;">Vista previa del acumulado</strong>
+      <button type="button" id="preview-download-png" class="btn btn-image" style="height:38px;">Guardar PNG</button>
+      <button type="button" id="preview-download-jpg" class="btn btn-p" style="height:38px;">Guardar JPG</button>
+      <button type="button" id="preview-close" class="btn btn-d" style="height:38px;">Cerrar</button>
+    </div>
+    <div style="flex:1;overflow:auto;background:#dbe5ef;border-radius:10px;padding:10px;text-align:center;">
+      <img src="${pngUrl}" alt="Vista previa del reporte acumulado" style="max-width:100%;height:auto;box-shadow:0 2px 12px rgba(0,0,0,.28);background:#fff;">
+    </div>`;
+  document.body.appendChild(modal);
+
+  const descargar = (url, extension) => {
+    const link = document.createElement('a');
+    link.download = `Acumulado_${safeName}.${extension}`;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  modal.querySelector('#preview-download-png').onclick = () => descargar(pngUrl, 'png');
+  modal.querySelector('#preview-download-jpg').onclick = () =>
+    descargar(canvas.toDataURL('image/jpeg', 0.94), 'jpg');
+  modal.querySelector('#preview-close').onclick = () => modal.remove();
+  modal.addEventListener('click', event => {
+    if (event.target === modal) modal.remove();
+  });
+}
 
 function renderPlayersManagement() {
   const container = document.getElementById('players-management-list');
