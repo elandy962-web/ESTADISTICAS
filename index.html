@@ -1721,13 +1721,13 @@ window.exportAcumImage = async function() {
     // que las columnas no queden cortadas.
     const PAGE_W = Math.max(1100, ...tableData.map(t => {
       const cols = Math.max(...t.rows.map(r => r.length));
-      return cols <= 6 ? 900 : cols <= 16 ? 1250 : 1500;
+      return cols <= 6 ? 860 : cols <= 16 ? 1150 : 1380;
     }));
-    const PAD = 28;
+    const PAD = 20;
     const TITLE_H = 72;
     const RECORD_H = 115;
     const SECTION_H = 40;
-    const ROW_H = 36;
+    const ROW_H = 40;
 
     let totalH = PAD + TITLE_H + RECORD_H + 20;
     tableData.forEach(t => {
@@ -1774,8 +1774,8 @@ window.exportAcumImage = async function() {
       ctx.strokeRect(x, y, w, h);
 
       const font = header
-        ? '700 16px Arial'
-        : (nameCol ? '800 21px Arial' : '700 17px Arial');
+        ? '700 18px Arial'
+        : (nameCol ? '800 24px Arial' : '700 20px Arial');
       ctx.font = font;
       ctx.fillStyle = header ? '#FFFFFF' : (isLeader ? '#7A4B00' : '#1F2937');
       ctx.textAlign = nameCol ? 'left' : 'center';
@@ -1860,9 +1860,9 @@ window.exportAcumImage = async function() {
 
       // Anchuras: # pequeño, nombre amplio, resto repartido.
       const available = PAGE_W - PAD * 2;
-      let nameW = maxCols > 16 ? 275 : (maxCols > 10 ? 265 : 290);
-      const numberW = maxCols > 16 ? 54 : (maxCols > 10 ? 58 : 72);
-      const firstW = 48;
+      let nameW = maxCols > 16 ? 280 : (maxCols > 10 ? 275 : 300);
+      const numberW = maxCols > 16 ? 50 : (maxCols > 10 ? 54 : 68);
+      const firstW = 46;
       let widths = Array(maxCols).fill(numberW);
       if (maxCols > 0) widths[0] = firstW;
       if (maxCols > 1) widths[1] = nameW;
