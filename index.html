@@ -1652,11 +1652,6 @@ window.exportAcumImage = async function() {
     return;
   }
 
-  if (typeof html2canvas !== 'function') {
-    showToast('No se pudo cargar el generador de imágenes');
-    return;
-  }
-
   const teamName =
     document.getElementById('inp-mi-equipo').value.trim() ||
     'NOMBRE DE TU EQUIPO';
@@ -1673,7 +1668,8 @@ window.exportAcumImage = async function() {
     rangoText = `Hasta ${h.split('-').reverse().join('/')}`;
   }
 
-  document.getElementById('pdf-acum-range-label').textContent = rangoText;
+  const label = document.getElementById('pdf-acum-range-label');
+  if (label) label.textContent = rangoText;
 
   const button = document.querySelector('.btn-image');
   const originalText = button ? button.innerHTML : '';
@@ -1682,54 +1678,214 @@ window.exportAcumImage = async function() {
     button.innerHTML = '<i class="ti ti-loader-2"></i> Creando imagen...';
   }
 
-  // Guardamos los estilos originales para restaurarlos al terminar.
-  const changed = [];
-  const remember = (el, prop, value) => {
-    changed.push([el, prop, el.style[prop]]);
-    el.style[prop] = value;
-  };
-
   try {
-    // Expandir tablas para que la imagen incluya TODAS las filas,
-    // no solamente las que caben en la ventana con scroll.
-    source.querySelectorAll('.tbl-wrap').forEach(wrap => {
-      remember(wrap, 'maxHeight', 'none');
-      remember(wrap, 'height', 'auto');
-      remember(wrap, 'overflow', 'visible');
+    /*
+      IMPORTANTE:
+      No dependemos de html2canvas para esta función.
+      La app puede estar instalada como PWA/offline y el CDN de
+      html2canvas puede no estar disponible. Dibujamos el reporte
+      directamente sobre un Canvas nativo del navegador.
+    */
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const DPR = 2;
+
+    const visibleTables = Array.from(source.querySelectorAll('.tbl-card'))
+      .filter(card => {
+        const st = getComputedStyle(card);
+        return st.display !== 'none' && st.visibility !== 'hidden';
+      });
+
+    const tableData = [];
+    visibleTables.forEach(card => {
+      const table = card.querySelector('table');
+      if (!table) return;
+
+      const titleEl = card.querySelector('.tbl-hdr-lbl');
+      const title = titleEl ? titleEl.innerText.trim() : '';
+      const rows = Array.from(table.rows).map(row =>
+        Array.from(row.cells).map(cell => cell.innerText.trim().replace(/\s+/g, ' '))
+      );
+
+      if (rows.length) tableData.push({ title, rows });
     });
 
-    source.querySelectorAll('.tbl-card').forEach(card => {
-      remember(card, 'height', 'auto');
-      remember(card, 'maxHeight', 'none');
-      remember(card, 'overflow', 'visible');
+    if (!tableData.length) {
+      throw new Error('No hay datos acumulados para generar la imagen.');
+    }
+
+    // Medidas de la imagen. Las tablas grandes se hacen anchas para
+    // que las columnas no queden cortadas.
+    const PAGE_W = Math.max(1100, ...tableData.map(t => {
+      const cols = Math.max(...t.rows.map(r => r.length));
+      return cols <= 6 ? 850 : cols <= 16 ? 1450 : 1750;
+    }));
+    const PAD = 28;
+    const TITLE_H = 72;
+    const RECORD_H = 115;
+    const SECTION_H = 40;
+    const ROW_H = 31;
+
+    let totalH = PAD + TITLE_H + RECORD_H + 20;
+    tableData.forEach(t => {
+      totalH += SECTION_H + ROW_H * t.rows.length + 25;
     });
 
-    // Aseguramos que la imagen tenga fondo blanco.
-    remember(source, 'backgroundColor', '#FFFFFF');
+    canvas.width = PAGE_W * DPR;
+    canvas.height = totalH * DPR;
+    canvas.style.width = PAGE_W + 'px';
+    canvas.style.height = totalH + 'px';
+    ctx.scale(DPR, DPR);
+    ctx.textBaseline = 'middle';
 
-    // Esperamos un instante para que el navegador recalcule las alturas.
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    // Fondo.
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, PAGE_W, totalH);
 
-    const canvas = await html2canvas(source, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: '#FFFFFF',
-      logging: false,
-      imageTimeout: 15000,
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: Math.max(document.documentElement.clientWidth, source.scrollWidth),
-      windowHeight: Math.max(document.documentElement.clientHeight, source.scrollHeight)
+    // Helpers.
+    const roundRect = (x, y, w, h, r, fill, stroke) => {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+      if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+    };
+
+    const fitText = (text, maxWidth, font) => {
+      ctx.font = font;
+      let s = String(text || '');
+      if (ctx.measureText(s).width <= maxWidth) return s;
+      while (s.length > 1 && ctx.measureText(s + '…').width > maxWidth) s = s.slice(0, -1);
+      return s + '…';
+    };
+
+    const drawCell = (x, y, w, h, text, header, nameCol) => {
+      ctx.fillStyle = header ? '#0C447C' : '#FFFFFF';
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = '#D8E0E8';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, w, h);
+
+      const font = header
+        ? '700 15px Arial'
+        : (nameCol ? '700 16px Arial' : '600 15px Arial');
+      ctx.font = font;
+      ctx.fillStyle = header ? '#FFFFFF' : '#1F2937';
+      ctx.textAlign = nameCol ? 'left' : 'center';
+      const shown = fitText(text, w - 12, font);
+      ctx.fillText(shown, nameCol ? x + 6 : x + w / 2, y + h / 2);
+    };
+
+    let y = PAD;
+
+    // Encabezado.
+    ctx.textAlign = 'left';
+    ctx.font = '800 30px Arial';
+    ctx.fillStyle = '#0C447C';
+    ctx.fillText(teamName.toUpperCase(), PAD, y + 18);
+    ctx.font = '500 17px Arial';
+    ctx.fillStyle = '#64748B';
+    ctx.fillText(rangoText, PAD, y + 49);
+    y += TITLE_H;
+
+    // Línea separadora.
+    ctx.strokeStyle = '#0C447C';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([12, 10]);
+    ctx.beginPath();
+    ctx.moveTo(PAD, y);
+    ctx.lineTo(PAGE_W - PAD, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    y += 18;
+
+    // Récord.
+    roundRect(PAD, y, PAGE_W - PAD * 2, RECORD_H, 12, '#FFFFFF', '#D8E0E8');
+    ctx.fillStyle = '#0C447C';
+    ctx.fillRect(PAD, y, PAGE_W - PAD * 2, 38);
+    ctx.font = '800 16px Arial';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'left';
+    ctx.fillText('RÉCORD DEL EQUIPO (GANADOS - PERDIDOS)', PAD + 14, y + 20);
+
+    const wins = document.getElementById('team-record-wins')?.innerText.trim() || '0';
+    const losses = document.getElementById('team-record-losses')?.innerText.trim() || '0';
+    const pct = document.getElementById('team-record-pct')?.innerText.trim() || '.000';
+    const record = [
+      ['GANADOS (G)', wins, '#0F9D6E'],
+      ['PERDIDOS (P)', losses, '#D92D20'],
+      ['PORCENTAJE (PCT)', pct, '#0C447C']
+    ];
+    const colW = (PAGE_W - PAD * 2) / 3;
+    record.forEach((r, i) => {
+      const cx = PAD + i * colW + colW / 2;
+      if (i > 0) {
+        ctx.strokeStyle = '#CBD5E1';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(PAD + i * colW, y + 52);
+        ctx.lineTo(PAD + i * colW, y + RECORD_H - 14);
+        ctx.stroke();
+      }
+      ctx.textAlign = 'center';
+      ctx.font = '700 14px Arial';
+      ctx.fillStyle = '#64748B';
+      ctx.fillText(r[0], cx, y + 60);
+      ctx.font = '800 28px Arial';
+      ctx.fillStyle = r[2];
+      ctx.fillText(r[1], cx, y + 92);
+    });
+    y += RECORD_H + 20;
+
+    // Tablas.
+    tableData.forEach(section => {
+      const rows = section.rows;
+      const maxCols = Math.max(...rows.map(r => r.length));
+      const nameIndex = 1;
+
+      ctx.fillStyle = '#0C447C';
+      ctx.fillRect(PAD, y, PAGE_W - PAD * 2, SECTION_H);
+      ctx.font = '800 16px Arial';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.textAlign = 'left';
+      ctx.fillText(section.title.toUpperCase(), PAD + 14, y + SECTION_H / 2);
+      y += SECTION_H;
+
+      // Anchuras: # pequeño, nombre amplio, resto repartido.
+      const available = PAGE_W - PAD * 2;
+      let nameW = maxCols > 16 ? 205 : (maxCols > 10 ? 190 : 220);
+      const numberW = maxCols > 16 ? 68 : (maxCols > 10 ? 72 : 85);
+      const firstW = 55;
+      let widths = Array(maxCols).fill(numberW);
+      if (maxCols > 0) widths[0] = firstW;
+      if (maxCols > 1) widths[1] = nameW;
+      const remaining = available - firstW - nameW;
+      const each = Math.max(45, remaining / Math.max(1, maxCols - 2));
+      for (let i = 2; i < maxCols; i++) widths[i] = each;
+
+      rows.forEach((row, ri) => {
+        for (let ci = 0; ci < maxCols; ci++) {
+          const x = PAD + widths.slice(0, ci).reduce((a,b) => a+b, 0);
+          const text = row[ci] || '';
+          drawCell(x, y, widths[ci], ROW_H, text, ri === 0, ci === nameIndex);
+        }
+        y += ROW_H;
+      });
+      y += 25;
     });
 
+    // Descargar PNG.
     const safeName = teamName
       .replace(/[\\/:*?"<>|]/g, '')
       .replace(/\s+/g, '_');
 
     const link = document.createElement('a');
     link.download = `Acumulado_${safeName}.png`;
-    link.href = canvas.toDataURL('image/png', 1.0);
+    link.href = canvas.toDataURL('image/png');
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -1739,12 +1895,6 @@ window.exportAcumImage = async function() {
     console.error('Error creando imagen del acumulado:', error);
     showToast('No se pudo crear la imagen del acumulado');
   } finally {
-    // Restaurar exactamente los estilos que tenía la aplicación.
-    for (let i = changed.length - 1; i >= 0; i--) {
-      const [el, prop, value] = changed[i];
-      el.style[prop] = value;
-    }
-
     if (button) {
       button.disabled = false;
       button.innerHTML = originalText;
