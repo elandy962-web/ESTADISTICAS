@@ -1721,13 +1721,13 @@ window.exportAcumImage = async function() {
     // que las columnas no queden cortadas.
     const PAGE_W = Math.max(1100, ...tableData.map(t => {
       const cols = Math.max(...t.rows.map(r => r.length));
-      return cols <= 6 ? 850 : cols <= 16 ? 1450 : 1750;
+      return cols <= 6 ? 900 : cols <= 16 ? 1250 : 1500;
     }));
     const PAD = 28;
     const TITLE_H = 72;
     const RECORD_H = 115;
     const SECTION_H = 40;
-    const ROW_H = 31;
+    const ROW_H = 36;
 
     let totalH = PAD + TITLE_H + RECORD_H + 20;
     tableData.forEach(t => {
@@ -1774,8 +1774,8 @@ window.exportAcumImage = async function() {
       ctx.strokeRect(x, y, w, h);
 
       const font = header
-        ? '700 15px Arial'
-        : (nameCol ? '700 16px Arial' : '600 15px Arial');
+        ? '700 16px Arial'
+        : (nameCol ? '800 21px Arial' : '700 17px Arial');
       ctx.font = font;
       ctx.fillStyle = header ? '#FFFFFF' : (isLeader ? '#7A4B00' : '#1F2937');
       ctx.textAlign = nameCol ? 'left' : 'center';
@@ -1860,14 +1860,14 @@ window.exportAcumImage = async function() {
 
       // Anchuras: # pequeño, nombre amplio, resto repartido.
       const available = PAGE_W - PAD * 2;
-      let nameW = maxCols > 16 ? 205 : (maxCols > 10 ? 190 : 220);
-      const numberW = maxCols > 16 ? 68 : (maxCols > 10 ? 72 : 85);
-      const firstW = 55;
+      let nameW = maxCols > 16 ? 275 : (maxCols > 10 ? 265 : 290);
+      const numberW = maxCols > 16 ? 54 : (maxCols > 10 ? 58 : 72);
+      const firstW = 48;
       let widths = Array(maxCols).fill(numberW);
       if (maxCols > 0) widths[0] = firstW;
       if (maxCols > 1) widths[1] = nameW;
       const remaining = available - firstW - nameW;
-      const each = Math.max(45, remaining / Math.max(1, maxCols - 2));
+      const each = Math.max(42, remaining / Math.max(1, maxCols - 2));
       for (let i = 2; i < maxCols; i++) widths[i] = each;
 
       rows.forEach((row, ri) => {
@@ -1907,7 +1907,7 @@ function mostrarVistaPreviaAcumulado(canvas, safeName) {
   modal.id = 'acum-image-preview-modal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(3,15,28,.88);display:flex;flex-direction:column;padding:12px;box-sizing:border-box;';
   modal.innerHTML = `
-    <div style="background:#fff;border-radius:12px;padding:10px;display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+    <div style="background:#fff;border-radius:12px;padding:10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px;">
       <strong style="flex:1;color:#0C447C;font-size:14px;">Vista previa del acumulado</strong>
       <button type="button" id="preview-download-png" class="btn btn-image" style="height:38px;">Guardar PNG</button>
       <button type="button" id="preview-download-jpg" class="btn btn-p" style="height:38px;">Guardar JPG</button>
