@@ -174,8 +174,8 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
     display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; margin-top:8px;
   }
   .acum-export-buttons .btn { width:100%; margin:0 !important; }
-  .btn-excel { background:#198754 !important; color:#fff !important; border-color:#198754 !important; }
-  .btn-excel:hover { background:#157347 !important; border-color:#157347 !important; }
+  .btn-image { background:#5B16C9 !important; color:#fff !important; border-color:#5B16C9 !important; }
+  .btn-image:hover { background:#4810A4 !important; border-color:#4810A4 !important; }
   @media (max-width:520px) { .acum-export-buttons { grid-template-columns:1fr 1fr; gap:6px; } .acum-export-buttons .btn { font-size:12px; padding-left:6px; padding-right:6px; } }
 
 .btn-pdf { background: #E11D48 !important; color: #FFF !important; border-color: #E11D48 !important; }
@@ -877,7 +877,7 @@ body.only-input-mode table { min-width: 500px !important; }
         </div>
         <div class="acum-export-buttons">
           <button class="btn btn-pdf" onclick="exportAcumPDF()"><i class="ti ti-file-type-pdf"></i> Exportar Acumulado PDF</button>
-          <button class="btn btn-excel" onclick="exportAcumExcel()"><i class="ti ti-file-spreadsheet"></i> Exportar a Excel</button>
+          <button class="btn btn-image" onclick="exportAcumImage()"><i class="ti ti-photo"></i> Crear Imagen de Acumulados</button>
         </div>
       </div>
 
@@ -1638,69 +1638,118 @@ window.exportAcumPDF = function() {
 }
 
 /* ==========================================================
-   EXPORTAR ACUMULADO A EXCEL - SIN INTERNET / SIN LIBRERIAS
-   Genera un .xls compatible con Microsoft Excel.
+   CREAR IMAGEN DEL ACUMULADO
+   Captura el reporte acumulado completo como PNG.
+   - Incluye encabezado, récord y tablas.
+   - Expande los contenedores con scroll para no cortar filas.
+   - Respeta la pestaña de acumulado que esté activa.
+   - Funciona sin servidor y sin crear archivos intermedios.
    ========================================================== */
-window.exportAcumExcel = function() {
-  const teamName = document.getElementById('inp-mi-equipo').value.trim() || 'NOMBRE DE TU EQUIPO';
-  const d = document.getElementById('a-desde').value;
-  const h = document.getElementById('a-hasta').value;
-  let rangoText = 'Temporada Completa (Todos los partidos)';
-  if (d && h) rangoText = `Desde ${d.split('-').reverse().join('/')} Hasta ${h.split('-').reverse().join('/')}`;
-  else if (d) rangoText = `Desde ${d.split('-').reverse().join('/')}`;
-  else if (h) rangoText = `Hasta ${h.split('-').reverse().join('/')}`;
-
-  const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
-  const tableRows = table => table ? Array.from(table.rows).map(r => Array.from(r.cells).map(c => c.innerText.trim())) : [];
-  const simpleRows = tableRows(document.querySelector('#wrapper-acum-simple table'));
-  const advancedRows = tableRows(document.querySelector('#wrapper-acum-avanzado table'));
-  const tables = Array.from(document.querySelectorAll('#pdf-acum-area .tbl-card table'));
-  const pitchingRows = tableRows(tables.length ? tables[tables.length - 1] : null);
-
-  const wins = document.getElementById('team-record-wins')?.innerText.trim() || '0';
-  const losses = document.getElementById('team-record-losses')?.innerText.trim() || '0';
-  const pct = document.getElementById('team-record-pct')?.innerText.trim() || '.000';
-
-  function sheet(name, rows, title) {
-    const max = Math.max(1, ...rows.map(r => r.length));
-    let x = `<Worksheet ss:Name="${esc(name)}"><Table>`;
-    x += `<Column ss:Width="55"/><Column ss:Width="150"/>`;
-    for (let i=2;i<max;i++) x += `<Column ss:Width="55"/>`;
-    x += `<Row ss:Height="24"><Cell ss:MergeAcross="${Math.max(0,max-1)}" ss:StyleID="Title"><Data ss:Type="String">${esc(title)}</Data></Cell></Row>`;
-    rows.forEach((row,ri)=>{
-      x += '<Row>';
-      for(let i=0;i<max;i++){
-        const text=String(row[i] ?? '').trim();
-        const numeric=text!=='' && /^-?\d+(?:[.,]\d+)?$/.test(text);
-        const style=ri===0?'Header':(i===1?'Name':'Cell');
-        x += numeric ? `<Cell ss:StyleID="${style}"><Data ss:Type="Number">${esc(text.replace(',','.'))}</Data></Cell>` : `<Cell ss:StyleID="${style}"><Data ss:Type="String">${esc(text)}</Data></Cell>`;
-      }
-      x += '</Row>';
-    });
-    return x+'</Table></Worksheet>';
+window.exportAcumImage = async function() {
+  const source = document.getElementById('pdf-acum-area');
+  if (!source) {
+    showToast('No se encontró el reporte acumulado');
+    return;
   }
 
-  let xml=`<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Author>Estadisticas</Author><Title>Acumulado - ${esc(teamName)}</Title></DocumentProperties>
-<Styles>
-<Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Center"/><Font ss:FontName="Calibri" ss:Size="10"/></Style>
-<Style ss:ID="Title"><Font ss:FontName="Calibri" ss:Size="14" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#0C447C" ss:Pattern="Solid"/></Style>
-<Style ss:ID="Header"><Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#163A5C" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>
-<Style ss:ID="Cell"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>
-<Style ss:ID="Name"><Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1"/><Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>
-</Styles>`;
-  xml += sheet('Resumen', [['Dato','Valor'],['Equipo',teamName],['Periodo',rangoText],['Ganados',wins],['Perdidos',losses],['Porcentaje',pct]], `RESUMEN - ${teamName}`);
-  if(simpleRows.length) xml += sheet('Acumulado Bateo',simpleRows,`ACUMULADO SIMPLE DE BATEO - ${teamName}`);
-  if(advancedRows.length) xml += sheet('Bateo Avanzado',advancedRows,`ESTADISTICAS AVANZADAS - ${teamName}`);
-  if(pitchingRows.length) xml += sheet('Acumulado Pitcheo',pitchingRows,`ACUMULADO COLECTIVO DE PITCHEO - ${teamName}`);
-  xml += '</Workbook>';
+  if (typeof html2canvas !== 'function') {
+    showToast('No se pudo cargar el generador de imágenes');
+    return;
+  }
 
-  const blob=new Blob(['\ufeff'+xml],{type:'application/vnd.ms-excel;charset=utf-8;'});
-  const safe=teamName.replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'_');
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`Acumulado_${safe}.xls`; document.body.appendChild(a); a.click();
-  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
-  showToast('Acumulado exportado a Excel');
+  const teamName =
+    document.getElementById('inp-mi-equipo').value.trim() ||
+    'NOMBRE DE TU EQUIPO';
+
+  const d = document.getElementById('a-desde').value;
+  const h = document.getElementById('a-hasta').value;
+
+  let rangoText = 'Temporada Completa (Todos los partidos)';
+  if (d && h) {
+    rangoText = `Desde ${d.split('-').reverse().join('/')} Hasta ${h.split('-').reverse().join('/')}`;
+  } else if (d) {
+    rangoText = `Desde ${d.split('-').reverse().join('/')}`;
+  } else if (h) {
+    rangoText = `Hasta ${h.split('-').reverse().join('/')}`;
+  }
+
+  document.getElementById('pdf-acum-range-label').textContent = rangoText;
+
+  const button = document.querySelector('.btn-image');
+  const originalText = button ? button.innerHTML : '';
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = '<i class="ti ti-loader-2"></i> Creando imagen...';
+  }
+
+  // Guardamos los estilos originales para restaurarlos al terminar.
+  const changed = [];
+  const remember = (el, prop, value) => {
+    changed.push([el, prop, el.style[prop]]);
+    el.style[prop] = value;
+  };
+
+  try {
+    // Expandir tablas para que la imagen incluya TODAS las filas,
+    // no solamente las que caben en la ventana con scroll.
+    source.querySelectorAll('.tbl-wrap').forEach(wrap => {
+      remember(wrap, 'maxHeight', 'none');
+      remember(wrap, 'height', 'auto');
+      remember(wrap, 'overflow', 'visible');
+    });
+
+    source.querySelectorAll('.tbl-card').forEach(card => {
+      remember(card, 'height', 'auto');
+      remember(card, 'maxHeight', 'none');
+      remember(card, 'overflow', 'visible');
+    });
+
+    // Aseguramos que la imagen tenga fondo blanco.
+    remember(source, 'backgroundColor', '#FFFFFF');
+
+    // Esperamos un instante para que el navegador recalcule las alturas.
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const canvas = await html2canvas(source, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#FFFFFF',
+      logging: false,
+      imageTimeout: 15000,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: Math.max(document.documentElement.clientWidth, source.scrollWidth),
+      windowHeight: Math.max(document.documentElement.clientHeight, source.scrollHeight)
+    });
+
+    const safeName = teamName
+      .replace(/[\\/:*?"<>|]/g, '')
+      .replace(/\s+/g, '_');
+
+    const link = document.createElement('a');
+    link.download = `Acumulado_${safeName}.png`;
+    link.href = canvas.toDataURL('image/png', 1.0);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    showToast('Imagen del acumulado creada correctamente');
+  } catch (error) {
+    console.error('Error creando imagen del acumulado:', error);
+    showToast('No se pudo crear la imagen del acumulado');
+  } finally {
+    // Restaurar exactamente los estilos que tenía la aplicación.
+    for (let i = changed.length - 1; i >= 0; i--) {
+      const [el, prop, value] = changed[i];
+      el.style[prop] = value;
+    }
+
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = originalText;
+    }
+  }
 };
 
 function renderPlayersManagement() {
