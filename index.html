@@ -193,23 +193,24 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 .tbl-wrap { overflow: auto; max-height: 58vh; width: 100%; -webkit-overflow-scrolling: touch; }
 
 /*
-   TABLA DE ENTRADA FIRME
-   Evita que la planilla se desplace o rebote hacia los lados mientras
-   se busca un jugador o se utiliza la entrada secuencial en el celular.
-   El desplazamiento vertical permanece habilitado.
+   TABLA DE ENTRADA ESTABLE Y DESPLAZABLE
+   Permite moverse vertical y horizontalmente dentro de la planilla,
+   pero contiene el rebote para que no arrastre la página completa.
 */
 #sec-entrada .tbl-wrap {
-  overflow-x: hidden;
+  overflow-x: scroll;
   overflow-y: auto;
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: contain;
+  overscroll-behavior: contain;
+  /* El movimiento lateral lo controla JavaScript; el vertical sigue nativo. */
   touch-action: pan-y;
-  -webkit-overflow-scrolling: auto;
+  -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
+  cursor: grab;
 }
 
-#sec-entrada .tbl-wrap table {
-  transform: translateX(0);
+#sec-entrada .tbl-wrap.dragging-horizontal {
+  cursor: grabbing;
+  user-select: none;
 }
 table { border-collapse: collapse; font-size: 13px; min-width: 930px; width: 100%; }
 thead tr { background: var(--bg-dark); }
@@ -1021,7 +1022,7 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '1.3';
+const APP_VERSION = '1.5';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
 
 let currentUid = localStorage.getItem('vip_uid') || null;
@@ -1407,6 +1408,85 @@ function setupNavigationEvents() {
     inp.addEventListener('keydown', (e) => handleEnterKey(e, idx));
   });
 }
+
+/*
+   DESPLAZAMIENTO HORIZONTAL GARANTIZADO
+   Safari/iOS puede ignorar el desplazamiento horizontal cuando la misma
+   tabla también se desplaza verticalmente. Este control separa ambos gestos:
+   - gesto principalmente horizontal: mueve la tabla;
+   - gesto principalmente vertical: conserva el scroll normal.
+*/
+function activarDesplazamientoHorizontalEntrada() {
+  document.querySelectorAll('#sec-entrada .tbl-wrap').forEach(wrap => {
+    if(wrap.dataset.horizontalDragReady === '1') return;
+    wrap.dataset.horizontalDragReady = '1';
+
+    let inicioX = 0;
+    let inicioY = 0;
+    let scrollInicial = 0;
+    let gestoHorizontal = false;
+
+    wrap.addEventListener('touchstart', event => {
+      if(!event.touches || event.touches.length !== 1) return;
+      inicioX = event.touches[0].clientX;
+      inicioY = event.touches[0].clientY;
+      scrollInicial = wrap.scrollLeft;
+      gestoHorizontal = false;
+    }, { passive: true });
+
+    wrap.addEventListener('touchmove', event => {
+      if(!event.touches || event.touches.length !== 1) return;
+      const deltaX = event.touches[0].clientX - inicioX;
+      const deltaY = event.touches[0].clientY - inicioY;
+
+      if(!gestoHorizontal && Math.abs(deltaX) > 7 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15) {
+        gestoHorizontal = true;
+      }
+
+      if(gestoHorizontal) {
+        event.preventDefault();
+        wrap.scrollLeft = scrollInicial - deltaX;
+      }
+    }, { passive: false });
+
+    wrap.addEventListener('touchend', () => { gestoHorizontal = false; }, { passive: true });
+    wrap.addEventListener('touchcancel', () => { gestoHorizontal = false; }, { passive: true });
+
+    /* Arrastrar con el mouse en PC, sin interferir con los campos numéricos. */
+    let mouseActivo = false;
+    let mouseInicioX = 0;
+    let mouseScrollInicial = 0;
+
+    wrap.addEventListener('mousedown', event => {
+      if(event.button !== 0 || event.target.closest('input,button,select,a')) return;
+      mouseActivo = true;
+      mouseInicioX = event.clientX;
+      mouseScrollInicial = wrap.scrollLeft;
+      wrap.classList.add('dragging-horizontal');
+      event.preventDefault();
+    });
+
+    window.addEventListener('mousemove', event => {
+      if(!mouseActivo) return;
+      wrap.scrollLeft = mouseScrollInicial - (event.clientX - mouseInicioX);
+    });
+
+    window.addEventListener('mouseup', () => {
+      if(!mouseActivo) return;
+      mouseActivo = false;
+      wrap.classList.remove('dragging-horizontal');
+    });
+
+    /* En PC también permite Shift + rueda para desplazarse lateralmente. */
+    wrap.addEventListener('wheel', event => {
+      if(!event.shiftKey) return;
+      event.preventDefault();
+      wrap.scrollLeft += event.deltaY || event.deltaX;
+    }, { passive: false });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', activarDesplazamientoHorizontalEntrada);
 
 function handleEnterKey(e, idx) {
   if (e.key === 'Enter') {
