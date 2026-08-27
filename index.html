@@ -191,6 +191,26 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 .tbl-hdr-sub { font-size: 9px; color: #85B7EB; }
 
 .tbl-wrap { overflow: auto; max-height: 58vh; width: 100%; -webkit-overflow-scrolling: touch; }
+
+/*
+   TABLA DE ENTRADA FIRME
+   Evita que la planilla se desplace o rebote hacia los lados mientras
+   se busca un jugador o se utiliza la entrada secuencial en el celular.
+   El desplazamiento vertical permanece habilitado.
+*/
+#sec-entrada .tbl-wrap {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: auto;
+  scrollbar-gutter: stable;
+}
+
+#sec-entrada .tbl-wrap table {
+  transform: translateX(0);
+}
 table { border-collapse: collapse; font-size: 13px; min-width: 930px; width: 100%; }
 thead tr { background: var(--bg-dark); }
 thead th { color: #85B7EB; font-weight: 600; font-size: 11px; padding: 10px 4px; text-align: center; border-right: 1px solid #0C447C; white-space: nowrap; position: sticky; top: 0; z-index: 15; background: var(--bg-dark); }
@@ -1001,7 +1021,7 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '1.1';
+const APP_VERSION = '1.2';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
 
 let currentUid = localStorage.getItem('vip_uid') || null;
