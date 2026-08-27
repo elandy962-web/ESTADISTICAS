@@ -1021,7 +1021,7 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '1.2';
+const APP_VERSION = '1.3';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
 
 let currentUid = localStorage.getItem('vip_uid') || null;
@@ -1171,104 +1171,90 @@ window.forzarSincronizacionManual = function() {
 }
 
 window.actualizarAplicacion = function() {
-  if(confirm("¿Actualizar aplicación? Se limpiará todo el cache y se cargará la última versión.")) {
+  if(!confirm("¿Actualizar aplicación? Se limpiará profundamente el caché y se cargará la última versión. Tus jugadores y partidos no se borrarán.")) return;
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:99998;display:flex;align-items:center;justify-content:center;padding:20px;';
+  const msg = document.createElement('div');
+  msg.style.cssText = 'width:min(360px,92vw);background:#1185CE;color:white;padding:28px 24px;border-radius:14px;z-index:99999;font-size:16px;font-weight:bold;text-align:center;line-height:1.55;box-shadow:0 12px 35px rgba(0,0,0,.35);';
+  msg.innerHTML = '<i class="ti ti-loader-2" style="font-size:34px;display:block;margin-bottom:8px;"></i><span id="cache-clean-status">Preparando limpieza profunda…</span><br><small style="font-size:11px;opacity:.85;">No cierres la aplicación</small>';
+  overlay.appendChild(msg);
+  document.body.appendChild(overlay);
+
+  const status = msg.querySelector('#cache-clean-status');
+  const esperar = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+  const borrarCaches = async () => {
+    if(!('caches' in window)) return 0;
+    const nombres = await caches.keys();
+    await Promise.all(nombres.map(nombre => caches.delete(nombre)));
+    return nombres.length;
+  };
+
+  const quitarServiceWorkers = async () => {
+    if(!('serviceWorker' in navigator)) return 0;
     try {
-      // Mostrar overlay de progreso
-      const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:99998;display:flex;align-items:center;justify-content:center;';
-      
-      const msg = document.createElement('div');
-      msg.style.cssText = 'background:#1185CE;color:white;padding:30px 50px;border-radius:12px;z-index:99999;font-size:16px;font-weight:bold;text-align:center;line-height:1.4;';
-      msg.innerHTML = '🔄 Limpiando cache...<br>Por favor espera...';
-      
-      overlay.appendChild(msg);
-      document.body.appendChild(overlay);
-      
-      // Función asíncrona para limpiar
-      const limpiarCache = async () => {
-        try {
-          // 1. Limpiar localStorage
-          localStorage.clear();
-          console.log('✓ localStorage limpio');
-        } catch(e) { console.log('localStorage:', e); }
-        
-        try {
-          // 2. Limpiar sessionStorage
-          sessionStorage.clear();
-          console.log('✓ sessionStorage limpio');
-        } catch(e) { console.log('sessionStorage:', e); }
-        
-        try {
-          // 3. Limpiar Cookies
-          document.cookie.split(";").forEach(c => {
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date(0).toUTCString() + ";path=/");
-          });
-          console.log('✓ Cookies limpiadas');
-        } catch(e) { console.log('Cookies:', e); }
-        
-        try {
-          // 4. Limpiar Caches API (IMPORTANTE PARA CHROME Y FIREFOX)
-          if('caches' in window) {
-            const cacheNames = await caches.keys();
-            console.log('Caches encontrados:', cacheNames);
-            await Promise.all(cacheNames.map(name => caches.delete(name)));
-            console.log('✓ Caches API limpiadas');
-          }
-        } catch(e) { console.log('Caches API:', e); }
-        
-        try {
-          // 5. Desregistrar Service Workers
-          if('serviceWorker' in navigator) {
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            console.log('SWs encontrados:', registrations.length);
-            await Promise.all(registrations.map(r => r.unregister()));
-            console.log('✓ Service Workers desregistrados');
-          }
-        } catch(e) { console.log('SW:', e); }
-        
-        try {
-          // 6. Limpiar IndexedDB (si existe)
-          if('indexedDB' in window) {
-            try {
-              const dbs = await indexedDB.databases();
-              for(const db of dbs) {
-                indexedDB.deleteDatabase(db.name);
-              }
-              console.log('✓ IndexedDB limpio');
-            } catch(err) {
-              console.log('IndexedDB error:', err);
-            }
-          }
-        } catch(e) { console.log('IndexedDB:', e); }
-      };
-      
-      // Ejecutar limpieza
-      setTimeout(async () => {
-        await limpiarCache();
-        
-        // 7. Forzar hard reload
-        setTimeout(() => {
-          const timestamp = new Date().getTime();
-          const urlWithTimestamp = window.location.href.split('?')[0] + '?_nocache=' + timestamp;
-          
-          // Forzar from-server fetch
-          fetch(urlWithTimestamp, { 
-            cache: 'no-store'
-          }).catch(() => {
-            // Si falla el fetch, igual recargamos
-          }).finally(() => {
-            window.location.href = urlWithTimestamp;
-            setTimeout(() => window.location.reload(true), 500);
-          });
-        }, 300);
-      }, 800);
-      
+      if(navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+      }
+    } catch(e) { console.log('Mensaje SW:', e); }
+    const registros = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registros.map(async registro => {
+      try { await registro.update(); } catch(e) {}
+      return registro.unregister();
+    }));
+    return registros.length;
+  };
+
+  (async () => {
+    try {
+      /* Tres pasadas evitan que un Service Worker activo vuelva a crear
+         una caché justo después de la primera eliminación. */
+      for(let pasada = 1; pasada <= 3; pasada++) {
+        status.textContent = `Limpieza profunda ${pasada} de 3…`;
+        await quitarServiceWorkers();
+        await borrarCaches();
+        await esperar(250);
+      }
+
+      /* Última comprobación después de dar tiempo al navegador para cerrar SW. */
+      status.textContent = 'Comprobando que no quede caché antigua…';
+      await quitarServiceWorkers();
+      await borrarCaches();
+
+      /* Descarga explícita de los archivos principales sin aceptar caché. */
+      status.textContent = 'Descargando la versión más reciente…';
+      const marca = `${APP_VERSION}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const baseActual = new URL(window.location.href);
+      baseActual.search = '';
+      baseActual.hash = '';
+      const htmlNuevo = new URL(baseActual.href);
+      htmlNuevo.searchParams.set('_actualizar', marca);
+
+      const solicitudes = [
+        fetch(htmlNuevo.href, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache, no-store, max-age=0' } })
+      ];
+      try {
+        const swNuevo = new URL('./sw.js', baseActual.href);
+        swNuevo.searchParams.set('_actualizar', marca);
+        solicitudes.push(fetch(swNuevo.href, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache, no-store, max-age=0' } }));
+      } catch(e) {}
+      await Promise.allSettled(solicitudes);
+
+      /* Una pasada final por si la consulta de sw.js creó algo nuevamente. */
+      await borrarCaches();
+      status.textContent = 'Actualización completada. Reiniciando…';
+      await esperar(500);
+      window.location.replace(htmlNuevo.href);
     } catch(err) {
-      console.error('Error crítico:', err);
-      alert('Recargando aplicación...');
-      window.location.reload(true);
+      console.error('Error durante actualización profunda:', err);
+      status.textContent = 'Reiniciando con recarga forzada…';
+      await esperar(500);
+      const respaldo = new URL(window.location.href);
+      respaldo.searchParams.set('_actualizar', Date.now().toString());
+      window.location.replace(respaldo.href);
     }
-  }
+  })();
 };
 </script>
 
