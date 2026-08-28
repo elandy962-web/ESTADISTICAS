@@ -720,6 +720,10 @@ body.only-input-mode table { min-width: 500px !important; }
     <button class="topbar-badge" onclick="forzarSincronizacionManual()" title="Forzar respaldo en la nube">
       <i class="ti ti-cloud-upload"></i> Subir Datos
     </button>
+
+    <button class="topbar-badge" onclick="forzarDescargaManual()" title="Descargar los datos guardados en la nube" style="background:#7C3AED;">
+      <i class="ti ti-cloud-download"></i> Bajar Datos
+    </button>
     
     <button class="btn-topbar-action" onclick="actualizarAplicacion()" title="Actualizar App">
       <i class="ti ti-refresh" style="font-size:16px;"></i>
@@ -1022,10 +1026,11 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '1.5';
+const APP_VERSION = '1.6';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
 
 let currentUid = localStorage.getItem('vip_uid') || null;
+let cloudReady = false;
 
 window.avanzarDesdeBienvenida = function(seccion) {
   window._welcomeTargetSec = seccion || 'entrada';
@@ -1059,7 +1064,8 @@ function actualizarEstadoInternet() {
     ind.style.display = 'block';
   } else {
     ind.style.display = 'none';
-    if(currentUid) enviarDatosLocalesANube();
+    /* IMPORTANTE: nunca subir automáticamente al abrir o reconectar.
+       Un dispositivo con datos viejos podría sobrescribir la nube. */
   }
 }
 
@@ -1124,51 +1130,183 @@ window.solicitarCierreSesion = function() {
   }
 }
 
-function descargarDatosDeNube(uid) {
-  get(ref(database, 'usuarios/' + uid)).then((snapshot) => {
+function obtenerRecord(listaJuegos) {
+  const juegos = Array.isArray(listaJuegos) ? listaJuegos : Object.values(listaJuegos || {});
+  let ganados = 0, perdidos = 0;
+  juegos.forEach(juego => {
+    if(juego && juego.resultado === 'P') perdidos++;
+    else if(juego) ganados++;
+  });
+  return { juegos: juegos.length, ganados, perdidos };
+}
+
+function cuentaActualTexto() {
+  const usuario = auth.currentUser;
+  const correo = usuario && usuario.email ? usuario.email : 'cuenta actual';
+  const codigo = currentUid ? currentUid.slice(-6) : '------';
+  return `${correo} · ID …${codigo}`;
+}
+
+function aplicarDatosNube(data) {
+  window.players = data && data.players ? Object.values(data.players) : [];
+  window.games = data && data.games ? Object.values(data.games) : [];
+  const nombre = data && data.teamName ? data.teamName : (localStorage.getItem('vip_team_name') || "NOMBRE DE TU EQUIPO");
+  localStorage.setItem('vip_team_name', nombre);
+  localStorage.setItem('vip_players', JSON.stringify(window.players));
+  localStorage.setItem('vip_games', JSON.stringify(window.games));
+  window.updateTeamName(nombre);
+}
+
+function refrescarPantallasConDatosNuevos() {
+  window.buildTablesOnce();
+  if(typeof window.renderPlayersManagement === 'function') window.renderPlayersManagement();
+  if(typeof window.renderHistory === 'function') window.renderHistory();
+  if(typeof window.renderAcum === 'function') window.renderAcum();
+}
+
+async function descargarDatosDeNube(uid) {
+  try {
+    const snapshot = await get(ref(database, 'usuarios/' + uid));
     const data = snapshot.val();
     if(data) {
-      window.players = data.players ? Object.values(data.players) : [];
-      window.games = data.games ? Object.values(data.games) : [];
-      localStorage.setItem('vip_team_name', data.teamName || "NOMBRE DE TU EQUIPO");
-      localStorage.setItem('vip_players', JSON.stringify(window.players));
-      localStorage.setItem('vip_games', JSON.stringify(window.games));
-    } else {
-      window.players = [];
-      window.games = [];
-      localStorage.setItem('vip_players', JSON.stringify(window.players));
-      localStorage.setItem('vip_games', JSON.stringify(window.games));
-      localStorage.setItem('vip_team_name', "NOMBRE DE TU EQUIPO");
-      window.enviarDatosLocalesANube();
+      const nube = obtenerRecord(data.games);
+      const local = obtenerRecord(window.games);
+
+      /* Protección contra pérdida: solo se aplica automáticamente la nube
+         cuando tiene más juegos o cuando este dispositivo está vacío. */
+      if(local.juegos === 0 || nube.juegos > local.juegos) {
+        aplicarDatosNube(data);
+      } else if(local.juegos > nube.juegos) {
+        console.warn(`Se conservaron datos locales: ${local.juegos} juegos locales vs ${nube.juegos} en nube.`);
+        setTimeout(() => alert(
+          `PROTECCIÓN DE DATOS\n\n` +
+          `Este dispositivo tiene ${local.juegos} juegos (${local.ganados} G - ${local.perdidos} P), ` +
+          `pero la nube solo tiene ${nube.juegos}.\n\n` +
+          `Se conservaron los datos de este dispositivo. Si son los correctos, presiona SUBIR DATOS.`
+        ), 500);
+      }
+      /* Si tienen igual cantidad se conserva el dispositivo. El usuario
+         puede usar Bajar Datos para comparar antes de reemplazar. */
     }
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app-content').style.display = 'none';
-    document.getElementById('welcome-screen').style.display = 'flex';
-  }).catch(()=>{
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app-content').style.display = 'none';
-    document.getElementById('welcome-screen').style.display = 'flex';
-  });
-}
-
-window.enviarDatosLocalesANube = function() {
-  if(!currentUid || !navigator.onLine) return;
-  set(ref(database, 'usuarios/' + currentUid + '/players'), window.players);
-  set(ref(database, 'usuarios/' + currentUid + '/games'), window.games);
-  set(ref(database, 'usuarios/' + currentUid + '/teamName'), localStorage.getItem('vip_team_name') || "NOMBRE DE TU EQUIPO");
-}
-
-window.forzarSincronizacionManual = function() {
-  if(!navigator.onLine) {
-    alert("No tienes conexión a internet para sincronizar ahora.");
-    return;
+    /* Si la nube está vacía, se conservan los datos locales. Nunca se
+       reemplazan automáticamente por listas vacías. */
+    cloudReady = true;
+  } catch(error) {
+    console.error('No se pudieron descargar los datos:', error);
+    cloudReady = false;
   }
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-content').style.display = 'none';
+  document.getElementById('welcome-screen').style.display = 'flex';
+}
+
+window.enviarDatosLocalesANube = async function(forzar = false) {
   if(!currentUid) {
-    alert("Inicia sesión primero para poder guardar en la nube.");
-    return;
+    if(forzar) throw new Error('No hay una sesión iniciada.');
+    return null;
   }
-  window.enviarDatosLocalesANube();
-  alert("¡Sincronización exitosa! Tus datos locales han sido guardados en la nube.");
+  if(!navigator.onLine) {
+    if(forzar) throw new Error('No hay conexión a internet.');
+    return null;
+  }
+  if(!cloudReady && !forzar) {
+    return null;
+  }
+
+  const fechaSubida = Date.now();
+  const payload = {
+    players: window.players || [],
+    games: window.games || [],
+    teamName: localStorage.getItem('vip_team_name') || "NOMBRE DE TU EQUIPO",
+    syncInfo: {
+      updatedAt: fechaSubida,
+      appVersion: APP_VERSION,
+      source: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'celular' : 'pc'
+    }
+  };
+
+  /* Una sola escritura atómica: jugadores, juegos y equipo quedan juntos. */
+  await set(ref(database, 'usuarios/' + currentUid), payload);
+
+  /* Verificación real leyendo nuevamente Firebase. */
+  const comprobacion = await get(ref(database, 'usuarios/' + currentUid));
+  const guardado = comprobacion.val();
+  if(!guardado || !guardado.syncInfo || guardado.syncInfo.updatedAt !== fechaSubida) {
+    throw new Error('Firebase no confirmó la escritura.');
+  }
+  cloudReady = true;
+  return obtenerRecord(guardado.games);
+}
+
+window.forzarSincronizacionManual = async function() {
+  if(!navigator.onLine) { alert("No tienes conexión a internet para sincronizar ahora."); return; }
+  if(!currentUid) { alert("Inicia sesión primero para poder guardar en la nube."); return; }
+
+  const local = obtenerRecord(window.games);
+  const confirmar = confirm(
+    `SUBIR DATOS A LA NUBE\n\n` +
+    `Cuenta: ${cuentaActualTexto()}\n` +
+    `Datos locales: ${local.juegos} juegos (${local.ganados} G - ${local.perdidos} P)\n\n` +
+    `¿Confirmas que estos son los datos correctos que deseas guardar?`
+  );
+  if(!confirmar) return;
+
+  try {
+    const boton = document.querySelector('.topbar-badge[onclick="forzarSincronizacionManual()"]');
+    if(boton) { boton.disabled = true; boton.style.opacity = '.65'; }
+    const verificado = await window.enviarDatosLocalesANube(true);
+    alert(
+      `✓ FIREBASE CONFIRMÓ LA SUBIDA\n\n` +
+      `${verificado.juegos} juegos guardados\n` +
+      `Récord: ${verificado.ganados} ganados - ${verificado.perdidos} perdidos\n` +
+      `Cuenta: ${cuentaActualTexto()}`
+    );
+    if(boton) { boton.disabled = false; boton.style.opacity = ''; }
+  } catch(error) {
+    document.querySelectorAll('.topbar-badge').forEach(b => { b.disabled = false; b.style.opacity = ''; });
+    alert(`NO SE PUDO SUBIR A FIREBASE\n\n${error.message || error}`);
+  }
+}
+
+window.forzarDescargaManual = async function() {
+  if(!navigator.onLine) { alert("No tienes conexión para descargar datos."); return; }
+  if(!currentUid) { alert("Inicia sesión primero."); return; }
+
+  try {
+    const snapshot = await get(ref(database, 'usuarios/' + currentUid));
+    const data = snapshot.val();
+    if(!data) { alert(`No hay información guardada en la nube para ${cuentaActualTexto()}.`); return; }
+
+    const nube = obtenerRecord(data.games);
+    const local = obtenerRecord(window.games);
+    const fecha = data.syncInfo && data.syncInfo.updatedAt
+      ? new Date(data.syncInfo.updatedAt).toLocaleString()
+      : 'fecha no disponible';
+
+    const confirmar = confirm(
+      `BAJAR DATOS DE LA NUBE\n\n` +
+      `Cuenta: ${cuentaActualTexto()}\n\n` +
+      `NUBE: ${nube.juegos} juegos (${nube.ganados} G - ${nube.perdidos} P)\n` +
+      `Última subida: ${fecha}\n\n` +
+      `ESTE DISPOSITIVO: ${local.juegos} juegos (${local.ganados} G - ${local.perdidos} P)\n\n` +
+      `¿Reemplazar los datos de este dispositivo con los de la nube?`
+    );
+    if(!confirmar) return;
+
+    /* Respaldo local recuperable antes de reemplazar. */
+    localStorage.setItem('vip_backup_before_cloud', JSON.stringify({
+      players: window.players,
+      games: window.games,
+      teamName: localStorage.getItem('vip_team_name'),
+      savedAt: Date.now()
+    }));
+    aplicarDatosNube(data);
+    cloudReady = true;
+    refrescarPantallasConDatosNuevos();
+    alert(`✓ DATOS DESCARGADOS\n\nAhora este dispositivo tiene ${nube.ganados} ganados y ${nube.perdidos} perdidos.`);
+  } catch(error) {
+    alert(`NO SE PUDIERON DESCARGAR LOS DATOS\n\n${error.message || error}`);
+  }
 }
 
 window.actualizarAplicacion = function() {
