@@ -135,6 +135,11 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 .topbar { background: var(--primary); padding: 12px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 .topbar-title { color: #E6F1FB; font-size: 15px; font-weight: 700; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .topbar-badge { background: var(--success); color: white; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.sync-live-status { color:#FFF; background:#64748B; font-size:9px; font-weight:700; padding:4px 7px; border-radius:14px; display:flex; align-items:center; gap:4px; white-space:nowrap; flex-shrink:0; transition:.2s; }
+.sync-live-status.sync-ok { background:#15803D; }
+.sync-live-status.sync-working { background:#D97706; }
+.sync-live-status.sync-remote { background:#2563EB; }
+.sync-live-status.sync-offline, .sync-live-status.sync-error { background:#B91C1C; }
 .btn-topbar-action { background: transparent; border: none; color: #FFF; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 6px; background: rgba(255,255,255,0.1); margin-left: 2px; }
 .btn-logout { background: transparent; border: none; color: #FFAAAA; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; margin-left: 4px; }
 
@@ -390,6 +395,9 @@ body.only-input-mode table { min-width: 500px !important; }
     gap: 0;
   }
   .topbar-badge i { font-size: 15px; }
+  .sync-live-status { width:28px; height:28px; padding:0; justify-content:center; }
+  .sync-live-status span { display:none; }
+  .sync-live-status i { font-size:15px; }
   .btn-topbar-action { width: 28px; height: 28px; padding: 3px; }
   .btn-topbar-action i { font-size: 14px !important; }
   .btn-logout { width: 26px; height: 28px; padding: 2px; }
@@ -716,6 +724,10 @@ body.only-input-mode table { min-width: 500px !important; }
   <div class="topbar">
     <i class="ti ti-ball-baseball" style="font-size:18px;color:var(--accent)"></i>
     <span class="topbar-title" id="topbar-team-name">NOMBRE DE TU EQUIPO</span>
+
+    <span class="sync-live-status" id="sync-live-status" title="Estado de sincronización con Firebase">
+      <i class="ti ti-cloud"></i><span>Conectando</span>
+    </span>
     
     <button class="topbar-badge" onclick="forzarSincronizacionManual()" title="Forzar respaldo en la nube">
       <i class="ti ti-cloud-upload"></i> Subir Datos
@@ -1009,7 +1021,7 @@ body.only-input-mode table { min-width: 500px !important; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDlT8OgrOCtCaOPQsLvQEd0ze5Kzh2uWuo",
@@ -1026,11 +1038,19 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '1.6';
+const APP_VERSION = '1.7';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
 
 let currentUid = localStorage.getItem('vip_uid') || null;
 let cloudReady = false;
+let localDirty = false;
+let syncInProgress = false;
+let syncTimer = null;
+let realtimeUnsubscribe = null;
+let cloudRevision = parseInt(localStorage.getItem('vip_cloud_revision') || '0', 10) || 0;
+const syncDeviceId = localStorage.getItem('vip_device_id') ||
+  (`dev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,9)}`);
+localStorage.setItem('vip_device_id', syncDeviceId);
 
 window.avanzarDesdeBienvenida = function(seccion) {
   window._welcomeTargetSec = seccion || 'entrada';
@@ -1043,13 +1063,17 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('online', actualizarEstadoInternet);
   window.addEventListener('offline', actualizarEstadoInternet);
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUid = user.uid;
       localStorage.setItem('vip_uid', user.uid);
-      descargarDatosDeNube(user.uid);
+      cloudRevision = parseInt(localStorage.getItem('vip_cloud_revision_' + user.uid) || '0', 10) || 0;
+      await descargarDatosDeNube(user.uid);
+      iniciarSincronizacionTiempoReal(user.uid);
     } else {
+      if(realtimeUnsubscribe) { realtimeUnsubscribe(); realtimeUnsubscribe = null; }
       currentUid = null;
+      cloudReady = false;
       localStorage.removeItem('vip_uid');
       document.getElementById('welcome-screen').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
@@ -1062,11 +1086,117 @@ function actualizarEstadoInternet() {
   const ind = document.getElementById('offline-indicator');
   if(!navigator.onLine) {
     ind.style.display = 'block';
+    actualizarEstadoSync('Sin conexión', 'offline', 'ti-cloud-off');
   } else {
     ind.style.display = 'none';
     /* IMPORTANTE: nunca subir automáticamente al abrir o reconectar.
        Un dispositivo con datos viejos podría sobrescribir la nube. */
+    if(localDirty && cloudReady) programarSubidaAutomatica();
   }
+}
+
+function actualizarEstadoSync(texto, tipo = 'working', icono = 'ti-cloud') {
+  const estado = document.getElementById('sync-live-status');
+  if(!estado) return;
+  estado.className = `sync-live-status sync-${tipo}`;
+  estado.innerHTML = `<i class="ti ${icono}"></i><span>${texto}</span>`;
+  estado.title = texto;
+}
+
+function guardarRevisionNube(revision) {
+  cloudRevision = Math.max(0, parseInt(revision, 10) || 0);
+  if(currentUid) localStorage.setItem('vip_cloud_revision_' + currentUid, String(cloudRevision));
+}
+
+function respaldarDatosLocales(motivo = 'sincronizacion') {
+  localStorage.setItem('vip_backup_realtime', JSON.stringify({
+    players: window.players || [], games: window.games || [],
+    teamName: localStorage.getItem('vip_team_name'), savedAt: Date.now(), motivo
+  }));
+}
+
+function listaDatos(valor) {
+  return Array.isArray(valor) ? valor.filter(Boolean) : Object.values(valor || {}).filter(Boolean);
+}
+
+/* Si dos dispositivos editan casi a la vez, conserva todos los partidos.
+   Para un mismo partido prevalece la copia editada en este dispositivo. */
+function combinarDatosNubeConLocales(data) {
+  const juegos = new Map();
+  listaDatos(data && data.games).forEach(g => juegos.set(String(g.id || `${g.fecha}-${g.num}`), g));
+  listaDatos(window.games).forEach(g => juegos.set(String(g.id || `${g.fecha}-${g.num}`), g));
+  const jugadores = new Map();
+  listaDatos(data && data.players).forEach(p => jugadores.set(`${p.cod || ''}|${p.nombre || ''}`, p));
+  listaDatos(window.players).forEach(p => jugadores.set(`${p.cod || ''}|${p.nombre || ''}`, p));
+  window.games = Array.from(juegos.values()).sort((a,b) =>
+    String(a.fecha || '').localeCompare(String(b.fecha || '')) || (Number(a.num) || 0) - (Number(b.num) || 0));
+  window.players = Array.from(jugadores.values());
+  localStorage.setItem('vip_games', JSON.stringify(window.games));
+  localStorage.setItem('vip_players', JSON.stringify(window.players));
+}
+
+function programarSubidaAutomatica() {
+  localDirty = true;
+  if(syncTimer) clearTimeout(syncTimer);
+  if(!navigator.onLine || !currentUid || !cloudReady) {
+    actualizarEstadoSync(navigator.onLine ? 'Cambio pendiente' : 'Sin conexión', navigator.onLine ? 'working' : 'offline', navigator.onLine ? 'ti-clock' : 'ti-cloud-off');
+    return;
+  }
+  actualizarEstadoSync('Guardando…', 'working', 'ti-loader-2');
+  syncTimer = setTimeout(async () => {
+    syncTimer = null;
+    try { await ejecutarSubidaFirebase(false); }
+    catch(error) {
+      console.error('Sincronización automática pendiente:', error);
+      actualizarEstadoSync('Reintentando…', 'error', 'ti-alert-circle');
+      if(localDirty && navigator.onLine) syncTimer = setTimeout(programarSubidaAutomatica, 5000);
+    }
+  }, 1500);
+}
+
+function iniciarSincronizacionTiempoReal(uid) {
+  if(realtimeUnsubscribe) realtimeUnsubscribe();
+  let primeraEmision = true;
+  realtimeUnsubscribe = onValue(ref(database, 'usuarios/' + uid), snapshot => {
+    const data = snapshot.val();
+    if(uid !== currentUid) return;
+    /* descargarDatosDeNube ya evaluó la primera copia; evitamos aplicarla dos veces. */
+    if(primeraEmision) {
+      primeraEmision = false;
+      if(localDirty) programarSubidaAutomatica();
+      return;
+    }
+    if(!data) return;
+    const info = data.syncInfo || {};
+    const revisionRemota = parseInt(info.revision || '0', 10) || 0;
+    const cambioPropio = info.deviceId && info.deviceId === syncDeviceId;
+    if(cambioPropio) {
+      guardarRevisionNube(Math.max(cloudRevision, revisionRemota));
+      if(!localDirty) actualizarEstadoSync('Sincronizado', 'ok', 'ti-cloud-check');
+      return;
+    }
+    if(revisionRemota && revisionRemota <= cloudRevision) return;
+    if(localDirty) {
+      respaldarDatosLocales('conflicto_automatico');
+      combinarDatosNubeConLocales(data);
+      guardarRevisionNube(revisionRemota);
+      refrescarPantallasConDatosNuevos();
+      actualizarEstadoSync('Combinando…', 'working', 'ti-arrows-join');
+      programarSubidaAutomatica();
+      return;
+    }
+    respaldarDatosLocales('antes_de_actualizacion_remota');
+    aplicarDatosNube(data);
+    guardarRevisionNube(revisionRemota);
+    refrescarPantallasConDatosNuevos();
+    actualizarEstadoSync('Actualizado', 'remote', 'ti-cloud-download');
+    const record = obtenerRecord(data.games);
+    if(typeof window.showToast === 'function') window.showToast(`Datos recibidos: ${record.ganados} G - ${record.perdidos} P`);
+    setTimeout(() => { if(!localDirty) actualizarEstadoSync('Sincronizado', 'ok', 'ti-cloud-check'); }, 2200);
+  }, error => {
+    console.error('Error del listener de Firebase:', error);
+    actualizarEstadoSync('Error de nube', 'error', 'ti-cloud-off');
+  });
 }
 
 function evaluarPantallaInicial() {
@@ -1169,6 +1299,7 @@ async function descargarDatosDeNube(uid) {
     const snapshot = await get(ref(database, 'usuarios/' + uid));
     const data = snapshot.val();
     if(data) {
+      guardarRevisionNube(data.syncInfo && data.syncInfo.revision);
       const nube = obtenerRecord(data.games);
       const local = obtenerRecord(window.games);
 
@@ -1176,7 +1307,9 @@ async function descargarDatosDeNube(uid) {
          cuando tiene más juegos o cuando este dispositivo está vacío. */
       if(local.juegos === 0 || nube.juegos > local.juegos) {
         aplicarDatosNube(data);
+        localDirty = false;
       } else if(local.juegos > nube.juegos) {
+        localDirty = true;
         console.warn(`Se conservaron datos locales: ${local.juegos} juegos locales vs ${nube.juegos} en nube.`);
         setTimeout(() => alert(
           `PROTECCIÓN DE DATOS\n\n` +
@@ -1191,6 +1324,7 @@ async function descargarDatosDeNube(uid) {
     /* Si la nube está vacía, se conservan los datos locales. Nunca se
        reemplazan automáticamente por listas vacías. */
     cloudReady = true;
+    actualizarEstadoSync(localDirty ? 'Cambio pendiente' : 'Sincronizado', localDirty ? 'working' : 'ok', localDirty ? 'ti-clock' : 'ti-cloud-check');
   } catch(error) {
     console.error('No se pudieron descargar los datos:', error);
     cloudReady = false;
@@ -1201,6 +1335,14 @@ async function descargarDatosDeNube(uid) {
 }
 
 window.enviarDatosLocalesANube = async function(forzar = false) {
+  if(!forzar) {
+    programarSubidaAutomatica();
+    return null;
+  }
+  return ejecutarSubidaFirebase(true);
+}
+
+async function ejecutarSubidaFirebase(forzar = false) {
   if(!currentUid) {
     if(forzar) throw new Error('No hay una sesión iniciada.');
     return null;
@@ -1213,29 +1355,57 @@ window.enviarDatosLocalesANube = async function(forzar = false) {
     return null;
   }
 
-  const fechaSubida = Date.now();
-  const payload = {
-    players: window.players || [],
-    games: window.games || [],
-    teamName: localStorage.getItem('vip_team_name') || "NOMBRE DE TU EQUIPO",
-    syncInfo: {
-      updatedAt: fechaSubida,
-      appVersion: APP_VERSION,
-      source: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'celular' : 'pc'
-    }
-  };
-
-  /* Una sola escritura atómica: jugadores, juegos y equipo quedan juntos. */
-  await set(ref(database, 'usuarios/' + currentUid), payload);
-
-  /* Verificación real leyendo nuevamente Firebase. */
-  const comprobacion = await get(ref(database, 'usuarios/' + currentUid));
-  const guardado = comprobacion.val();
-  if(!guardado || !guardado.syncInfo || guardado.syncInfo.updatedAt !== fechaSubida) {
-    throw new Error('Firebase no confirmó la escritura.');
+  if(syncInProgress) {
+    if(forzar) throw new Error('Ya hay una sincronización en curso. Espera un momento e inténtalo otra vez.');
+    return null;
   }
-  cloudReady = true;
-  return obtenerRecord(guardado.games);
+  syncInProgress = true;
+  actualizarEstadoSync('Guardando…', 'working', 'ti-loader-2');
+
+  try {
+    const anterior = await get(ref(database, 'usuarios/' + currentUid));
+    const datosAnteriores = anterior.val();
+    const revisionAnterior = parseInt(datosAnteriores && datosAnteriores.syncInfo && datosAnteriores.syncInfo.revision || '0', 10) || 0;
+    const otroDispositivo = datosAnteriores && datosAnteriores.syncInfo && datosAnteriores.syncInfo.deviceId !== syncDeviceId;
+    if(revisionAnterior > cloudRevision && otroDispositivo) {
+      respaldarDatosLocales('antes_de_combinar_subida');
+      combinarDatosNubeConLocales(datosAnteriores);
+      refrescarPantallasConDatosNuevos();
+    }
+    guardarRevisionNube(Math.max(cloudRevision, revisionAnterior));
+
+    const fechaSubida = Date.now();
+    const nuevaRevision = cloudRevision + 1;
+    const payload = {
+      players: window.players || [], games: window.games || [],
+      teamName: localStorage.getItem('vip_team_name') || "NOMBRE DE TU EQUIPO",
+      syncInfo: {
+        updatedAt: fechaSubida, appVersion: APP_VERSION,
+        source: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'celular' : 'pc',
+        deviceId: syncDeviceId, revision: nuevaRevision
+      }
+    };
+
+    await set(ref(database, 'usuarios/' + currentUid), payload);
+
+    const comprobacion = await get(ref(database, 'usuarios/' + currentUid));
+    const guardado = comprobacion.val();
+    if(!guardado || !guardado.syncInfo || guardado.syncInfo.updatedAt !== fechaSubida ||
+       guardado.syncInfo.deviceId !== syncDeviceId || guardado.syncInfo.revision !== nuevaRevision) {
+      throw new Error('Firebase no confirmó la escritura.');
+    }
+    guardarRevisionNube(nuevaRevision);
+    localDirty = false;
+    cloudReady = true;
+    actualizarEstadoSync('Sincronizado', 'ok', 'ti-cloud-check');
+    return obtenerRecord(guardado.games);
+  } catch(error) {
+    localDirty = true;
+    actualizarEstadoSync('Pendiente', 'error', 'ti-alert-circle');
+    throw error;
+  } finally {
+    syncInProgress = false;
+  }
 }
 
 window.forzarSincronizacionManual = async function() {
@@ -1301,8 +1471,11 @@ window.forzarDescargaManual = async function() {
       savedAt: Date.now()
     }));
     aplicarDatosNube(data);
+    guardarRevisionNube(data.syncInfo && data.syncInfo.revision);
+    localDirty = false;
     cloudReady = true;
     refrescarPantallasConDatosNuevos();
+    actualizarEstadoSync('Sincronizado', 'ok', 'ti-cloud-check');
     alert(`✓ DATOS DESCARGADOS\n\nAhora este dispositivo tiene ${nube.ganados} ganados y ${nube.perdidos} perdidos.`);
   } catch(error) {
     alert(`NO SE PUDIERON DESCARGAR LOS DATOS\n\n${error.message || error}`);
