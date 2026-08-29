@@ -1038,7 +1038,7 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '1.7';
+const APP_VERSION = '1.8';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
 
 let currentUid = localStorage.getItem('vip_uid') || null;
@@ -1813,8 +1813,17 @@ window.buildTablesOnce = function() {
   if(!tbodyBat || !tbodyPich) return; 
   
   tbodyBat.innerHTML = ''; tbodyPich.innerHTML = '';
-  const battersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => (p.activo !== false) && (p.rol === 'Bateador' || p.rol === 'Ambos'));
-  const pitchersList = window.players.map((p, i) => ({ ...p, _origIndex: i })).filter(p => (p.activo !== false) && (p.rol === 'Pitcher' || p.rol === 'Ambos'));
+  const ordenarPorNombre = (a, b) => String(a.nombre || '').localeCompare(
+    String(b.nombre || ''), 'es', { sensitivity: 'base', numeric: true }
+  );
+  const battersList = window.players
+    .map((p, i) => ({ ...p, _origIndex: i }))
+    .filter(p => (p.activo !== false) && (p.rol === 'Bateador' || p.rol === 'Ambos'))
+    .sort(ordenarPorNombre);
+  const pitchersList = window.players
+    .map((p, i) => ({ ...p, _origIndex: i }))
+    .filter(p => (p.activo !== false) && (p.rol === 'Pitcher' || p.rol === 'Ambos'))
+    .sort(ordenarPorNombre);
 
   if(!battersList.length) {
     tbodyBat.innerHTML = `<tr><td colspan="20" class="empty">No hay jugadores activos en el Roster. Activa o agrega integrantes en la pestaña Jugadores.</td></tr>`;
