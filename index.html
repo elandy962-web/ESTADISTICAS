@@ -133,7 +133,9 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 #app-content { display: none; }
 
 .topbar { background: var(--primary); padding: 12px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.topbar-title { color: #E6F1FB; font-size: 15px; font-weight: 700; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.topbar-identity { min-width:0; flex:1; display:flex; flex-direction:column; }
+.topbar-title { color: #E6F1FB; font-size: 15px; font-weight: 700; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-account { color:#A9D4F7; font-size:8px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-transform:lowercase; }
 .topbar-badge { background: var(--success); color: white; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; gap: 4px; }
 .sync-live-status { color:#FFF; background:#64748B; font-size:9px; font-weight:700; padding:4px 7px; border-radius:14px; display:flex; align-items:center; gap:4px; white-space:nowrap; flex-shrink:0; transition:.2s; }
 .sync-live-status.sync-ok { background:#15803D; }
@@ -723,7 +725,10 @@ body.only-input-mode table { min-width: 500px !important; }
 
   <div class="topbar">
     <i class="ti ti-ball-baseball" style="font-size:18px;color:var(--accent)"></i>
-    <span class="topbar-title" id="topbar-team-name">NOMBRE DE TU EQUIPO</span>
+    <div class="topbar-identity">
+      <span class="topbar-title" id="topbar-team-name">NOMBRE DE TU EQUIPO</span>
+      <span class="topbar-account" id="topbar-account-email">sin sesión</span>
+    </div>
 
     <span class="sync-live-status" id="sync-live-status" title="Estado de sincronización con Firebase">
       <i class="ti ti-cloud"></i><span>Conectando</span>
@@ -1038,7 +1043,7 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '2.1';
+const APP_VERSION = '2.2';
 const CUENTA_PRINCIPAL_EMAIL = 'perversos@equipo.com';
 const VERSION_AISLAMIENTO_CUENTAS = 'cuentas-separadas-v1';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
@@ -1104,6 +1109,7 @@ function activarAlmacenamientoDelUsuario(uid) {
   }
 
   localStorage.setItem('vip_data_owner_uid', uid);
+  if(typeof window.reiniciarEstadoVisualCuenta === 'function') window.reiniciarEstadoVisualCuenta();
 }
 
 async function prepararCuentaSeparada(user) {
@@ -1130,6 +1136,18 @@ async function prepararCuentaSeparada(user) {
       guardarDatosDeUsuario(user.uid);
       localStorage.setItem(marcaLocal, VERSION_AISLAMIENTO_CUENTAS);
       localDirty = false;
+    }
+    /* Corrige únicamente el nombre heredado; conserva jugadores y partidos. */
+    if(/perversos/i.test(String(datosAnteriores.teamName || ''))) {
+      const fechaCorreccion = Date.now();
+      datosAnteriores.teamName = 'NOMBRE DE TU EQUIPO';
+      datosAnteriores.syncInfo = {
+        ...(datosAnteriores.syncInfo || {}), updatedAt: fechaCorreccion,
+        appVersion: APP_VERSION, source: 'correccion-nombre-cuenta',
+        deviceId: syncDeviceId,
+        revision: (parseInt(datosAnteriores.syncInfo && datosAnteriores.syncInfo.revision || '0', 10) || 0) + 1
+      };
+      await set(referenciaUsuario, datosAnteriores);
     }
     return true;
   }
@@ -1194,6 +1212,8 @@ window.addEventListener('DOMContentLoaded', () => {
       activarAlmacenamientoDelUsuario(user.uid);
       currentUid = user.uid;
       localStorage.setItem('vip_uid', user.uid);
+      const correoVisible = document.getElementById('topbar-account-email');
+      if(correoVisible) correoVisible.textContent = user.email || ('ID …' + user.uid.slice(-6));
       cloudRevision = parseInt(localStorage.getItem('vip_cloud_revision_' + user.uid) || '0', 10) || 0;
       let cuentaLista = false;
       try {
@@ -1215,6 +1235,8 @@ window.addEventListener('DOMContentLoaded', () => {
       cloudReady = false;
       localDirty = false;
       localStorage.removeItem('vip_uid');
+      const correoVisible = document.getElementById('topbar-account-email');
+      if(correoVisible) correoVisible.textContent = 'sin sesión';
       document.getElementById('welcome-screen').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('app-content').style.display = 'none';
@@ -1458,6 +1480,14 @@ async function descargarDatosDeNube(uid) {
     const data = snapshot.val();
     if(data) {
       guardarRevisionNube(data.syncInfo && data.syncInfo.revision);
+      /* El nombre pertenece a la cuenta autenticada y se actualiza aunque la
+         cantidad de partidos local y remota sea la misma. */
+      const nombreNube = data.teamName || 'NOMBRE DE TU EQUIPO';
+      localStorage.setItem('vip_team_name', nombreNube);
+      localStorage.setItem(claveDatosUsuario('team_name', uid), nombreNube);
+      window.updateTeamName(nombreNube);
+      const campoEquipo = document.getElementById('inp-mi-equipo');
+      if(campoEquipo) campoEquipo.value = nombreNube;
       const nube = obtenerRecord(data.games);
       const local = obtenerRecord(window.games);
 
@@ -1743,6 +1773,23 @@ window.actualizarAplicacion = function() {
 window.players = JSON.parse(localStorage.getItem('vip_players')) || [];
 window.games = JSON.parse(localStorage.getItem('vip_games')) || [];
 let filtG=null;
+
+window.reiniciarEstadoVisualCuenta = function() {
+  filtG = null;
+  window._editingGameId = null;
+  const banner = document.getElementById('edit-mode-banner');
+  if(banner) banner.style.display = 'none';
+  ['f-desde','f-hasta','a-desde','a-hasta'].forEach(id => {
+    const campo = document.getElementById(id);
+    if(campo) campo.value = '';
+  });
+  const rival = document.getElementById('inp-rival');
+  const resultado = document.getElementById('inp-resultado');
+  const numero = document.getElementById('inp-juego');
+  if(rival) rival.value = '';
+  if(resultado) resultado.value = 'G';
+  if(numero) numero.value = '1';
+};
 
 const BAT_INP=['jj','vb','ca','ce','h1','h2','h3','h4','bb','so','sf'];
 const PICH_INP=['jg','jp','bb_p','so_p'];
@@ -2769,7 +2816,9 @@ window.renderAcum = function(){
   src.forEach(g => {
     g.players.forEach(p => {
       const k = p.cod + '_' + p.nombre;
-      if(!activeMap[k]) return;
+      /* Solo excluye a quien esté marcado explícitamente como inactivo.
+         Si el roster cambió de nombre/código, el partido guardado aún cuenta. */
+      if(activeMap[k] === false) return;
       if(p.rol === 'Bateador' || p.rol === 'Ambos') {
         if(!mapBat[k]) mapBat[k] = { cod: p.cod, nombre: p.nombre, ...Object.fromEntries(BAT_INP.map(f => [f, 0])) };
         BAT_INP.forEach(f => mapBat[k][f] += parseInt(p[f] || 0));
