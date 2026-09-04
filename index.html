@@ -1043,7 +1043,7 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '2.2';
+const APP_VERSION = '2.3';
 const CUENTA_PRINCIPAL_EMAIL = 'perversos@equipo.com';
 const VERSION_AISLAMIENTO_CUENTAS = 'cuentas-separadas-v1';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
@@ -2668,7 +2668,9 @@ window.clearStats = function(){
   }
 }
 
-window.saveGame = function(){
+window.saveGame = async function(){
+  const botonGuardar = document.querySelector('button[onclick="saveGame()"]');
+  if(botonGuardar && botonGuardar.disabled) return;
   const fecha = document.getElementById('inp-fecha').value;
   const num = parseInt(document.getElementById('inp-juego').value) || 1;
   const rival = document.getElementById('inp-rival').value.trim() || 'Rival';
@@ -2688,13 +2690,46 @@ window.saveGame = function(){
 
   document.getElementById('edit-mode-banner').style.display = 'none';
   window._editingGameId = null;
-  
-  if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
+
   window.buildTablesOnce();
   document.getElementById('inp-juego').value = num + 1;
   document.getElementById('inp-rival').value = '';
   document.getElementById('inp-resultado').value = 'G';
-  showToast('Juego guardado exitosamente');
+
+  if(botonGuardar) {
+    botonGuardar.disabled = true;
+    botonGuardar.dataset.textoOriginal = botonGuardar.innerHTML;
+    botonGuardar.innerHTML = '<i class="ti ti-loader-2"></i> Guardando en nube…';
+  }
+
+  try {
+    if(!navigator.onLine) throw new Error('Sin conexión');
+    if(typeof window.enviarDatosLocalesANube !== 'function') throw new Error('Sincronización no disponible');
+    await window.enviarDatosLocalesANube(true);
+    showToast('✓ Partido guardado y confirmado en Firebase');
+  } catch(error) {
+    console.error('El partido quedó pendiente de sincronización:', error);
+    if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube(false);
+    showToast('Partido guardado; pendiente de subir cuando haya conexión');
+  } finally {
+    if(botonGuardar) {
+      botonGuardar.disabled = false;
+      botonGuardar.innerHTML = botonGuardar.dataset.textoOriginal || '<i class="ti ti-device-floppy"></i> Guardar';
+    }
+  }
+}
+
+/* También guarda inmediatamente cuando se editan estadísticas desde el modal. */
+window.saveGameToFirebase = async function() {
+  localStorage.setItem('vip_games', JSON.stringify(window.games));
+  try {
+    if(!navigator.onLine) throw new Error('Sin conexión');
+    await window.enviarDatosLocalesANube(true);
+    showToast('✓ Cambios del partido guardados en Firebase');
+  } catch(error) {
+    if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube(false);
+    showToast('Cambios guardados; sincronización pendiente');
+  }
 }
 
 function renderHistory(){
