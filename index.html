@@ -1038,7 +1038,7 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
 const CUENTA_PRINCIPAL_EMAIL = 'perversos@equipo.com';
 const VERSION_AISLAMIENTO_CUENTAS = 'cuentas-separadas-v1';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
@@ -1118,6 +1118,19 @@ async function prepararCuentaSeparada(user) {
   const snapshot = await get(referenciaUsuario);
   const datosAnteriores = snapshot.val() || {};
   if(datosAnteriores.accountMeta && datosAnteriores.accountMeta.isolationVersion === VERSION_AISLAMIENTO_CUENTAS) {
+    /* La nube ya fue limpiada, pero este dispositivo puede conservar la copia
+       mezclada de una versión anterior. Se descarta una sola vez por equipo. */
+    const marcaLocal = 'vip_isolation_local_' + user.uid;
+    if(localStorage.getItem(marcaLocal) !== VERSION_AISLAMIENTO_CUENTAS) {
+      window.players = [];
+      window.games = [];
+      localStorage.setItem('vip_players', '[]');
+      localStorage.setItem('vip_games', '[]');
+      localStorage.setItem('vip_team_name', 'NOMBRE DE TU EQUIPO');
+      guardarDatosDeUsuario(user.uid);
+      localStorage.setItem(marcaLocal, VERSION_AISLAMIENTO_CUENTAS);
+      localDirty = false;
+    }
     return true;
   }
 
@@ -1152,6 +1165,7 @@ async function prepararCuentaSeparada(user) {
   localStorage.setItem('vip_games', '[]');
   localStorage.setItem('vip_team_name', 'NOMBRE DE TU EQUIPO');
   guardarDatosDeUsuario(user.uid);
+  localStorage.setItem('vip_isolation_local_' + user.uid, VERSION_AISLAMIENTO_CUENTAS);
   guardarRevisionNube(revisionAnterior + 1);
   localDirty = false;
   alert(`Cuenta ${correo} preparada correctamente.\n\nComenzará vacía y sus próximos datos quedarán separados de Perversos.`);
@@ -1285,7 +1299,7 @@ function programarSubidaAutomatica() {
 function iniciarSincronizacionTiempoReal(uid) {
   if(realtimeUnsubscribe) realtimeUnsubscribe();
   let primeraEmision = true;
-  realtimeUnsubscribe = onValue(ref(database, 'usuarios/' + uid), snapshot => {
+  realtimeUnsubscribe = onValue(ref(database, 'usuarios/' + uid), async snapshot => {
     const data = snapshot.val();
     if(uid !== currentUid) return;
     /* descargarDatosDeNube ya evaluó la primera copia; evitamos aplicarla dos veces. */
@@ -1295,6 +1309,20 @@ function iniciarSincronizacionTiempoReal(uid) {
       return;
     }
     if(!data) return;
+    const esCuentaPrincipal = String(auth.currentUser && auth.currentUser.email || '').trim().toLowerCase() === CUENTA_PRINCIPAL_EMAIL;
+    const nubeSeparada = data.accountMeta && data.accountMeta.isolationVersion === VERSION_AISLAMIENTO_CUENTAS;
+    if(!esCuentaPrincipal && !nubeSeparada) {
+      /* Bloquea una subida vieja proveniente de otro dispositivo sin actualizar. */
+      actualizarEstadoSync('Protegiendo cuenta…', 'working', 'ti-shield-check');
+      try {
+        await prepararCuentaSeparada(auth.currentUser);
+        await descargarDatosDeNube(uid);
+      } catch(error) {
+        console.error('No se pudo bloquear una copia antigua:', error);
+        actualizarEstadoSync('Actualiza los dispositivos', 'error', 'ti-alert-circle');
+      }
+      return;
+    }
     const info = data.syncInfo || {};
     const revisionRemota = parseInt(info.revision || '0', 10) || 0;
     const cambioPropio = info.deviceId && info.deviceId === syncDeviceId;
@@ -1454,6 +1482,9 @@ async function descargarDatosDeNube(uid) {
     /* Si la nube está vacía, se conservan los datos locales. Nunca se
        reemplazan automáticamente por listas vacías. */
     cloudReady = true;
+    /* Siempre reconstruye las pantallas, incluso cuando ambas cuentas tienen
+       cero juegos; así no queda visible el reporte del usuario anterior. */
+    refrescarPantallasConDatosNuevos();
     actualizarEstadoSync(localDirty ? 'Cambio pendiente' : 'Sincronizado', localDirty ? 'working' : 'ok', localDirty ? 'ti-clock' : 'ti-cloud-check');
   } catch(error) {
     console.error('No se pudieron descargar los datos:', error);
