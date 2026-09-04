@@ -1038,10 +1038,13 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '1.8';
+const APP_VERSION = '2.0';
+const CUENTA_PRINCIPAL_EMAIL = 'perversos@equipo.com';
+const VERSION_AISLAMIENTO_CUENTAS = 'cuentas-separadas-v1';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
 
-let currentUid = localStorage.getItem('vip_uid') || null;
+const uidGuardadoAlAbrir = localStorage.getItem('vip_uid') || null;
+let currentUid = uidGuardadoAlAbrir;
 let cloudReady = false;
 let localDirty = false;
 let syncInProgress = false;
@@ -1051,6 +1054,109 @@ let cloudRevision = parseInt(localStorage.getItem('vip_cloud_revision') || '0', 
 const syncDeviceId = localStorage.getItem('vip_device_id') ||
   (`dev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,9)}`);
 localStorage.setItem('vip_device_id', syncDeviceId);
+
+function claveDatosUsuario(tipo, uid) {
+  return `vip_${tipo}_${uid}`;
+}
+
+function usuarioTieneDatosSeparados(uid) {
+  return ['players', 'games', 'team_name'].some(tipo =>
+    localStorage.getItem(claveDatosUsuario(tipo, uid)) !== null
+  );
+}
+
+/* Cada cuenta conserva su propia copia local. Las claves generales se mantienen
+   únicamente como espejo de la cuenta activa para el resto de la aplicación. */
+function guardarDatosDeUsuario(uid) {
+  if(!uid) return;
+  localStorage.setItem(claveDatosUsuario('players', uid), JSON.stringify(window.players || []));
+  localStorage.setItem(claveDatosUsuario('games', uid), JSON.stringify(window.games || []));
+  localStorage.setItem(claveDatosUsuario('team_name', uid), localStorage.getItem('vip_team_name') || 'NOMBRE DE TU EQUIPO');
+}
+
+function cargarDatosDeUsuario(uid) {
+  const players = JSON.parse(localStorage.getItem(claveDatosUsuario('players', uid)) || '[]');
+  const games = JSON.parse(localStorage.getItem(claveDatosUsuario('games', uid)) || '[]');
+  const teamName = localStorage.getItem(claveDatosUsuario('team_name', uid)) || 'NOMBRE DE TU EQUIPO';
+  window.players = Array.isArray(players) ? players : [];
+  window.games = Array.isArray(games) ? games : [];
+  localStorage.setItem('vip_players', JSON.stringify(window.players));
+  localStorage.setItem('vip_games', JSON.stringify(window.games));
+  localStorage.setItem('vip_team_name', teamName);
+  window.updateTeamName(teamName);
+}
+
+function activarAlmacenamientoDelUsuario(uid) {
+  const propietarioAnterior = localStorage.getItem('vip_data_owner_uid') || currentUid || uidGuardadoAlAbrir;
+
+  if(propietarioAnterior && propietarioAnterior !== uid) {
+    guardarDatosDeUsuario(propietarioAnterior);
+  }
+
+  /* Migra una sola vez los datos de versiones anteriores cuando sabemos que
+     pertenecen a la misma sesión. Nunca los asigna a un usuario diferente. */
+  if(propietarioAnterior === uid && !usuarioTieneDatosSeparados(uid)) {
+    guardarDatosDeUsuario(uid);
+  }
+
+  if(propietarioAnterior !== uid || usuarioTieneDatosSeparados(uid)) {
+    cargarDatosDeUsuario(uid);
+  }
+
+  localStorage.setItem('vip_data_owner_uid', uid);
+}
+
+async function prepararCuentaSeparada(user) {
+  const correo = String(user && user.email || '').trim().toLowerCase();
+  if(correo === CUENTA_PRINCIPAL_EMAIL) return true;
+  if(!navigator.onLine) {
+    alert('Para preparar esta cuenta por primera vez necesitas conexión a internet. La cuenta Perversos no será modificada.');
+    return false;
+  }
+
+  const referenciaUsuario = ref(database, 'usuarios/' + user.uid);
+  const snapshot = await get(referenciaUsuario);
+  const datosAnteriores = snapshot.val() || {};
+  if(datosAnteriores.accountMeta && datosAnteriores.accountMeta.isolationVersion === VERSION_AISLAMIENTO_CUENTAS) {
+    return true;
+  }
+
+  const fecha = Date.now();
+  const revisionAnterior = parseInt(datosAnteriores.syncInfo && datosAnteriores.syncInfo.revision || '0', 10) || 0;
+  const respaldo = (datosAnteriores.players || datosAnteriores.games || datosAnteriores.teamName) ? {
+    players: datosAnteriores.players || [],
+    games: datosAnteriores.games || [],
+    teamName: datosAnteriores.teamName || 'NOMBRE DE TU EQUIPO',
+    savedAt: fecha,
+    reason: 'limpieza_inicial_por_separacion_de_cuentas'
+  } : null;
+
+  const datosLimpios = {
+    players: [], games: [], teamName: 'NOMBRE DE TU EQUIPO',
+    accountMeta: {
+      isolationVersion: VERSION_AISLAMIENTO_CUENTAS,
+      initializedAt: fecha,
+      protectedAccount: false
+    },
+    syncInfo: {
+      updatedAt: fecha, appVersion: APP_VERSION, source: 'limpieza-cuenta',
+      deviceId: syncDeviceId, revision: revisionAnterior + 1
+    }
+  };
+  if(respaldo) datosLimpios.resetBackup = respaldo;
+
+  await set(referenciaUsuario, datosLimpios);
+  window.players = [];
+  window.games = [];
+  localStorage.setItem('vip_players', '[]');
+  localStorage.setItem('vip_games', '[]');
+  localStorage.setItem('vip_team_name', 'NOMBRE DE TU EQUIPO');
+  guardarDatosDeUsuario(user.uid);
+  guardarRevisionNube(revisionAnterior + 1);
+  localDirty = false;
+  alert(`Cuenta ${correo} preparada correctamente.\n\nComenzará vacía y sus próximos datos quedarán separados de Perversos.`);
+  return true;
+}
 
 window.avanzarDesdeBienvenida = function(seccion) {
   window._welcomeTargetSec = seccion || 'entrada';
@@ -1065,15 +1171,35 @@ window.addEventListener('DOMContentLoaded', () => {
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+      if(currentUid && currentUid !== user.uid) {
+        if(syncTimer) { clearTimeout(syncTimer); syncTimer = null; }
+        if(realtimeUnsubscribe) { realtimeUnsubscribe(); realtimeUnsubscribe = null; }
+        localDirty = false;
+        cloudReady = false;
+      }
+      activarAlmacenamientoDelUsuario(user.uid);
       currentUid = user.uid;
       localStorage.setItem('vip_uid', user.uid);
       cloudRevision = parseInt(localStorage.getItem('vip_cloud_revision_' + user.uid) || '0', 10) || 0;
+      let cuentaLista = false;
+      try {
+        cuentaLista = await prepararCuentaSeparada(user);
+      } catch(error) {
+        console.error('No se pudo preparar la cuenta separada:', error);
+        alert('No se pudo preparar esta cuenta sin afectar a Perversos. Revisa la conexión e inténtalo nuevamente.');
+      }
+      if(!cuentaLista) {
+        await signOut(auth);
+        return;
+      }
       await descargarDatosDeNube(user.uid);
       iniciarSincronizacionTiempoReal(user.uid);
     } else {
       if(realtimeUnsubscribe) { realtimeUnsubscribe(); realtimeUnsubscribe = null; }
+      if(syncTimer) { clearTimeout(syncTimer); syncTimer = null; }
       currentUid = null;
       cloudReady = false;
+      localDirty = false;
       localStorage.removeItem('vip_uid');
       document.getElementById('welcome-screen').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
@@ -1111,7 +1237,7 @@ function guardarRevisionNube(revision) {
 function respaldarDatosLocales(motivo = 'sincronizacion') {
   localStorage.setItem('vip_backup_realtime', JSON.stringify({
     players: window.players || [], games: window.games || [],
-    teamName: localStorage.getItem('vip_team_name'), savedAt: Date.now(), motivo
+    teamName: localStorage.getItem('vip_team_name'), uid: currentUid, savedAt: Date.now(), motivo
   }));
 }
 
@@ -1133,10 +1259,12 @@ function combinarDatosNubeConLocales(data) {
   window.players = Array.from(jugadores.values());
   localStorage.setItem('vip_games', JSON.stringify(window.games));
   localStorage.setItem('vip_players', JSON.stringify(window.players));
+  guardarDatosDeUsuario(currentUid);
 }
 
 function programarSubidaAutomatica() {
   localDirty = true;
+  guardarDatosDeUsuario(currentUid);
   if(syncTimer) clearTimeout(syncTimer);
   if(!navigator.onLine || !currentUid || !cloudReady) {
     actualizarEstadoSync(navigator.onLine ? 'Cambio pendiente' : 'Sin conexión', navigator.onLine ? 'working' : 'offline', navigator.onLine ? 'ti-clock' : 'ti-cloud-off');
@@ -1251,6 +1379,7 @@ window.ejecutarAccionAuth = function() {
 
 window.solicitarCierreSesion = function() {
   if(confirm("¿Deseas cerrar sesión? (Tus datos locales no se borrarán)")) {
+    guardarDatosDeUsuario(currentUid);
     localStorage.removeItem('vip_uid'); 
     signOut(auth).then(() => {
       document.getElementById('welcome-screen').style.display = 'none';
@@ -1285,6 +1414,7 @@ function aplicarDatosNube(data) {
   localStorage.setItem('vip_players', JSON.stringify(window.players));
   localStorage.setItem('vip_games', JSON.stringify(window.games));
   window.updateTeamName(nombre);
+  guardarDatosDeUsuario(currentUid);
 }
 
 function refrescarPantallasConDatosNuevos() {
@@ -1363,6 +1493,7 @@ async function ejecutarSubidaFirebase(forzar = false) {
   actualizarEstadoSync('Guardando…', 'working', 'ti-loader-2');
 
   try {
+    guardarDatosDeUsuario(currentUid);
     const anterior = await get(ref(database, 'usuarios/' + currentUid));
     const datosAnteriores = anterior.val();
     const revisionAnterior = parseInt(datosAnteriores && datosAnteriores.syncInfo && datosAnteriores.syncInfo.revision || '0', 10) || 0;
@@ -1379,12 +1510,19 @@ async function ejecutarSubidaFirebase(forzar = false) {
     const payload = {
       players: window.players || [], games: window.games || [],
       teamName: localStorage.getItem('vip_team_name') || "NOMBRE DE TU EQUIPO",
+      accountMeta: datosAnteriores && datosAnteriores.accountMeta ? datosAnteriores.accountMeta : {
+        isolationVersion: VERSION_AISLAMIENTO_CUENTAS,
+        initializedAt: fechaSubida,
+        protectedAccount: String(auth.currentUser && auth.currentUser.email || '').toLowerCase() === CUENTA_PRINCIPAL_EMAIL
+      },
       syncInfo: {
         updatedAt: fechaSubida, appVersion: APP_VERSION,
         source: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'celular' : 'pc',
         deviceId: syncDeviceId, revision: nuevaRevision
       }
     };
+    /* Conserva el respaldo recuperable creado al limpiar una cuenta mezclada. */
+    if(datosAnteriores && datosAnteriores.resetBackup) payload.resetBackup = datosAnteriores.resetBackup;
 
     await set(ref(database, 'usuarios/' + currentUid), payload);
 
