@@ -51,6 +51,7 @@ body { background: var(--bg-app); color: var(--text-main); padding-bottom: 85px;
 #welcome-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, var(--primary) 0%, var(--bg-dark) 100%); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; color: white; }
 .welcome-card { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); padding: 35px 24px; border-radius: 20px; max-width: 360px; width: 100%; backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 .welcome-card h1 { font-size: 26px; font-weight: 900; letter-spacing: 1px; margin-top: 10px; text-transform: uppercase; color: #FFF; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.welcome-team-name { font-size:clamp(24px, 7vw, 36px); line-height:1.08; font-weight:900; text-transform:uppercase; color:#FFD166; margin:10px 0 4px; padding:10px 8px; overflow-wrap:anywhere; text-shadow:0 3px 10px rgba(0,0,0,.45); border-top:1px solid rgba(255,255,255,.16); border-bottom:1px solid rgba(255,255,255,.16); }
 .welcome-card p { font-size: 13px; color: #B5D4F4; margin: 15px 0 30px 0; line-height: 1.5; padding: 0 10px; }
 .btn-welcome-next { background: var(--accent); color: white; border: none; font-weight: 800; font-size: 15px; height: 50px; padding: 0 30px; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 159, 39, 0.4); width: 100%; justify-content: center; }
 
@@ -681,6 +682,7 @@ body.only-input-mode table { min-width: 500px !important; }
   <div class="welcome-card">
     <i class="ti ti-ball-baseball" style="font-size: 56px; color: var(--accent); display:block; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));"></i>
     <h1>Estadísticas</h1>
+    <div class="welcome-team-name" id="welcome-team-name">NOMBRE DE TU EQUIPO</div>
     <p>¿Qué deseas hacer hoy?</p>
     <div style="display:flex; flex-direction:column; gap:10px; width:100%; margin-top:4px;">
       <button class="btn-welcome-next" onclick="avanzarDesdeBienvenida('entrada')" style="background:var(--accent);">
@@ -1043,7 +1045,7 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '2.4';
+const APP_VERSION = '2.6';
 const CUENTA_PRINCIPAL_EMAIL = 'perversos@equipo.com';
 const VERSION_AISLAMIENTO_CUENTAS = 'cuentas-separadas-v1';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
@@ -1799,22 +1801,21 @@ const BAT_INP=['jj','vb','ca','ce','h1','h2','h3','h4','bb','so','sf'];
 const PICH_INP=['jg','jp','bb_p','so_p'];
 
 window.recuperarJugadoresEliminados = function() {
-  const clavesRoster = new Set(window.players.map(p => `${p.cod}_${p.nombre}`));
-  const codigosRoster = new Set(window.players.map(p => String(p.cod)));
+  const claveJugador = p => `${p.cod}_${String(p.nombre || '').trim().toUpperCase()}`;
+  const clavesRoster = new Set(window.players.map(claveJugador));
   let recuperados = 0;
 
   window.games.forEach(juego => {
     (juego.players || []).forEach(historico => {
-      const clave = `${historico.cod}_${historico.nombre}`;
-      /* Si el mismo código sigue en el roster con otro nombre, se considera
-         una edición del jugador y no se crea un duplicado archivado. */
-      if(clavesRoster.has(clave) || codigosRoster.has(String(historico.cod))) return;
+      const clave = claveJugador(historico);
+      /* Código y nombre juntos identifican al jugador. Aunque el número haya
+         sido reutilizado, el jugador histórico eliminado se puede archivar. */
+      if(clavesRoster.has(clave)) return;
       const archivado = { ...historico, activo: false, archivado: true, recuperadoDelHistorial: true };
       BAT_INP.forEach(f => archivado[f] = 0);
       PICH_INP.forEach(f => archivado[f] = 0);
       window.players.push(archivado);
       clavesRoster.add(clave);
-      codigosRoster.add(String(historico.cod));
       recuperados++;
     });
   });
@@ -1908,6 +1909,8 @@ window.toggleEditTeam = function() {
 window.updateTeamName = function(val) {
   const name = val.trim() || "NOMBRE DE TU EQUIPO";
   document.getElementById('topbar-team-name').textContent = name;
+  const welcomeName = document.getElementById('welcome-team-name');
+  if(welcomeName) welcomeName.textContent = name;
   document.getElementById('pdf-print-team-title').textContent = name;
   document.querySelectorAll('.print-team-name-label').forEach(el => { el.textContent = name; });
 }
@@ -2907,11 +2910,12 @@ window.renderAcum = function(){
 
   const mapBat = {}; const mapPich = {};
   const activeMap = {};
-  window.players.forEach(p => { activeMap[p.cod + '_' + p.nombre] = (p.activo !== false); });
+  const claveAcumulado = p => `${p.cod}_${String(p.nombre || '').trim().toUpperCase()}`;
+  window.players.forEach(p => { activeMap[claveAcumulado(p)] = (p.activo !== false); });
 
   src.forEach(g => {
     g.players.forEach(p => {
-      const k = p.cod + '_' + p.nombre;
+      const k = claveAcumulado(p);
       /* Solo excluye a quien esté marcado explícitamente como inactivo.
          Si el roster cambió de nombre/código, el partido guardado aún cuenta. */
       if(activeMap[k] === false) return;
