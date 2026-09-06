@@ -1043,7 +1043,7 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // Versión de la Aplicación
-const APP_VERSION = '2.3';
+const APP_VERSION = '2.4';
 const CUENTA_PRINCIPAL_EMAIL = 'perversos@equipo.com';
 const VERSION_AISLAMIENTO_CUENTAS = 'cuentas-separadas-v1';
 document.getElementById('app-version').textContent = 'v' + APP_VERSION;
@@ -1468,6 +1468,10 @@ function aplicarDatosNube(data) {
 }
 
 function refrescarPantallasConDatosNuevos() {
+  if(typeof window.recuperarJugadoresEliminados === 'function') {
+    const recuperados = window.recuperarJugadoresEliminados();
+    if(recuperados > 0) localDirty = true;
+  }
   window.buildTablesOnce();
   if(typeof window.renderPlayersManagement === 'function') window.renderPlayersManagement();
   if(typeof window.renderHistory === 'function') window.renderHistory();
@@ -1793,6 +1797,33 @@ window.reiniciarEstadoVisualCuenta = function() {
 
 const BAT_INP=['jj','vb','ca','ce','h1','h2','h3','h4','bb','so','sf'];
 const PICH_INP=['jg','jp','bb_p','so_p'];
+
+window.recuperarJugadoresEliminados = function() {
+  const clavesRoster = new Set(window.players.map(p => `${p.cod}_${p.nombre}`));
+  const codigosRoster = new Set(window.players.map(p => String(p.cod)));
+  let recuperados = 0;
+
+  window.games.forEach(juego => {
+    (juego.players || []).forEach(historico => {
+      const clave = `${historico.cod}_${historico.nombre}`;
+      /* Si el mismo código sigue en el roster con otro nombre, se considera
+         una edición del jugador y no se crea un duplicado archivado. */
+      if(clavesRoster.has(clave) || codigosRoster.has(String(historico.cod))) return;
+      const archivado = { ...historico, activo: false, archivado: true, recuperadoDelHistorial: true };
+      BAT_INP.forEach(f => archivado[f] = 0);
+      PICH_INP.forEach(f => archivado[f] = 0);
+      window.players.push(archivado);
+      clavesRoster.add(clave);
+      codigosRoster.add(String(historico.cod));
+      recuperados++;
+    });
+  });
+
+  if(recuperados > 0) {
+    localStorage.setItem('vip_players', JSON.stringify(window.players));
+  }
+  return recuperados;
+};
 
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date().toISOString().split('T')[0];
@@ -2563,22 +2594,44 @@ function renderPlayersManagement() {
   if(!container) return;
   container.innerHTML = '';
   if(!window.players.length) { container.innerHTML = '<div class="empty">El Roster está vacío. Registra integrantes arriba.</div>'; return; }
-  
-  window.players.forEach((p, index) => {
+
+  const jugadoresConIndice = window.players.map((p, index) => ({ p, index }));
+  const ordenarNombre = (a, b) => String(a.p.nombre || '').localeCompare(String(b.p.nombre || ''), 'es', { sensitivity:'base' });
+  const activos = jugadoresConIndice.filter(x => x.p.activo !== false).sort(ordenarNombre);
+  const desactivados = jugadoresConIndice.filter(x => x.p.activo === false).sort(ordenarNombre);
+
+  const agregarTitulo = (texto, cantidad, color) => {
+    const titulo = document.createElement('div');
+    titulo.style.cssText = `padding:9px 10px;background:${color};color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;`;
+    titulo.textContent = `${texto} (${cantidad})`;
+    container.appendChild(titulo);
+  };
+
+  const agregarJugador = ({ p, index }) => {
     const row = document.createElement('div');
     row.className = 'player-edit-row';
     let badgeClass = p.rol === 'Pitcher' ? 'pich' : (p.rol === 'Ambos' ? 'both' : 'bat');
     const activo = p.activo !== false;
     if(!activo) row.style.opacity = '0.55';
+    const estadoTexto = activo ? 'Activo' : (p.archivado ? 'Reactivar' : 'En pausa');
     row.innerHTML = `
       <div style="flex:0 0 35px; font-weight:800; color:var(--primary); text-align:center;">#${p.cod}</div>
       <div style="flex:1; font-weight:600; text-transform:uppercase; font-size:12px; overflow:hidden; text-overflow:ellipsis;">${p.nombre}</div>
       <span class="p-type-badge ${badgeClass}">${p.rol}</span>
-      <button class="btn ${activo ? 'btn-p' : 'btn-d'}" onclick="togglePlayerActivo(${index})" style="height:32px; padding:0 6px; margin-left:6px; font-size:10px; min-width:62px;"><i class="ti ${activo ? 'ti-player-pause' : 'ti-player-play'}"></i> ${activo ? 'Activo' : 'Pausa'}</button>
+      <button class="btn ${activo ? 'btn-p' : 'btn-d'}" onclick="togglePlayerActivo(${index})" style="height:32px; padding:0 6px; margin-left:6px; font-size:10px; min-width:68px;"><i class="ti ${activo ? 'ti-player-pause' : 'ti-player-play'}"></i> ${estadoTexto}</button>
       <button class="btn btn-p" onclick="startEditPlayer(${index})" style="height:32px; padding:0 8px; margin-left:6px; font-size:11px;"><i class="ti ti-edit"></i></button>
     `;
     container.appendChild(row);
-  });
+  };
+
+  if(activos.length) {
+    agregarTitulo('Roster activo', activos.length, '#0C447C');
+    activos.forEach(agregarJugador);
+  }
+  if(desactivados.length) {
+    agregarTitulo('Jugadores desactivados', desactivados.length, '#64748B');
+    desactivados.forEach(agregarJugador);
+  }
 }
 
 window.togglePlayerActivo = function(index) {
@@ -2586,11 +2639,13 @@ window.togglePlayerActivo = function(index) {
   if(!p) return;
   const wasActive = p.activo !== false;
   p.activo = !wasActive;
+  if(p.activo) p.archivado = false;
   localStorage.setItem('vip_players', JSON.stringify(window.players));
   if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
   renderPlayersManagement();
   window.buildTablesOnce();
-  showToast(p.activo ? `${p.nombre}: ACTIVO` : `${p.nombre}: EN PAUSA`);
+  if(typeof window.renderAcum === 'function') window.renderAcum();
+  showToast(p.activo ? `${p.nombre}: REACTIVADO` : `${p.nombre}: EN PAUSA`);
 }
 
 window.startEditPlayer = function(index) {
@@ -2602,7 +2657,7 @@ window.startEditPlayer = function(index) {
   document.getElementById('lbl-gestion-modo').textContent = "MODIFICAR INTEGRANTE";
   document.getElementById('btn-jugador-container').innerHTML = `
     <button class="btn btn-p" onclick="savePlayerUpdate()"><i class="ti ti-check"></i> OK</button>
-    <button class="btn btn-d" onclick="deletePlayerExplicit()"><i class="ti ti-trash"></i> Borrar</button>
+    <button class="btn btn-d" onclick="deletePlayerExplicit()"><i class="ti ti-archive"></i> Archivar</button>
   `;
 }
 
@@ -2631,12 +2686,18 @@ window.savePlayerUpdate = function() {
 window.deletePlayerExplicit = function() {
   const index = parseInt(document.getElementById('edit-index').value);
   if (isNaN(index) || index < 0) return;
-  if(confirm(`¿Eliminar a ${window.players[index].nombre}?`)) {
-    window.players.splice(index, 1);
+  const jugador = window.players[index];
+  if(confirm(`¿Desactivar y archivar a ${jugador.nombre}?\n\nNo aparecerá en Entrada ni en Acumulado, pero sus partidos seguirán guardados y podrás reactivarlo después.`)) {
+    jugador.activo = false;
+    jugador.archivado = true;
+    jugador.archivadoEn = Date.now();
     localStorage.setItem('vip_players', JSON.stringify(window.players));
     if(typeof window.enviarDatosLocalesANube === 'function') window.enviarDatosLocalesANube();
     window.cancelPlayerEdit(); 
     renderPlayersManagement();
+    window.buildTablesOnce();
+    if(typeof window.renderAcum === 'function') window.renderAcum();
+    showToast(`${jugador.nombre}: ARCHIVADO`);
   }
 }
 
